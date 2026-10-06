@@ -3764,6 +3764,15 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public bool IsGameRunning => _launcher.IsRunning;
 
+    private string _downloadSpeedText = "";
+
+    /// <summary>状态栏上的下载速度，形如 "3.2 MB/s · 剩余 12 秒"。</summary>
+    public string DownloadSpeedText
+    {
+        get => _downloadSpeedText;
+        private set { if (Set(ref _downloadSpeedText, value)) Raise(); }
+    }
+
     public bool IsBusy
     {
         get => _isBusy;

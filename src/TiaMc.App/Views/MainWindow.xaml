@@ -5,9 +5,10 @@
         xmlns:vm="clr-namespace:TiaMc.App.ViewModels"
         xmlns:controls="clr-namespace:TiaMc.App.Controls"
         Title="{Binding WindowTitle}"
+        ResizeMode="CanResize"
         Icon="{DynamicResource App.Icon}"
-        Height="880" Width="1480"
-        MinHeight="620" MinWidth="1080"
+        Height="720" Width="1100"
+        MinHeight="540" MinWidth="900"
         Background="{DynamicResource Tia.WindowBg}"
         Foreground="{DynamicResource Tia.Text}"
         FontFamily="Segoe UI" FontSize="12"
@@ -376,7 +377,7 @@
         <!-- ===================================================== workspace -->
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="290" MinWidth="200" />
+                <ColumnDefinition Width="235" MinWidth="170" MaxWidth="360" />
                 <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="*" MinWidth="380" />
                 <ColumnDefinition Width="4" />
@@ -714,7 +715,7 @@
                                 <Grid Grid.Row="2" Margin="0,6,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="320" />
+                                        <ColumnDefinition Width="290" MinWidth="220" MaxWidth="400" />
                                     </Grid.ColumnDefinitions>
 
                                     <ListBox Grid.Column="0" ItemsSource="{Binding DiagnosisHints}"
@@ -1427,7 +1428,7 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="420" />
+                                    <ColumnDefinition Width="330" MinWidth="250" MaxWidth="460" />
                                 </Grid.ColumnDefinitions>
 
                                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,10,0">
@@ -1562,7 +1563,7 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="420" />
+                                    <ColumnDefinition Width="330" MinWidth="250" MaxWidth="460" />
                                 </Grid.ColumnDefinitions>
 
                                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,10,0">

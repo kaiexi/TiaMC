@@ -57,6 +57,13 @@ public sealed class DownloadService
         var completed = 0;
         var sync = new object();
 
+        // 速度统计：每 800ms 用"这段时间新增字节 / 实际耗时"作为瞬时速度，
+        // 再和上一次的速度做一次平滑，避免数字乱跳。
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        var lastSampleMs = 0L;
+        var lastSampleBytes = 0L;
+        var smoothedSpeed = 0.0;
+
         var queue = new System.Collections.Concurrent.ConcurrentQueue<MissingFile>(files);
         var workers = Math.Clamp(Environment.ProcessorCount, 2, 8);
         var tasks = new List<Task>();
