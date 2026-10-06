@@ -304,6 +304,23 @@
                         </StackPanel>
                     </Button>
 
+                    <!-- 正版（微软）登录：放在功能区，任何页面都能一眼看到 -->
+                    <Border Background="{DynamicResource Tia.Border}" Width="1" Margin="7,4" />
+                    <Button Style="{StaticResource Tia.Button.Tool}" Command="{Binding AddMicrosoftAccountCommand}"
+                            ToolTip="微软（正版）账户登录：浏览器打开 microsoft.com/link 输入设备代码">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource Icon.Online}" Fill="{DynamicResource Tia.Brand}"
+                                  Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                            <TextBlock Text="Microsoft 正版登录" Margin="4,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Tia.Button.Tool}" Command="{Binding AddOfflineAccountCommand}"
+                            ToolTip="新建离线账户">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="新建离线账户" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
                     <!-- authentication server switch: starts/stops the Yggdrasil server -->
                     <Border Background="{DynamicResource Tia.Border}" Width="1" Margin="7,4" />
                     <TextBlock Text="认证服务端" Style="{StaticResource Tia.MutedText}"
