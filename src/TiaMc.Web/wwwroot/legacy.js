@@ -365,12 +365,56 @@ function showWslCommands() {
   });
 }
 
+function loadVmIe6() {
+  api("/api/vmie6", function (d) {
+    var vms = d.vms || [];
+    if (vms.length > 0) $("vm-path").value = d.configuredVm || vms[0].path;
+    if (d.guestUser) $("vm-user").value = d.guestUser;
+    setText("vm-status", "vmrun " + (d.vmrunFound ? "可用" : "不可用") + "；虚拟机 " + vms.length +
+      " 台，运行中 " + (d.running || 0) + " 台" + (d.hasPassword ? "；已保存密码" : "；未填密码"));
+  });
+}
+
+function saveVmSettings(done) {
+  post("/api/settings", {
+    vmPath: $("vm-path").value,
+    vmGuestUser: $("vm-user").value,
+    vmGuestPassword: $("vm-pass").value,
+    vmIe6Path: $("vm-ie").value
+  }, function (d) { if (done) done(d); });
+}
+
+function launchVmIe6() {
+  status("正在让 XP 客户机里的原版 IE6 打开本页…", "");
+  saveVmSettings(function () {
+    post("/api/vmie6/launch", { url: location.href }, function (d) {
+      status(d.ok ? "原版 IE6 已打开" : "失败", d.message || "");
+      setText("vm-note", esc(d.message || ""));
+      if (d.ok) $("vm-image").src = "/vm-screen.png?t=" + new Date().getTime();
+    });
+  });
+}
+
+function captureVmScreen() {
+  status("正在抓取客户机屏幕…", "");
+  saveVmSettings(function () {
+    post("/api/vmie6/screen", {}, function (d) {
+      status(d.ok ? "完成" : "失败", d.message || "");
+      setText("vm-note", esc(d.message || ""));
+      $("vm-image").src = "/vm-screen.png?t=" + new Date().getTime();
+    });
+  });
+}
+
 /* ------------------------------------------------------- 启动 */
 
 function boot() {
   refreshAll();
   loadIe6();
   loadBrowsers();
+  loadVmIe6();
+  if ($("vm-launch")) $("vm-launch").onclick = launchVmIe6;
+  if ($("vm-screen")) $("vm-screen").onclick = captureVmScreen;
   pollLogs();
   setInterval(pollLogs, 2000);
   setInterval(function () { if (!document.hidden) refreshAll(); }, 8000);

@@ -32,6 +32,7 @@ internal static class Program
     private static FlashService _flash = null!;
     private static Ie6EngineService _ie6 = null!;
     private static BrowserChannelService _browsers = null!;
+    private static VmIe6Service _vmIe6 = null!;
     private static string _wwwroot = "";
     private static readonly DateTime Started = DateTime.Now;
 
@@ -80,6 +81,7 @@ internal static class Program
             _flash = new FlashService();
             _ie6 = new Ie6EngineService();
             _browsers = new BrowserChannelService();
+            _vmIe6 = new VmIe6Service();
 
             LogService.Info("TiaMC-Web 启动中（浏览器 GUI 版）", "Web");
             var config = AppConfig.Load();
@@ -436,6 +438,10 @@ internal static class Program
             if (request.Has("javaPath")) config.JavaPath = request.Field("javaPath");
             if (request.Has("flashProjectorPath")) config.FlashProjectorPath = request.Field("flashProjectorPath");
             if (request.Has("ie6EnginePath")) config.Ie6EnginePath = request.Field("ie6EnginePath");
+            if (request.Has("vmPath")) config.VmPath = request.Field("vmPath");
+            if (request.Has("vmGuestUser")) config.VmGuestUser = request.Field("vmGuestUser");
+            if (request.Has("vmGuestPassword")) config.VmGuestPassword = request.Field("vmGuestPassword");
+            if (request.Has("vmIe6Path")) config.VmIe6Path = request.Field("vmIe6Path");
             var rootChanged = false;
             if (request.Field("minecraftRoot").Length > 0 &&
                 !string.Equals(config.MinecraftRoot, request.Field("minecraftRoot"), StringComparison.OrdinalIgnoreCase))
@@ -507,6 +513,25 @@ internal static class Program
             var result = _ie6.OpenEngineDirectory();
             return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message };
         });
+
+        // ---- 原版 IE6：驱动 XP 虚拟机（不用 WSL）----
+        server.MapJson("GET", "/api/vmie6", _ => _vmIe6.Status());
+        server.MapJson("POST", "/api/vmie6/launch", request =>
+        {
+            var url = request.Field("url");
+            if (url.Length == 0) url = $"http://127.0.0.1:{server.Port}/legacy";
+            var result = _vmIe6.Launch(url);
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message, ["detail"] = result.Detail };
+        });
+        server.MapJson("POST", "/api/vmie6/screen", _ =>
+        {
+            var result = _vmIe6.CaptureScreen();
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message, ["file"] = result.Detail };
+        });
+        server.Map("GET", "/vm-screen.png", _ =>
+            File.Exists(VmIe6Service.ScreenPath())
+                ? WebServer.File(VmIe6Service.ScreenPath(), "image/png")
+                : WebServer.Text("no screen", "text/plain", 404));
 
         // ---- 浏览器通道（世界之窗等 IE 外壳）----
         server.MapJson("GET", "/api/browsers", _ => _browsers.Status());
@@ -593,7 +618,8 @@ internal static class Program
         ["java"] = _launcher.JavaRuntimes.Count,
         ["remoteVersions"] = _launcher.RemoteManifest?.Versions.Count ?? 0,
         ["flash"] = _flash.Status(),
-        ["browserChannels"] = _browsers.Status()["channels"]
+        ["browserChannels"] = _browsers.Status()["channels"],
+        ["vmIe6"] = _vmIe6.Status()
     };
 
     private static JsonObject Settings() => new()
@@ -611,6 +637,10 @@ internal static class Program
         ["javaPath"] = _launcher.Config.JavaPath ?? "",
         ["isolateInstances"] = _launcher.Config.IsolateInstances,
         ["flashProjectorPath"] = _launcher.Config.FlashProjectorPath ?? "",
-        ["ie6EnginePath"] = _launcher.Config.Ie6EnginePath ?? ""
+        ["ie6EnginePath"] = _launcher.Config.Ie6EnginePath ?? "",
+        ["vmPath"] = _launcher.Config.VmPath ?? "",
+        ["vmGuestUser"] = _launcher.Config.VmGuestUser ?? "",
+        ["vmHasPassword"] = !string.IsNullOrEmpty(_launcher.Config.VmGuestPassword),
+        ["vmIe6Path"] = _launcher.Config.VmIe6Path ?? ""
     };
 }

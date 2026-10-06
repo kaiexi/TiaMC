@@ -81,6 +81,18 @@ public sealed class AppConfig
 
     /// <summary>外部真 IE6 引擎目录（含 iexplore.exe + mshtml.dll）；留空时自动扫描 ie6\ 目录。</summary>
     [JsonPropertyName("ie6EnginePath")] public string? Ie6EnginePath { get; set; }
+
+    /// <summary>XP 虚拟机 .vmx 路径（原版 IE6 通道）。</summary>
+    [JsonPropertyName("vmPath")] public string? VmPath { get; set; }
+
+    /// <summary>客户机用户名。</summary>
+    [JsonPropertyName("vmGuestUser")] public string? VmGuestUser { get; set; }
+
+    /// <summary>客户机密码（仅保存在本机 config.json；导出日志时会脱敏）。</summary>
+    [JsonPropertyName("vmGuestPassword")] public string? VmGuestPassword { get; set; }
+
+    /// <summary>客户机里的 IE 可执行文件路径（默认 XP 的 Program Files\\Internet Explorer\\IEXPLORE.EXE）。</summary>
+    [JsonPropertyName("vmIe6Path")] public string? VmIe6Path { get; set; }
     [JsonPropertyName("downloadSource")] public DownloadSource DownloadSource { get; set; } = DownloadSource.BmclApi;
     [JsonPropertyName("activeInstance")] public string? ActiveInstance { get; set; }
     [JsonPropertyName("autoCheckFiles")] public bool AutoCheckFiles { get; set; } = true;

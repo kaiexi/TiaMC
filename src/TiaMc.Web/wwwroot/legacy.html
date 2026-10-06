@@ -105,6 +105,22 @@
       </table>
     </fieldset>
     <fieldset class="xp-fieldset">
+      <legend>原版 IE6（跑在 XP 虚拟机里，不用 WSL）</legend>
+      <table class="form-table">
+        <tr><td>虚拟机 (.vmx)</td><td><input id="vm-path" size="70"></td><td class="gray" id="vm-status">检测中…</td></tr>
+        <tr><td>客户机用户名</td><td><input id="vm-user" size="20"> &nbsp;密码 <input id="vm-pass" type="password" size="20"></td>
+            <td class="gray">XP 的登录账号；只存在本机 config.json</td></tr>
+        <tr><td>客户机 IE6 路径</td><td><input id="vm-ie" size="70" value="C:\Program Files\Internet Explorer\IEXPLORE.EXE"></td>
+            <td class="gray">XP 默认位置</td></tr>
+      </table>
+      <div class="row">
+        <input type="button" class="xp primary" value="用原版 IE6 打开本页" id="vm-launch">
+        <input type="button" class="xp" value="抓取客户机屏幕" id="vm-screen">
+        <span class="gray" id="vm-note">—</span>
+      </div>
+      <div><img id="vm-image" src="/vm-screen.png" style="max-width:100%;border:1px solid #aca899" alt="XP 客户机屏幕"></div>
+    </fieldset>
+    <fieldset class="xp-fieldset">
       <legend>Flash（Ruffle / 投影播放器）</legend>
       <table class="xp-table">
         <tr>
