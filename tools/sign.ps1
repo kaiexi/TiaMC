@@ -1,4 +1,4 @@
-# 给 TiaMC 的发布包做代码签名（防杀软误杀 / 通过 SmartScreen）
+﻿# 给 TiaMC 的发布包做代码签名（防杀软误杀 / 通过 SmartScreen）
 #
 # 三种方式，按"最接近微软官方签名"排序：
 #
@@ -23,10 +23,61 @@ param(
     [string]$Thumbprint,
     [switch]$UseTrustedSigning,
     [string]$Metadata,
-    [string]$TimestampUrl = "http://timestamp.digicert.com"
+    [string]$TimestampUrl = "http://timestamp.digicert.com",
+    [switch]$SelfSignedDemo
 )
 
 $ErrorActionPreference = "Stop"
+
+# ---------------------------------------------------------------------------
+# 学习模式（-SelfSignedDemo）：不装 Windows SDK、也没有证书时，用 .NET 的签名 API
+# （Set-AuthenticodeSignature，底层与 signtool 相同）把流程跑通。
+#
+# 重要：自签名证书**不能**防杀软、也不能让 SmartScreen 信任（除非把证书装进
+# 受信任的根，那只是本机自欺欺人）。真实效果必须用 Azure Trusted Signing
+# 或 CA 签发的 OV/EV 证书。这里只为演示"签名 → 校验"这条链路。
+# ---------------------------------------------------------------------------
+if ($SelfSignedDemo) {
+    Write-Output "=== 学习模式：自签名证书（仅演示签名流程，不具备信任效果）==="
+
+    $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert -ErrorAction SilentlyContinue |
+        Where-Object { $_.Subject -like "*TiaMC-Learning*" } |
+        Select-Object -First 1
+
+    if (-not $cert) {
+        Write-Output "  创建自签名代码签名证书（TiaMC-Learning）…"
+        $cert = New-SelfSignedCertificate `
+            -Subject "CN=TiaMC-Learning" `
+            -Type CodeSigningCert `
+            -KeyUsage DigitalSignature `
+            -CertStoreLocation "Cert:\CurrentUser\My" `
+            -NotAfter (Get-Date).AddYears(1)
+    }
+    Write-Output ("  证书: " + $cert.Subject + "  指纹 " + $cert.Thumbprint)
+
+    $targets = Get-ChildItem -Path $Path -Recurse -Include *.exe, *.dll -File |
+        Where-Object { $_.Name -notmatch '^(api-ms-|ucrtbase|vcruntime)' }
+    Write-Output ("  待签文件: " + $targets.Count + " 个")
+
+    foreach ($file in $targets) {
+        $result = Set-AuthenticodeSignature -FilePath $file.FullName -Certificate $cert `
+            -HashAlgorithm SHA256 -TimestampServer $TimestampUrl -ErrorAction SilentlyContinue
+        if (-not $result) { $result = Set-AuthenticodeSignature -FilePath $file.FullName -Certificate $cert }
+    }
+
+    Write-Output ""
+    Write-Output "=== 校验结果 ==="
+    foreach ($file in $targets | Select-Object -First 5) {
+        $sig = Get-AuthenticodeSignature $file.FullName
+        Write-Output ("  " + $file.Name + "  →  " + $sig.Status + "  签名者: " +
+            $(if ($sig.SignerCertificate) { $sig.SignerCertificate.Subject } else { "无" }))
+    }
+    Write-Output ""
+    Write-Output "说明：Status 若是 UnknownError / NotTrusted，正是因为根证书不被信任——"
+    Write-Output "      杀软与 SmartScreen 看的就是这条信任链，所以自签名没有防误杀效果。"
+    Write-Output "      要真正生效：Azure Trusted Signing、或 CA 签发的 OV/EV 证书（见 docs/SIGNING.md）。"
+    exit 0
+}
 
 function Find-SignTool {
     $candidates = @(
@@ -42,7 +93,7 @@ function Find-SignTool {
 
 $signtool = Find-SignTool
 if (-not $signtool) {
-    Write-Error "找不到 signtool.exe。请安装 Windows SDK（含“签名工具”）后重试。"
+    Write-Error "找不到 signtool.exe。请安装 Windows SDK（含“签名工具”）后重试；或加 -SelfSignedDemo 跑学习模式。"
     exit 1
 }
 Write-Output "signtool: $signtool"
