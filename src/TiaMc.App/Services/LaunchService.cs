@@ -236,62 +236,20 @@ public sealed class LaunchService
     {
         var required = version.Json.JavaVersion?.MajorVersion ?? 8;
 
-        // 满足版本要求的运行时优先（包含 <root>\runtime 下自动补齐的 Java）
-        var matching = JavaDetector.Filter(JavaRuntimes, required).ToList();
-        if (matching.Count == 0)
-        {
-            // 自动补齐的 Java 可能是启动之后才装好的，重新扫一次再判断
-            DetectJava();
-            matching = JavaDetector.Filter(JavaRuntimes, required).ToList();
-        }
-
-        if (matching.Count == 0)
-        {
-            // 兜底：直接探测 <root>\runtime\java-* 下的 java.exe。
-            // 检测流程为了速度会跳过 probe，导致自动补齐的 Java 主版本识别不出来，
-            // 结果 1.21.4 这种要求 Java 21 的版本会被错误地用 Java 17 启动（秒退）。
-            var runtimeDir = Path.Combine(Paths.Root, "runtime");
-            if (Directory.Exists(runtimeDir))
-            {
-                foreach (var candidate in Directory.GetDirectories(runtimeDir, "java-*"))
-                {
-                    var exe = Path.Combine(candidate, "bin", "java.exe");
-                    if (!File.Exists(exe)) continue;
-                    if (JavaRuntimes.Any(j => string.Equals(j.Path, exe, StringComparison.OrdinalIgnoreCase))) continue;
-
-                    var probed = JavaDetector.Probe(exe);
-                    if (probed is null) continue;
-
-                    JavaRuntimes.Add(probed);
-                    LogService.Info($"探测到自动补齐的运行时: {probed.ShortDisplay}", "Java");
-                }
-
-                matching = JavaDetector.Filter(JavaRuntimes, required).ToList();
-            }
-        }
-
-        // 手动指定的 java.exe：只有它真的满足该版本要求时才优先使用，
-        // 否则会出现"装了 Java 21 却仍用 Java 17 启动 1.21.4"这种秒退。
         if (!string.IsNullOrWhiteSpace(Config.JavaPath) && File.Exists(Config.JavaPath))
         {
-            var manual = JavaRuntimes.FirstOrDefault(j =>
-                             string.Equals(j.Path, Config.JavaPath, StringComparison.OrdinalIgnoreCase))
-                         ?? JavaDetector.Probe(Config.JavaPath!);
-
-            if (manual is not null && manual.MajorVersion >= required)
+            var match = JavaRuntimes.FirstOrDefault(j =>
+                string.Equals(j.Path, Config.JavaPath, StringComparison.OrdinalIgnoreCase));
+            return match ?? new JavaInfo
             {
-                return manual;
-            }
-
-            if (manual is not null)
-            {
-                LogService.Warn(
-                    $"设置里指定的 Java {manual.MajorVersion} 低于 {version.Id} 需要的 Java {required}，" +
-                    $"改用 {matching.FirstOrDefault()?.ShortDisplay ?? "（没有可用的）"}", "Java");
-            }
+                Path = Config.JavaPath!,
+                MajorVersion = required,
+                FullVersion = "manual",
+                Source = "config"
+            };
         }
 
-        return matching.FirstOrDefault() ?? JavaRuntimes.FirstOrDefault();
+        return JavaDetector.Filter(JavaRuntimes, required).FirstOrDefault() ?? JavaRuntimes.FirstOrDefault();
     }
 
     public CheckResult CheckFiles(InstalledVersion version)
@@ -521,9 +479,6 @@ public sealed class LaunchService
                 if (_gameLog.Count > TiaMc.Core.Diagnostics.CrashAnalyzer.MaxLogLines) _gameLog.RemoveAt(0);
             }
 
-            // 客户端自己的控制台输出也写进统一日志：Web GUI 的「日志」页与日志导出
-            // 因此能直接看到游戏输出，和桌面版控制台看到的是同一份内容。
-            LogService.Game(line);
             GameOutput?.Invoke(line);
         };
 

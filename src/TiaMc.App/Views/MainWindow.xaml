@@ -304,16 +304,6 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Web 界面：把 Web 版（浏览器窗口 + 本地 HTTP 服务）当作启动器拉起来 -->
-                    <Button Style="{StaticResource Tia.Button.Tool}" Click="OpenWebUi_Click"
-                            ToolTip="打开 Web 界面（TiaMC-Web.exe：浏览器窗口里操作同一套内核）">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource Icon.Online}" Fill="{DynamicResource Tia.Run}"
-                                  Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
-                            <TextBlock Text="Web 界面" Margin="4,0,0,0" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-
                     <!-- authentication server switch: starts/stops the Yggdrasil server -->
                     <Border Background="{DynamicResource Tia.Border}" Width="1" Margin="7,4" />
                     <TextBlock Text="认证服务端" Style="{StaticResource Tia.MutedText}"

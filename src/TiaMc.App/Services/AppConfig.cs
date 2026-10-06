@@ -1,5 +1,4 @@
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TiaMc.Core.Integrity;
@@ -76,30 +75,6 @@ public sealed class AppConfig
     [JsonPropertyName("extraClasspath")] public string ExtraClasspath { get; set; } = "";
     [JsonPropertyName("environmentVariables")] public string EnvironmentVariables { get; set; } = "";
     [JsonPropertyName("javaAgentPath")] public string JavaAgentPath { get; set; } = "";
-
-    /// <summary>Standalone Flash projector (flashplayer_*.exe) used for real SWF content.</summary>
-    [JsonPropertyName("flashProjectorPath")] public string? FlashProjectorPath { get; set; }
-
-    /// <summary>外部真 IE6 引擎目录（含 iexplore.exe + mshtml.dll）；留空时自动扫描 ie6\ 目录。</summary>
-    [JsonPropertyName("ie6EnginePath")] public string? Ie6EnginePath { get; set; }
-
-    /// <summary>XP 虚拟机 .vmx 路径（原版 IE6 通道）。</summary>
-    [JsonPropertyName("vmPath")] public string? VmPath { get; set; }
-
-    /// <summary>miniblink（开源 Blink 内核，Apache-2.0）所在目录。</summary>
-    [JsonPropertyName("miniblinkPath")] public string? MiniblinkPath { get; set; }
-
-    /// <summary>启动时直接进入 Web 界面（Web 版作为启动器）。</summary>
-    [JsonPropertyName("webUiFirst")] public bool WebUiFirst { get; set; }
-
-    /// <summary>客户机用户名。</summary>
-    [JsonPropertyName("vmGuestUser")] public string? VmGuestUser { get; set; }
-
-    /// <summary>客户机密码（仅保存在本机 config.json；导出日志时会脱敏）。</summary>
-    [JsonPropertyName("vmGuestPassword")] public string? VmGuestPassword { get; set; }
-
-    /// <summary>客户机里的 IE 可执行文件路径（默认 XP 的 Program Files\\Internet Explorer\\IEXPLORE.EXE）。</summary>
-    [JsonPropertyName("vmIe6Path")] public string? VmIe6Path { get; set; }
     [JsonPropertyName("downloadSource")] public DownloadSource DownloadSource { get; set; } = DownloadSource.BmclApi;
     [JsonPropertyName("activeInstance")] public string? ActiveInstance { get; set; }
     [JsonPropertyName("autoCheckFiles")] public bool AutoCheckFiles { get; set; } = true;
@@ -142,27 +117,6 @@ public sealed class AppConfig
 
     private static string? _configDirectory;
 
-    /// <summary>
-    /// Forces the configuration folder (portable mode / --config &lt;dir&gt;). Must be called
-    /// before anything reads ConfigDirectory; the folder is created when possible.
-    /// </summary>
-    public static bool UseConfigDirectory(string directory)
-    {
-        if (string.IsNullOrWhiteSpace(directory)) return false;
-        try
-        {
-            Directory.CreateDirectory(directory);
-            var probe = Path.Combine(directory, ".write-probe");
-            File.WriteAllText(probe, "ok");
-            File.Delete(probe);
-            _configDirectory = directory;
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
     /// <summary>Folder that holds config.json, accounts.json and the log files.</summary>
     public static string ConfigDirectory
     {
@@ -238,26 +192,13 @@ public sealed class AppConfig
 
         // Portable mode is on by default: the game folder lives next to the
         // executable so a fresh copy of the launcher never touches %APPDATA%.
-        // 但如果程序目录下那个便携根目录其实是空的（没有任何版本），而配置里已经指向了
-        // 一个真的有版本的目录，就不要把用户的目录覆盖成空的——否则界面会显示"实例 0 个"。
+        // The folder structure is created right away, because otherwise the path
+        // would not exist yet and the default detection would fall back to
+        // %APPDATA%\.minecraft.
         if (config.PortableRoot)
         {
-            var portable = MinecraftFinder.PortableRoot;
-            var portableHasVersions = Directory.Exists(Path.Combine(portable, "versions")) &&
-                                      Directory.EnumerateDirectories(Path.Combine(portable, "versions")).Any();
-            var configuredHasVersions = !string.IsNullOrWhiteSpace(config.MinecraftRoot) &&
-                                        Directory.Exists(Path.Combine(config.MinecraftRoot!, "versions")) &&
-                                        Directory.EnumerateDirectories(Path.Combine(config.MinecraftRoot!, "versions")).Any();
-
-            if (!portableHasVersions && configuredHasVersions)
-            {
-                LogService.Info($"便携根目录为空，沿用配置里的 Minecraft 目录: {config.MinecraftRoot}", "Portable");
-            }
-            else
-            {
-                config.MinecraftRoot = MinecraftFinder.CreatePortableRoot(
-                    message => LogService.Info(message, "Portable"));
-            }
+            config.MinecraftRoot = MinecraftFinder.CreatePortableRoot(
+                message => LogService.Info(message, "Portable"));
         }
         else if (string.IsNullOrWhiteSpace(config.MinecraftRoot))
         {

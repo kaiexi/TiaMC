@@ -209,15 +209,6 @@ public static class LogService
     /// <summary>Records a user action (audit trail).</summary>
     public static void User(string message, string source = "用户") => Write(LogLevel.Action, message, source);
 
-    /// <summary>进程内日志条目的快照（Web 端轮询用）。</summary>
-    public static List<LogEntry> Snapshot()
-    {
-        lock (Gate)
-        {
-            return Entries.ToList();
-        }
-    }
-
     public static string Dump()
     {
         var builder = new StringBuilder();

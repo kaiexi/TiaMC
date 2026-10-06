@@ -3,6 +3,5 @@
     <Project Path="src/TiaMc.App/TiaMc.App.csproj" />
     <Project Path="src/TiaMc.Cli/TiaMc.Cli.csproj" />
     <Project Path="src/TiaMc.Core/TiaMc.Core.csproj" />
-    <Project Path="src/TiaMc.Web/TiaMc.Web.csproj" />
   </Folder>
 </Solution>
