@@ -2809,7 +2809,10 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     private bool _isModBusy;
 
-    public string WindowTitle => $"{AppInfo.LauncherTitle}  -  {AppInfo.LauncherName} {AppInfo.Version}";
+    /// <summary>界面上的版本徽标，例如 "v1.0.8"。</summary>
+    public string VersionBadge => "v" + TiaMc.Core.Utils.AppInfo.Version;
+
+    public string WindowTitle => TiaMc.Core.Utils.AppInfo.TitleWithVersion;   // 例：TIA-MC 工程启动器 v1.0.9
 
     public string RootPath => _launcher.Paths.Root;
 

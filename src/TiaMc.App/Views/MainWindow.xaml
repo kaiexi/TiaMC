@@ -352,6 +352,13 @@
                                VerticalAlignment="Center" Margin="10,0,0,0" />
                     <TextBlock Text="{Binding MemoryText}" Style="{StaticResource Tia.MutedText}"
                                VerticalAlignment="Center" Margin="10,0,0,0" />
+                    <!-- 版本号放在功能区显眼处，一眼就能确认在跑哪一版 -->
+                    <Border Background="{DynamicResource Tia.Brand}" CornerRadius="3" Padding="7,1"
+                            VerticalAlignment="Center" Margin="10,0,0,0"
+                            ToolTip="启动器版本（反馈问题时请带上这个号）">
+                        <TextBlock Text="{Binding VersionBadge}" Foreground="White" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                    </Border>
                 </StackPanel>
 
                 <Border Grid.Column="7" Width="1" Background="{DynamicResource Tia.Border}" Margin="5,2" />
