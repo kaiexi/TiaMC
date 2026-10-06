@@ -640,6 +640,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<string> ResourceKinds { get; } = ["模组", "整合包", "资源包", "光影"];
     public ObservableCollection<string> ResourceGameVersions { get; } = [];
+
+    /// <summary>游戏版本筛选项里的"不限"（选中后不按版本过滤）。</summary>
+    public const string UnlimitedResourceGameVersion = "不限";
     public ObservableCollection<string> ResourceLoaders { get; } = ["（不限）", "fabric", "forge", "neoforge", "quilt"];
     public ObservableCollection<ResourceHitVm> ResourceHits { get; } = [];
     public ObservableCollection<ResourceFile> ResourceFiles { get; } = [];
@@ -803,7 +806,10 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         {
             var kind = CurrentResourceKind;
             var loader = _resourceLoader is "（不限）" or "" ? null : _resourceLoader;
-            var hits = await ResourceSvc.SearchAsync(kind, ResourceQuery, _resourceGameVersion, loader, 40)
+            var gameVersionFilter = _resourceGameVersion is null or "" or UnlimitedResourceGameVersion
+                ? null
+                : _resourceGameVersion;
+            var hits = await ResourceSvc.SearchAsync(kind, ResourceQuery, gameVersionFilter, loader, 40)
                 .ConfigureAwait(false);
 
             Ui.Post(() =>
