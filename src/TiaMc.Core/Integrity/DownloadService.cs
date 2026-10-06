@@ -57,6 +57,14 @@ public sealed class DownloadService
         return true;
     }
 
+    private static async Task<string> Sha256Async(string path, CancellationToken token)
+    {
+        using var stream = File.OpenRead(path);
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var hash = await sha256.ComputeHashAsync(stream, token).ConfigureAwait(false);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
     private static async Task<string> Sha1Async(string path, CancellationToken token)
     {
         using var stream = File.OpenRead(path);

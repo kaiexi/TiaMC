@@ -1636,6 +1636,54 @@
                         </Border>
                     </Grid>
                 </TabItem>
+                    <!-- ============ 服务端核心（PaperMC Fill API） -->
+                    <TabItem Header="服务端核心" Style="{StaticResource Tia.TabItem}">
+                        <Grid Background="{DynamicResource Tia.PanelBg}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0" Style="{StaticResource Tia.Toolbar}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource Tia.Button.Tool}" Content="获取项目与版本"
+                                            Command="{Binding LoadServerCoresCommand}" />
+                                    <TextBlock Text="项目" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" Margin="10,0,4,0" />
+                                    <ComboBox Width="130" VerticalAlignment="Center"
+                                              ItemsSource="{Binding ServerCoreProjects}"
+                                              SelectedItem="{Binding SelectedServerCoreProject, Mode=TwoWay}" />
+                                    <TextBlock Text="版本" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" Margin="10,0,4,0" />
+                                    <ComboBox Width="130" IsEditable="True" VerticalAlignment="Center"
+                                              ItemsSource="{Binding ServerCoreVersions}"
+                                              Text="{Binding SelectedServerCoreVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Button Style="{StaticResource Tia.Button.Tool}" Content="获取构建"
+                                            Command="{Binding LoadServerCoreBuildsCommand}" Margin="10,0,0,0" />
+                                    <Button Style="{StaticResource Tia.Button.Primary}" Content="下载选中核心"
+                                            Command="{Binding DownloadServerCoreCommand}" Margin="10,0,0,0"
+                                            ToolTip="用多线程分段下载器下载并按 sha256 校验，保存到 &lt;MC&gt;\server-cores\" />
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Grid.Row="1" Text="{Binding ServerCoreStatus}"
+                                       Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap" Margin="12,8,12,4" />
+
+                            <DataGrid Grid.Row="2" ItemsSource="{Binding ServerCoreBuilds}"
+                                      SelectedItem="{Binding SelectedServerCoreBuild, Mode=TwoWay}"
+                                      AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column"
+                                      RowHeight="22" BorderThickness="0" Margin="10,0,10,10"
+                                      Background="{DynamicResource Tia.PanelBg}"
+                                      RowBackground="{DynamicResource Tia.ContentBg}"
+                                      AlternatingRowBackground="{DynamicResource Tia.RowAlt}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="构建" Binding="{Binding BuildId}" Width="70" />
+                                    <DataGridTextColumn Header="通道" Binding="{Binding Channel}" Width="90" />
+                                    <DataGridTextColumn Header="文件名" Binding="{Binding FileName}" Width="*" />
+                                    <DataGridTextColumn Header="大小" Binding="{Binding Size, StringFormat={}{0:N0} B}" Width="120" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </TabItem>
             </TabControl>
 
             <GridSplitter Grid.Row="1" Grid.RowSpan="3" Grid.Column="3" Style="{StaticResource Tia.Splitter}"

@@ -16,6 +16,9 @@ public sealed class MissingFile
     public required string Url { get; init; }
     public long Size { get; init; }
     public string? Sha1 { get; init; }
+
+    /// <summary>可选的 SHA-256（PaperMC Fill 等源提供，下载后一并校验）。</summary>
+    public string? Sha256 { get; init; }
     public string Display => $"{Kind}: {TextUtil.Shorten(Path, 120)}";
 }
 

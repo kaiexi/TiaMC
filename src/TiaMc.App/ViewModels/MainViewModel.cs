@@ -144,6 +144,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         DeleteModpackCommand = new RelayCommand(DeleteSelectedModpack);
         SelectSkinCommand = new RelayCommand(p => SelectedSkin = p as string ?? "");
         UploadSkinCommand = new AsyncRelayCommand(UploadSkinToGameAsync);
+        LoadServerCoresCommand = new AsyncRelayCommand(LoadServerCoresAsync);
+        LoadServerCoreBuildsCommand = new AsyncRelayCommand(LoadServerCoreBuildsAsync);
+        DownloadServerCoreCommand = new AsyncRelayCommand(DownloadServerCoreAsync);
         // 删除本地版本（删除 versions/<id> 整个目录，共享的存档/模组不动）
         DeleteVersionCommand = new RelayCommand(DeleteSelectedVersion,
             () => SelectedVersion is not null && !_launcher.IsRunning);
@@ -3962,6 +3965,120 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         // 离线 / 外置登录：皮肤由启动器的认证服务端 + authlib-injector 下发给游戏
         PushSkinToServer();
         LogService.Info("离线账户：皮肤已交给内置认证服务端；启动游戏时会自动挂 authlib-injector，进游戏即为此皮肤", "皮肤");
+    }
+
+    // ------------------------------------------------------------ 服务端核心（PaperMC Fill API）
+    private readonly TiaMc.Core.Servers.ServerCoreCatalog _coreCatalog = new();
+
+    public ObservableCollection<string> ServerCoreProjects { get; } = [];
+    public ObservableCollection<string> ServerCoreVersions { get; } = [];
+    public ObservableCollection<TiaMc.Core.Servers.ServerCoreBuild> ServerCoreBuilds { get; } = [];
+
+    private string _selectedServerCoreProject = "paper";
+    public string SelectedServerCoreProject
+    {
+        get => _selectedServerCoreProject;
+        set { if (Set(ref _selectedServerCoreProject, value)) Raise(); }
+    }
+
+    private string _selectedServerCoreVersion = "";
+    public string SelectedServerCoreVersion
+    {
+        get => _selectedServerCoreVersion;
+        set { if (Set(ref _selectedServerCoreVersion, value)) Raise(); }
+    }
+
+    private TiaMc.Core.Servers.ServerCoreBuild? _selectedServerCoreBuild;
+    public TiaMc.Core.Servers.ServerCoreBuild? SelectedServerCoreBuild
+    {
+        get => _selectedServerCoreBuild;
+        set { if (Set(ref _selectedServerCoreBuild, value)) Raise(); }
+    }
+
+    private string _serverCoreStatus = "服务端核心来源：PaperMC Fill API（v2 已下线）。选好项目与版本后点「获取构建」。";
+    public string ServerCoreStatus
+    {
+        get => _serverCoreStatus;
+        private set { if (Set(ref _serverCoreStatus, value)) Raise(); }
+    }
+
+    public AsyncRelayCommand LoadServerCoresCommand { get; private set; } = null!;
+    public AsyncRelayCommand LoadServerCoreBuildsCommand { get; private set; } = null!;
+    public AsyncRelayCommand DownloadServerCoreCommand { get; private set; } = null!;
+
+    private async Task LoadServerCoresAsync()
+    {
+        var projects = await _coreCatalog.GetProjectsAsync().ConfigureAwait(false);
+        var versions = await _coreCatalog.GetVersionsAsync(SelectedServerCoreProject).ConfigureAwait(false);
+
+        Ui.Post(() =>
+        {
+            ServerCoreProjects.Clear();
+            foreach (var p in projects) ServerCoreProjects.Add(p.Id);
+            if (ServerCoreProjects.Count > 0 && !ServerCoreProjects.Contains(SelectedServerCoreProject))
+            {
+                SelectedServerCoreProject = ServerCoreProjects[0];
+            }
+
+            ServerCoreVersions.Clear();
+            foreach (var ver in versions) ServerCoreVersions.Add(ver);
+            if (ServerCoreVersions.Count > 0) SelectedServerCoreVersion = ServerCoreVersions[0];
+
+            ServerCoreStatus = projects.Count == 0
+                ? "获取失败：检查网络（Fill API 不通）"
+                : $"可用项目 {projects.Count} 个；{SelectedServerCoreProject} 有 {versions.Count} 个版本";
+        });
+    }
+
+    private async Task LoadServerCoreBuildsAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedServerCoreVersion)) return;
+        ServerCoreStatus = "正在获取构建…";
+        var builds = await _coreCatalog.GetBuildsAsync(SelectedServerCoreProject, SelectedServerCoreVersion)
+            .ConfigureAwait(false);
+
+        Ui.Post(() =>
+        {
+            ServerCoreBuilds.Clear();
+            foreach (var b in builds) ServerCoreBuilds.Add(b);
+            SelectedServerCoreBuild = ServerCoreBuilds.FirstOrDefault();
+            ServerCoreStatus = builds.Count == 0
+                ? "这个版本没有可用构建（或网络失败）"
+                : $"{SelectedServerCoreProject} {SelectedServerCoreVersion}：{builds.Count} 个构建，最新 #{ServerCoreBuilds.FirstOrDefault()?.BuildId}";
+        });
+    }
+
+    private async Task DownloadServerCoreAsync()
+    {
+        var build = SelectedServerCoreBuild;
+        if (build is null) { ServerCoreStatus = "先获取并选中一个构建"; return; }
+
+        var folder = Path.Combine(RootPath, "server-cores");
+        Directory.CreateDirectory(folder);
+        var target = Path.Combine(folder, build.FileName);
+
+        ServerCoreStatus = $"正在下载 {build.FileName}（{TiaMc.Core.Utils.TextUtil.FormatBytes(build.Size)}，{DownloadThreads} 线程）…";
+        var file = new TiaMc.Core.Integrity.MissingFile
+        {
+            Kind = "server-core", Path = target, Url = build.Url, Size = build.Size, Sha256 = build.Sha256
+        };
+
+        var outcome = await new TiaMc.Core.Integrity.DownloadService()
+            .DownloadMissingAsync(new[] { file }, Config.DownloadSource, null, message => LogService.Info(message, "服务端"),
+                CancellationToken.None, DownloadThreads)
+            .ConfigureAwait(false);
+
+        if (outcome.Ok)
+        {
+            ServerCoreStatus = $"已下载到 {target}（sha256 已校验）";
+            LogService.Ok($"服务端核心已下载: {target}", "服务端");
+            OpenGameFolderCommand.Execute(null);
+        }
+        else
+        {
+            ServerCoreStatus = $"下载失败（{outcome.Failed} 个文件）";
+            LogService.Error("服务端核心下载失败", "服务端");
+        }
     }
 
     public bool IsBusy
