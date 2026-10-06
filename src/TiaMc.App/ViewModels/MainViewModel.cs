@@ -1329,7 +1329,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
                 if (result.Ok && result.Texture is not null)
                 {
                     Skin3DTexture = result.Texture;
-                    Skin3DStatus = "预览已加载：" + result.Message;
+                    Skin3DStatus = result.Message.Contains("回退") || result.Message.Contains("本地")
+                        ? "预览已加载：" + result.Message
+                        : "预览已加载：" + result.Message;
                     _ = RefreshSkin3DRenderAsync();
                     LogService.Ok("皮肤预览: " + result.Message, "Skin");
 

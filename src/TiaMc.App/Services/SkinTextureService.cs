@@ -139,13 +139,22 @@ public static class SkinTextureService
             return new TextureResult(true, $"{account.Name} 的皮肤（{new Uri(url).Host}）", texture, url);
         }
 
+        // 正版皮肤取不到时的兜底顺序（这就是"正版失败自动变成本地"）：
+        //   1) 该账户自己的本地皮肤文件；
+        //   2) 启动器本地缓存里最新的一张皮肤（config\skins\*.png，例如之前用模板生成/皮肤站下载过的）。
         if (account.HasLocalSkin)
         {
             var local = FromFile(account.SkinPath!);
-            if (local is not null) return new TextureResult(true, $"{account.Name} 的本地皮肤", local, account.SkinPath!);
+            if (local is not null) return new TextureResult(true, $"{account.Name} 的本地皮肤（正版取不到，已回退）", local, account.SkinPath!);
         }
 
-        return new TextureResult(false, "没有取到皮肤（正版账户没设置皮肤？或网络受限）", null, "");
+        var newest = TryNewestLocalSkin();
+        if (newest is not null)
+        {
+            return new TextureResult(true, "已回退到本地缓存皮肤（正版皮肤获取失败）", newest, "");
+        }
+
+        return new TextureResult(false, "没有取到皮肤（正版账户没设置皮肤？或网络受限，且本地也没有可用皮肤）", null, "");
     }
 
     /// <summary>
@@ -240,6 +249,38 @@ public static class SkinTextureService
         {
             return null;
         }
+    }
+
+    /// <summary>启动器本地皮肤缓存里最新的一张（config\skins\*.png）。</summary>
+    public static BitmapSource? TryNewestLocalSkin()
+    {
+        try
+        {
+            // 两个地方都找：cache\skins 是"从皮肤站/正版下载"的，
+            // skins 是启动器自己生成/指定给账户的（例如 config\skins\microsoft<name>.png）。
+            var candidates = new List<FileInfo>();
+            var configSkins = Path.Combine(AppConfig.ConfigDirectory, "skins");   // 启动器自己生成/指定的皮肤
+            foreach (var path in new[] { AppPaths.SkinCacheDirectory, configSkins })
+            {
+                var dir = new DirectoryInfo(path);
+                if (dir.Exists) candidates.AddRange(dir.GetFiles("*.png"));
+            }
+
+            foreach (var file in candidates.OrderByDescending(f => f.LastWriteTimeUtc).Take(8))
+            {
+                var image = FromFile(file.FullName);
+                if (image is not null && image.PixelWidth >= 64 && image.PixelHeight >= 32)
+                {
+                    return image;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // 兜底失败不影响主流程
+        }
+
+        return null;
     }
 
     private static string CachedPath(string url)
