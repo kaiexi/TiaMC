@@ -335,7 +335,7 @@ public sealed class LaunchService
         SetState(LauncherState.Downloading, $"正在补全 {files.Count} 个文件...");
         var service = new DownloadService();
         var outcome = await service.DownloadMissingAsync(files, Config.DownloadSource, progress,
-            message => LogService.Info(message, "Download"), token);
+            message => LogService.Info(message, "Download"), token, threads: Config.DownloadThreads);
 
         if (outcome.Ok)
         {
@@ -381,7 +381,7 @@ public sealed class LaunchService
                 $"({TiaMc.Core.Utils.TextUtil.FormatBytes(check.MissingBytes)})");
 
             var outcome = await downloader.DownloadMissingAsync(check.Missing, Config.DownloadSource, progress,
-                message => LogService.Info(message, "Download"), token);
+                message => LogService.Info(message, "Download"), token, threads: Config.DownloadThreads);
 
             if (!outcome.Ok)
             {

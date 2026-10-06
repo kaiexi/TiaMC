@@ -3798,6 +3798,24 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>下载线程数选项（单文件分段并发；NeatDM 式）。</summary>
+    public ObservableCollection<int> DownloadThreadOptions { get; } = [1, 4, 8, 16, 32];
+
+    /// <summary>下载线程数：越大越快，但也会给服务器更多连接（默认 8）。</summary>
+    public int DownloadThreads
+    {
+        get => Math.Clamp(Config.DownloadThreads, 1, 32);
+        set
+        {
+            var clamped = Math.Clamp(value, 1, 32);
+            if (Config.DownloadThreads == clamped) return;
+            Config.DownloadThreads = clamped;
+            Config.Save();
+            Raise();
+            LogService.Info($"下载线程数已设为 {clamped}", "下载");
+        }
+    }
+
     public bool UseBmclApi
     {
         get => Config.DownloadSource == DownloadSource.BmclApi;

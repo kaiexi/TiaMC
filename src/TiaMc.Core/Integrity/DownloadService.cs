@@ -41,12 +41,128 @@ public sealed class DownloadService
         _http = http ?? Net.Http.Client;
     }
 
+    /// <summary>下载完成后校验：有 SHA-1 就比对 SHA-1，另外比对声明的大小。</summary>
+    private static async Task<bool> VerifyAsync(string path, MissingFile file, CancellationToken token)
+    {
+        if (!File.Exists(path)) return false;
+
+        if (file.Size > 0 && new FileInfo(path).Length != file.Size) return false;
+
+        if (!string.IsNullOrWhiteSpace(file.Sha1))
+        {
+            var actual = await Sha1Async(path, token).ConfigureAwait(false);
+            if (!string.Equals(actual, file.Sha1, StringComparison.OrdinalIgnoreCase)) return false;
+        }
+
+        return true;
+    }
+
+    private static async Task<string> Sha1Async(string path, CancellationToken token)
+    {
+        using var stream = File.OpenRead(path);
+        using var sha1 = System.Security.Cryptography.SHA1.Create();
+        var hash = await sha1.ComputeHashAsync(stream, token).ConfigureAwait(false);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+    /// <summary>分段阈值：小于它就没必要多连接（握手开销比省下的时间还大）。</summary>
+    private const long SegmentThresholdBytes = 2L * 1024 * 1024;
+
+    /// <summary>
+    /// 单文件下载：小文件或服务端不支持 Range 时走单连接；否则按 threads 切成多段并发下载后合并。
+    /// （这就是 NeatDM 那类多线程下载器的基本做法：Range 分段 + 并发 + 合并。）
+    /// </summary>
+    private async Task DownloadSegmentedAsync(string url, string temp, long expectedSize, int threads,
+        CancellationToken token)
+    {
+        if (threads <= 1 || (expectedSize > 0 && expectedSize < SegmentThresholdBytes))
+        {
+            await DownloadWholeAsync(url, temp, token).ConfigureAwait(false);
+            return;
+        }
+
+        long length = expectedSize;
+        var supportsRanges = false;
+        try
+        {
+            using var probe = new HttpRequestMessage(HttpMethod.Get, url);
+            probe.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(0, 0);
+            using var response = await _http.SendAsync(probe, HttpCompletionOption.ResponseHeadersRead, token)
+                .ConfigureAwait(false);
+            if (response.StatusCode == System.Net.HttpStatusCode.PartialContent)
+            {
+                supportsRanges = true;
+                if (response.Content.Headers.ContentRange?.Length is { } total) length = total;
+            }
+        }
+        catch (Exception)
+        {
+            // 探测失败就退回单连接
+        }
+
+        if (!supportsRanges || length <= 0 || length < SegmentThresholdBytes)
+        {
+            await DownloadWholeAsync(url, temp, token).ConfigureAwait(false);
+            return;
+        }
+
+        var parts = (int)Math.Clamp(threads, 2, 32);
+        var chunk = length / parts;
+        var tasks = new List<Task>();
+
+        for (var i = 0; i < parts; i++)
+        {
+            var index = i;
+            tasks.Add(Task.Run(async () =>
+            {
+                var from = index * chunk;
+                var to = index == parts - 1 ? length - 1 : from + chunk - 1;
+                var partPath = $"{temp}.part{index}";
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(from, to);
+                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
+                    .ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+
+                await using var stream = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+                await using var part = File.Create(partPath);
+                await stream.CopyToAsync(part, 81920, token).ConfigureAwait(false);
+            }, token));
+        }
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        await using (var output = File.Create(temp))
+        {
+            for (var i = 0; i < parts; i++)
+            {
+                var partPath = $"{temp}.part{i}";
+                await using (var input = File.OpenRead(partPath))
+                {
+                    await input.CopyToAsync(output, 819200, token).ConfigureAwait(false);
+                }
+
+                try { File.Delete(partPath); } catch (Exception) { }
+            }
+        }
+    }
+
+    /// <summary>普通单连接下载。</summary>
+    private async Task DownloadWholeAsync(string url, string temp, CancellationToken token)
+    {
+        using var response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token)
+            .ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        await using var source = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+        await using var target = File.Create(temp);
+        await source.CopyToAsync(target, 81920, token).ConfigureAwait(false);
+    }
     public async Task<DownloadOutcome> DownloadMissingAsync(
         IReadOnlyList<MissingFile> files,
         DownloadSource source,
         IProgress<DownloadProgress>? progress = null,
         Action<string>? log = null,
-        CancellationToken token = default)
+        CancellationToken token = default, int threads = 8)
     {
         var succeeded = 0;
         var failed = 0;
@@ -94,21 +210,22 @@ public sealed class DownloadService
                             var url = urls[index];
                             try
                             {
-                                var temp = file.Path + ".tiamc-download";
+                                  var temp = file.Path + ".tiamc-download";
 
-                                using (var response = await _http
-                                           .GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token)
-                                           .ConfigureAwait(false))
-                                {
-                                    response.EnsureSuccessStatusCode();
-                                    await using var source1 = await response.Content.ReadAsStreamAsync(token)
-                                        .ConfigureAwait(false);
-                                    await using var target = File.Create(temp);
-                                    await source1.CopyToAsync(target, 81920, token).ConfigureAwait(false);
-                                }
+                                  // NeatDM 式加速：大文件按设定线程数分段并发下载后合并
+                                  await DownloadSegmentedAsync(url, temp, file.Size, threads, token).ConfigureAwait(false);
 
-                                if (File.Exists(file.Path)) File.Delete(file.Path);
-                                File.Move(temp, file.Path);
+                                  // 防损坏：校验 SHA-1 与声明大小；不一致就丢弃并换备用地址重下
+                                  if (!await VerifyAsync(temp, file, token).ConfigureAwait(false))
+                                  {
+                                      try { File.Delete(temp); } catch (Exception) { }
+                                      failures.Add($"{url} -> 校验失败（文件损坏，已丢弃重下）");
+                                      log?.Invoke($"[download] {Path.GetFileName(file.Path)} 校验失败（可能损坏），换个地址重试");
+                                      continue;
+                                  }
+
+                                  if (File.Exists(file.Path)) File.Delete(file.Path);
+                                  File.Move(temp, file.Path);
                                 downloaded = true;
 
                                 if (index > 0)

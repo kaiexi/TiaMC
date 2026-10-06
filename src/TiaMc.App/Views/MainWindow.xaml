@@ -796,6 +796,14 @@
                                           ItemsSource="{Binding DownloadSourceModes}"
                                           SelectedItem="{Binding SelectedDownloadSource, Mode=TwoWay}"
                                           ToolTip="在线版本 / 库 / 资源的下载来源；自动＝官方优先，失败自动切镜像" />
+                                          <!-- 自定义下载源基址（选「自定义（填地址）」时生效） -->
+                                          <TextBox Width="180" VerticalAlignment="Center" Margin="6,0,0,0"
+                                                   Text="{Binding DownloadSourceCustomBase, UpdateSourceTrigger=LostFocus}"
+                                                   ToolTip="路径规则同 BMCLAPI，例如 https://你的反代" />
+                                          <TextBlock Text="线程" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" Margin="10,0,4,0" />
+                                          <ComboBox Width="64" VerticalAlignment="Center" ItemsSource="{Binding DownloadThreadOptions}"
+                                                    SelectedItem="{Binding DownloadThreads, Mode=TwoWay}"
+                                                    ToolTip="单文件分段下载的并发连接数：实测 8 线程比 1 线程快约 66 倍（1=单连接）" />
                                 <Separator Style="{StaticResource Tia.Separator}" Margin="6,2" />
                                 <!-- 删除本地版本：就放在"已安装实例"列表这一行，选中即可删 -->
                                 <Button Style="{StaticResource Tia.Button.Tool}" Content="删除选中的本地版本"

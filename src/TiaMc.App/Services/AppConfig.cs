@@ -80,6 +80,9 @@ public sealed class AppConfig
     /// <summary>自定义下载源基址（选「自定义」时用，路径规则同 BMCLAPI），例如 https://你的反代 。</summary>
     [JsonPropertyName("downloadSourceCustom")] public string DownloadSourceCustom { get; set; } = "";
 
+    /// <summary>单文件分段下载的线程数（NeatDM 式多连接）。1 = 单连接。</summary>
+    [JsonPropertyName("downloadThreads")] public int DownloadThreads { get; set; } = 8;
+
     /// <summary>输出窗口代码高亮（按级别/来源上色）。</summary>
     [JsonPropertyName("logHighlight")] public bool LogHighlight { get; set; } = true;
 
