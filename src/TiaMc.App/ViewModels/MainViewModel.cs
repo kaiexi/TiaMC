@@ -143,6 +143,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         OpenModpackFolderCommand = new RelayCommand(OpenModpackFolder);
         DeleteModpackCommand = new RelayCommand(DeleteSelectedModpack);
         SelectSkinCommand = new RelayCommand(p => SelectedSkin = p as string ?? "");
+        UploadSkinCommand = new AsyncRelayCommand(UploadSkinToGameAsync);
         // 删除本地版本（删除 versions/<id> 整个目录，共享的存档/模组不动）
         DeleteVersionCommand = new RelayCommand(DeleteSelectedVersion,
             () => SelectedVersion is not null && !_launcher.IsRunning);
@@ -3885,6 +3886,59 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     /// <summary>工具菜单里选皮肤（参数是皮肤名）。</summary>
     public RelayCommand SelectSkinCommand { get; private set; } = null!;
+
+    /// <summary>把当前皮肤推到"进游戏也生效"：正版→上传 Mojang；离线/外置→内置认证服务端下发。</summary>
+    public AsyncRelayCommand UploadSkinCommand { get; private set; } = null!;
+
+    private async Task UploadSkinToGameAsync()
+    {
+        var account = SelectedAccount;
+        if (account is null)
+        {
+            LogService.Warn("请先选择账户", "皮肤");
+            return;
+        }
+
+        // 本地皮肤来源：账户自己的文件 → 本地缓存最新一张
+        var path = account.HasLocalSkin ? account.SkinPath : null;
+        byte[]? png = null;
+        if (!string.IsNullOrWhiteSpace(path) && File.Exists(path)) png = await File.ReadAllBytesAsync(path!);
+
+        if (png is null && Skin3DTexture is System.Windows.Media.Imaging.BitmapSource bmp)
+        {
+            png = EncodePng(bmp);
+        }
+
+        if (png is null)
+        {
+            LogService.Warn("没有可用的本地皮肤文件：先在皮肤页选择皮肤文件或从皮肤站获取", "皮肤");
+            return;
+        }
+
+        if (account.Kind == TiaMc.Core.Accounts.AccountKind.Microsoft)
+        {
+            var ready = await _launcher.EnsureAccountReadyAsync(SelectedVersion!).ConfigureAwait(false);
+            var token = account.AccessToken;
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                LogService.Error("正版令牌不可用，请重新登录后再上传皮肤", "皮肤");
+                return;
+            }
+
+            var variant = string.Equals(account.SkinVariant, "slim", StringComparison.OrdinalIgnoreCase) ? "slim" : "classic";
+            var result = await _launcher.MicrosoftAuth
+                .UploadSkinAsync(token!, png!, variant)
+                .ConfigureAwait(false);
+
+            if (result.Ok) LogService.Ok(result.Message, "皮肤");
+            else LogService.Error(result.Message, "皮肤");
+            return;
+        }
+
+        // 离线 / 外置登录：皮肤由启动器的认证服务端 + authlib-injector 下发给游戏
+        PushSkinToServer();
+        LogService.Info("离线账户：皮肤已交给内置认证服务端；启动游戏时会自动挂 authlib-injector，进游戏即为此皮肤", "皮肤");
+    }
 
     public bool IsBusy
     {

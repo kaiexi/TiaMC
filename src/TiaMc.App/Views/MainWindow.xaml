@@ -1045,7 +1045,17 @@
                                     </Border>
                                     <ComboBox ItemsSource="{Binding Skin3DAngles}" SelectedItem="{Binding Skin3DAngle, Mode=TwoWay}" Width="180" Margin="0,4,0,0" />
                                     <Expander Header="本地 3D（离线）" Margin="0,8,0,0" Width="180">
-                                        <controls:SkinPreview3D x:Name="Skin3DTab" Width="170" Height="260" Skin="{Binding Skin3DTexture}" />
+                                                                                <StackPanel>
+                                          <controls:SkinPreview3D x:Name="Skin3DTab" Width="170" Height="260" Skin="{Binding Skin3DTexture}" />
+                                          <WrapPanel Margin="0,4,0,0">
+                                            <Button Style="{StaticResource Tia.Button}" Content="正面" Tag="正面" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                            <Button Style="{StaticResource Tia.Button}" Content="右面" Tag="右面" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                            <Button Style="{StaticResource Tia.Button}" Content="背面" Tag="背面" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                            <Button Style="{StaticResource Tia.Button}" Content="左面" Tag="左面" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                            <Button Style="{StaticResource Tia.Button}" Content="头部" Tag="头部" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                            <Button Style="{StaticResource Tia.Button}" Content="全身" Tag="全身" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                          </WrapPanel>
+                                        </StackPanel>
                                     </Expander>
                                     <Button Style="{StaticResource Tia.Button}" Content="复位视角" Margin="0,6,0,0" Click="ResetSkin3DTab_Click" Width="180" />
                                 </StackPanel>
@@ -1057,6 +1067,7 @@
                                     <TextBox Text="{Binding Skin3DInput, UpdateSourceTrigger=PropertyChanged}" Width="360" HorizontalAlignment="Left" />
                                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                         <Button Style="{StaticResource Tia.Button}" Content="用当前账户的皮肤" Command="{Binding PreviewSkin3DCommand}" />
+                                        <Button Style="{StaticResource Tia.Button.Primary}" Content="让游戏里也穿这个皮肤" Command="{Binding UploadSkinCommand}" Margin="8,0,0,0" ToolTip="正版账户：上传到 Mojang 账号（约 1 分钟后生效）；离线/外置账户：交给内置认证服务端 + authlib-injector 下发" />
                                         <Button Style="{StaticResource Tia.Button}" Content="选择皮肤文件…" Click="PickSkin_Click" Margin="8,0,0,0" />
                                     </StackPanel>
                                     <TextBlock Text="2D 各视角（与 3D 同一张皮肤）" Style="{StaticResource Tia.SectionHeader}" Margin="0,14,0,4" />

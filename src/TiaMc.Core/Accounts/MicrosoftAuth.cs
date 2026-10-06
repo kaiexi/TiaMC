@@ -604,6 +604,55 @@ public sealed class MicrosoftAuth
         }
     }
 
+    /// <summary>
+    /// 把本地皮肤上传到正版账号（Mojang），这样**进游戏/进服务器也是这个皮肤**。
+    ///
+    /// 官方接口：POST https://api.minecraftservices.com/minecraft/profile/skins
+    ///   multipart/form-data：variant = classic|slim，file = PNG
+    /// 上传成功后需要一点时间在全球生效（官方文档：最长约 1 分钟）。
+    /// </summary>
+    public async Task<(bool Ok, string Message)> UploadSkinAsync(string minecraftAccessToken,
+        byte[] png, string variant = "classic", CancellationToken token = default)
+    {
+        if (string.IsNullOrWhiteSpace(minecraftAccessToken)) return (false, "没有可用的正版令牌，请先登录");
+        if (png is null || png.Length < 64) return (false, "皮肤数据为空");
+
+        try
+        {
+            using var content = new System.Net.Http.MultipartFormDataContent();
+            content.Add(new System.Net.Http.StringContent(
+                variant.Equals("slim", StringComparison.OrdinalIgnoreCase) ? "slim" : "classic"), "variant");
+
+            var file = new System.Net.Http.ByteArrayContent(png);
+            file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+            content.Add(file, "file", "skin.png");
+
+            using var request = new System.Net.Http.HttpRequestMessage(
+                System.Net.Http.HttpMethod.Post,
+                "https://api.minecraftservices.com/minecraft/profile/skins")
+            {
+                Content = content
+            };
+            request.Headers.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", minecraftAccessToken);
+
+            using var response = await Http.Client.SendAsync(request, token).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync(token).ConfigureAwait(false);
+                return (false, $"上传失败 HTTP {(int)response.StatusCode}：{Trim(body, 200)}");
+            }
+
+            return (true, "皮肤已上传到正版账号，最长约 1 分钟后在游戏与服务器生效");
+        }
+        catch (Exception e)
+        {
+            return (false, "上传异常: " + e.Message);
+        }
+    }
+
+    private static string Trim(string text, int max)
+        => string.IsNullOrEmpty(text) ? "" : text.Length <= max ? text : text[..max] + "…";
     public sealed record MinecraftProfile(string Uuid, string Name, string? SkinUrl, string? SkinVariant,
         string? CapeUrl);
 

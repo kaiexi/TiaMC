@@ -121,6 +121,19 @@ public partial class MainWindow : Window
     /// <summary>独立「皮肤」页里的本地 3D：复位视角。</summary>
     private void ResetSkin3DTab_Click(object sender, RoutedEventArgs e) => Skin3DControl?.Reset();
 
+    /// <summary>本地 3D 的视角预设按钮（正面/右面/背面/左面/头部/全身）。</summary>
+    private void Skin3DView_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.Button { Tag: string preset }) return;
+        Skin3DControl?.SetView(preset);
+
+        // 在线渲染图也切到同一角度（皮肤站那种"点了就换视角"的体验）
+        if (ViewModel is { } vm && preset is "正面" or "右面" or "背面" or "左面")
+        {
+            vm.Skin3DAngle = preset;
+        }
+    }
+
     /// <summary>3D 皮肤预览：自动旋转开关。</summary>
     private void Skin3DSpin_Changed(object sender, RoutedEventArgs e)
     {

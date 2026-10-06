@@ -156,6 +156,28 @@ public sealed class SkinPreview3D : UserControl
         }
     }
 
+    /// <summary>
+    /// 视角预设（和皮肤站的 3D 预览一致）：正面 / 右面 / 背面 / 左面 / 头部特写 / 全身。
+    /// 同时把俯仰角与距离一起设好，所以点一下就到位。
+    /// </summary>
+    public void SetView(string preset)
+    {
+        var (yaw, pitch, distance) = preset switch
+        {
+            "右面" => (90.0, 0.0, 1.85),
+            "背面" => (180.0, 0.0, 1.85),
+            "左面" => (270.0, 0.0, 1.85),
+            "头部" => (0.0, 6.0, 0.62),      // 拉近看头
+            "全身" => (25.0, 6.0, 2.30),     // 拉远看全身
+            _ => (0.0, 6.0, 1.85)            // 正面
+        };
+
+        _yaw.Angle = yaw;
+        _pitch.Angle = pitch;
+        _distance = _modelHeight * distance;
+        UpdateCamera();
+    }
+
     public void Reset()
     {
         _yaw.Angle = 25;
