@@ -11,6 +11,18 @@ namespace TiaMc.App.Services;
 /// global value", which keeps config.json short and lets a version override only
 /// what it needs (版本隔离 also covers the launcher side).
 /// </summary>
+/// <summary>皮肤库里的一条皮肤。</summary>
+public sealed class SavedSkin
+{
+    [JsonPropertyName("name")] public string Name { get; set; } = "";
+    [JsonPropertyName("section")] public string Section { get; set; } = "默认";
+    [JsonPropertyName("path")] public string Path { get; set; } = "";
+    [JsonPropertyName("model")] public string Model { get; set; } = "classic";
+    [JsonPropertyName("source")] public string Source { get; set; } = "custom";
+    [JsonPropertyName("equipped")] public bool Equipped { get; set; }
+    [JsonPropertyName("addedUtc")] public DateTime AddedUtc { get; set; } = DateTime.UtcNow;
+}
+
 public sealed class InstanceSettings
 {
     [JsonPropertyName("minMemoryMb")] public int? MinMemoryMb { get; set; }
@@ -85,6 +97,9 @@ public sealed class AppConfig
 
     /// <summary>输出窗口代码高亮（按级别/来源上色）。</summary>
     [JsonPropertyName("logHighlight")] public bool LogHighlight { get; set; } = true;
+
+    /// <summary>皮肤库（学 Axolotl：可保存多条、带分区与"已应用"标记）。</summary>
+    [JsonPropertyName("savedSkins")] public List<SavedSkin> SavedSkins { get; set; } = [];
 
     /// <summary>暗黑模式（代码高亮配色）。</summary>
     [JsonPropertyName("darkMode")] public bool DarkMode { get; set; }

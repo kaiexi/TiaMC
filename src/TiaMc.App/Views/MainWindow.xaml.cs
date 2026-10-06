@@ -121,6 +121,9 @@ public partial class MainWindow : Window
     /// <summary>独立「皮肤」页里的本地 3D：复位视角。</summary>
     private void ResetSkin3DTab_Click(object sender, RoutedEventArgs e) => Skin3DControl?.Reset();
 
+    /// <summary>把当前皮肤存进皮肤库（自动识别 slim/classic）。</summary>
+    private void AddSkinToLibrary_Click(object sender, RoutedEventArgs e) => ViewModel?.AddCurrentSkinToLibrary();
+
     /// <summary>本地 3D 的视角预设按钮（正面/右面/背面/左面/头部/全身）。</summary>
     private void Skin3DView_Click(object sender, RoutedEventArgs e)
     {

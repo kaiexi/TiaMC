@@ -1037,74 +1037,160 @@
                         </Grid>
                     </Grid>
                 </TabItem>
+                    <!-- ============ 皮肤（按 Axolotl 思路重做：左侧皮肤库 / 中间预览 / 右侧来源与工具） -->
                     <TabItem Header="皮肤" Style="{StaticResource Tia.TabItem}">
                         <Grid Background="{DynamicResource Tia.PanelBg}">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" MinWidth="190" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="230" MinWidth="180" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="*" MinWidth="320" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="300" MinWidth="240" />
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" BorderBrush="{DynamicResource Tia.Border}" BorderThickness="0,0,1,0"
-                                    Background="{DynamicResource Tia.PanelBgAlt}" Padding="12,10">
-                                <StackPanel>
-                                    <TextBlock Text="3D 材质预览" Style="{StaticResource Tia.SectionHeader}" />
-                                    <TextBlock Text="皮肤站同款在线渲染（可换角度）" Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap" Margin="0,4,0,4" />
-                                    <Border BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1" Background="{DynamicResource Tia.PanelBgAlt}">
-                                        <Image Source="{Binding Skin3DRender}" Width="180" Height="300" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
-                                    </Border>
-                                    <ComboBox ItemsSource="{Binding Skin3DAngles}" SelectedItem="{Binding Skin3DAngle, Mode=TwoWay}" Width="180" Margin="0,4,0,0" />
-                                    <Expander Header="本地 3D（离线）" Margin="0,8,0,0" Width="180">
-                                                                                <StackPanel>
-                                          <controls:SkinPreview3D x:Name="Skin3DTab" Width="170" Height="260" Skin="{Binding Skin3DTexture}" />
-                                          <WrapPanel Margin="0,4,0,0">
-                                            <Button Style="{StaticResource Tia.Button}" Content="正面" Tag="正面" Click="Skin3DView_Click" Margin="0,0,4,4" />
-                                            <Button Style="{StaticResource Tia.Button}" Content="右面" Tag="右面" Click="Skin3DView_Click" Margin="0,0,4,4" />
-                                            <Button Style="{StaticResource Tia.Button}" Content="背面" Tag="背面" Click="Skin3DView_Click" Margin="0,0,4,4" />
-                                            <Button Style="{StaticResource Tia.Button}" Content="左面" Tag="左面" Click="Skin3DView_Click" Margin="0,0,4,4" />
-                                            <Button Style="{StaticResource Tia.Button}" Content="头部" Tag="头部" Click="Skin3DView_Click" Margin="0,0,4,4" />
-                                            <Button Style="{StaticResource Tia.Button}" Content="全身" Tag="全身" Click="Skin3DView_Click" Margin="0,0,4,4" />
-                                          </WrapPanel>
-                                        </StackPanel>
-                                    </Expander>
-                                    <Button Style="{StaticResource Tia.Button}" Content="复位视角" Margin="0,6,0,0" Click="ResetSkin3DTab_Click" Width="180" />
-                                </StackPanel>
+
+                            <!-- 左：皮肤库 -->
+                            <Border Grid.Column="0" Background="{DynamicResource Tia.PanelBg}" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Top" Text="皮肤库" Style="{StaticResource Tia.SectionHeader}" />
+                                    <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                                        <Button Style="{StaticResource Tia.Button}" Content="把当前皮肤入库"
+                                                Click="AddSkinToLibrary_Click" Margin="0,0,0,4" />
+                                        <Button Style="{StaticResource Tia.Button.Primary}" Content="应用选中皮肤"
+                                                Command="{Binding ApplyLibrarySkinCommand}" Margin="0,0,0,4" />
+                                        <Button Style="{StaticResource Tia.Button}" Content="从库中移除"
+                                                Command="{Binding RemoveLibrarySkinCommand}" />
+                                    </StackPanel>
+                                    <ListBox ItemsSource="{Binding SkinLibrary}"
+                                             SelectedItem="{Binding SelectedLibrarySkin, Mode=TwoWay}"
+                                             Background="{DynamicResource Tia.ContentBg}"
+                                             BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="2,3">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Grid.Column="0" Width="32" Height="32"
+                                                            BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1">
+                                                        <Image Stretch="Fill"
+                                                               RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                               Source="{Binding Path, Converter={StaticResource SkinHead}}" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                        <TextBlock Style="{StaticResource Tia.MutedText}">
+                                                            <Run Text="{Binding Model}" />
+                                                            <Run Text=" · " />
+                                                            <Run Text="{Binding Section}" />
+                                                            <Run Text="  ✔已应用" Foreground="{DynamicResource Tia.Run}" />
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
                             </Border>
-                            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="14,12">
+
+                            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+
+                            <!-- 中：预览 -->
+                            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" Padding="12,10">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Skin3DStatus}" Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap" />
-                                    <TextBlock Text="皮肤来源（自动获取；也可填皮肤站名称 / UUID / 图片链接 / 本地文件路径）" Style="{StaticResource Tia.Label}" Margin="0,10,0,2" />
-                                    <TextBox Text="{Binding Skin3DInput, UpdateSourceTrigger=PropertyChanged}" Width="360" HorizontalAlignment="Left" />
+                                    <TextBlock Text="预览" Style="{StaticResource Tia.SectionHeader}" />
                                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                        <Button Style="{StaticResource Tia.Button}" Content="用当前账户的皮肤" Command="{Binding PreviewSkin3DCommand}" />
-                                        <Button Style="{StaticResource Tia.Button.Primary}" Content="让游戏里也穿这个皮肤" Command="{Binding UploadSkinCommand}" Margin="8,0,0,0" ToolTip="正版账户：上传到 Mojang 账号（约 1 分钟后生效）；离线/外置账户：交给内置认证服务端 + authlib-injector 下发" />
-                                        <Button Style="{StaticResource Tia.Button}" Content="选择皮肤文件…" Click="PickSkin_Click" Margin="8,0,0,0" />
-                                    </StackPanel>
-                                    <TextBlock Text="2D 各视角（与 3D 同一张皮肤）" Style="{StaticResource Tia.SectionHeader}" Margin="0,14,0,4" />
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Background="{DynamicResource Tia.PanelBgAlt}" BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1" Padding="6">
-                                            <Image Source="{Binding SkinPreviewBody}" Stretch="None" RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                                        <Border Width="72" Height="72" BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1"
+                                                Background="{DynamicResource Tia.PanelBgAlt}">
+                                            <Image Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                                   Source="{Binding SkinAvatarSource, Converter={StaticResource SkinHead}}" />
                                         </Border>
-                                        <StackPanel Margin="10,0,0,0" Width="170">
-                                            <TextBlock Text="视角" Style="{StaticResource Tia.Label}" />
-                                            <ComboBox ItemsSource="{Binding SkinViews}" SelectedItem="{Binding SkinView, Mode=TwoWay}" Margin="0,2,0,0" />
-                                            <TextBlock Text="缩放" Style="{StaticResource Tia.Label}" Margin="0,6,0,0" />
-                                            <ComboBox ItemsSource="{Binding SkinZooms}" SelectedItem="{Binding SkinZoom, Mode=TwoWay}" Margin="0,2,0,0" />
-                                            <Border Width="56" Height="56" Margin="0,8,0,0" HorizontalAlignment="Left" Background="{DynamicResource Tia.PanelBgAlt}" BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1">
-                                                <Image Source="{Binding SkinPreviewHead}" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor" />
-                                            </Border>
+                                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center" Width="260">
+                                            <TextBlock Text="{Binding SkinStatus}" Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Skin3DStatus}" Style="{StaticResource Tia.MutedText}"
+                                                       TextWrapping="Wrap" Margin="0,4,0,0" />
                                         </StackPanel>
                                     </StackPanel>
-                                    <TextBlock Text="皮肤站 / 模板（离线账户也能换皮肤）" Style="{StaticResource Tia.SectionHeader}" Margin="0,14,0,4" />
-                                    <TextBlock Text="{Binding SkinStatus}" Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap" />
-                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                        <TextBlock Text="皮肤站" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" />
-                                        <ComboBox Width="170" Margin="6,0,0,0" ItemsSource="{Binding SkinSites}" SelectedItem="{Binding SkinSite, Mode=TwoWay}" />
-                                        <Button Style="{StaticResource Tia.Button}" Content="获取皮肤" Margin="6,0,0,0" Command="{Binding FetchSkinCommand}" />
+
+                                    <TextBlock Text="3D 材质预览（皮肤站同款在线渲染，可换角度）"
+                                               Style="{StaticResource Tia.Label}" Margin="0,12,0,2" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <StackPanel>
+                                            <Border BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1"
+                                                    Background="{DynamicResource Tia.PanelBgAlt}">
+                                                <Image Source="{Binding Skin3DRender}" Width="170" Height="250" Stretch="Uniform"
+                                                       RenderOptions.BitmapScalingMode="HighQuality" />
+                                            </Border>
+                                            <ComboBox ItemsSource="{Binding Skin3DAngles}"
+                                                      SelectedItem="{Binding Skin3DAngle, Mode=TwoWay}"
+                                                      Width="170" Margin="0,4,0,0" />
+                                            <WrapPanel Margin="0,4,0,0" Width="170">
+                                                <Button Style="{StaticResource Tia.Button}" Content="正面" Tag="正面" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                                <Button Style="{StaticResource Tia.Button}" Content="右面" Tag="右面" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                                <Button Style="{StaticResource Tia.Button}" Content="背面" Tag="背面" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                                <Button Style="{StaticResource Tia.Button}" Content="左面" Tag="左面" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                                <Button Style="{StaticResource Tia.Button}" Content="头部" Tag="头部" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                                <Button Style="{StaticResource Tia.Button}" Content="全身" Tag="全身" Click="Skin3DView_Click" Margin="0,0,4,4" />
+                                            </WrapPanel>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="12,0,0,0">
+                                            <TextBlock Text="2D 各视角（前/后/左/右/头部）" Style="{StaticResource Tia.Label}" />
+                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                <Border Background="{DynamicResource Tia.PanelBgAlt}" BorderBrush="{DynamicResource Tia.Border}"
+                                                        BorderThickness="1" Padding="4">
+                                                    <Image Source="{Binding SkinPreviewBody}" Stretch="None"
+                                                           RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                                                </Border>
+                                                <StackPanel Margin="8,0,0,0" Width="120">
+                                                    <ComboBox ItemsSource="{Binding SkinViews}" SelectedItem="{Binding SkinView, Mode=TwoWay}" />
+                                                    <ComboBox ItemsSource="{Binding SkinZooms}" SelectedItem="{Binding SkinZoom, Mode=TwoWay}" Margin="0,6,0,0" />
+                                                    <Border Width="44" Height="44" Margin="0,6,0,0" HorizontalAlignment="Left"
+                                                            Background="{DynamicResource Tia.PanelBgAlt}"
+                                                            BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1">
+                                                        <Image Source="{Binding SkinPreviewHead}" Stretch="Fill"
+                                                               RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                        <TextBlock Text="模板" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" />
-                                        <ComboBox Width="90" Margin="6,0,0,0" ItemsSource="{Binding SkinTemplates}" SelectedItem="{Binding SkinTemplate, Mode=TwoWay}" />
-                                        <Button Style="{StaticResource Tia.Button}" Content="生成并应用" Margin="6,0,0,0" Command="{Binding GenerateSkinCommand}" />
-                                        <Button Style="{StaticResource Tia.Button}" Content="随机" Margin="6,0,0,0" Command="{Binding RandomSkinCommand}" />
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <GridSplitter Grid.Column="3" Width="4" HorizontalAlignment="Stretch" />
+
+                            <!-- 右：来源与工具 -->
+                            <ScrollViewer Grid.Column="4" VerticalScrollBarVisibility="Auto" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="皮肤来源" Style="{StaticResource Tia.SectionHeader}" />
+                                    <TextBlock Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap"
+                                               Text="留空＝当前账户的皮肤；也可以填皮肤站名称 / UUID / 图片链接 / 本地文件路径。输入后会自动获取。" />
+                                    <TextBox Text="{Binding Skin3DInput, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <Button Style="{StaticResource Tia.Button}" Content="用当前账户"
+                                                Command="{Binding PreviewSkin3DCommand}" />
+                                        <Button Style="{StaticResource Tia.Button}" Content="选择皮肤文件…"
+                                                Click="PickSkin_Click" Margin="6,0,0,0" />
+                                    </StackPanel>
+
+                                    <TextBlock Text="让游戏里也生效" Style="{StaticResource Tia.SectionHeader}" Margin="0,12,0,4" />
+                                    <Button Style="{StaticResource Tia.Button.Primary}" Content="让游戏里也穿这个皮肤"
+                                            Command="{Binding UploadSkinCommand}"
+                                            ToolTip="正版：上传到 Mojang 账号；离线/外置：交给内置认证服务端 + authlib-injector" />
+
+                                    <TextBlock Text="皮肤站" Style="{StaticResource Tia.SectionHeader}" Margin="0,12,0,4" />
+                                    <ComboBox ItemsSource="{Binding SkinSites}" SelectedItem="{Binding SkinSite, Mode=TwoWay}" />
+                                    <Button Style="{StaticResource Tia.Button}" Content="获取皮肤" Margin="0,6,0,0"
+                                            Command="{Binding FetchSkinCommand}" />
+
+                                    <TextBlock Text="模板生成（离线也能换）" Style="{StaticResource Tia.SectionHeader}" Margin="0,12,0,4" />
+                                    <ComboBox ItemsSource="{Binding SkinTemplates}" SelectedItem="{Binding SkinTemplate, Mode=TwoWay}" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <Button Style="{StaticResource Tia.Button}" Content="生成并应用"
+                                                Command="{Binding GenerateSkinCommand}" />
+                                        <Button Style="{StaticResource Tia.Button}" Content="随机"
+                                                Command="{Binding RandomSkinCommand}" Margin="6,0,0,0" />
                                     </StackPanel>
                                 </StackPanel>
                             </ScrollViewer>

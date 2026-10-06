@@ -144,6 +144,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         DeleteModpackCommand = new RelayCommand(DeleteSelectedModpack);
         SelectSkinCommand = new RelayCommand(p => SelectedSkin = p as string ?? "");
         UploadSkinCommand = new AsyncRelayCommand(UploadSkinToGameAsync);
+        ApplyLibrarySkinCommand = new RelayCommand(ApplyLibrarySkin);
+        RemoveLibrarySkinCommand = new RelayCommand(RemoveLibrarySkin);
         LoadServerCoresCommand = new AsyncRelayCommand(LoadServerCoresAsync);
         LoadServerCoreBuildsCommand = new AsyncRelayCommand(LoadServerCoreBuildsAsync);
         DownloadServerCoreCommand = new AsyncRelayCommand(DownloadServerCoreAsync);
@@ -3967,6 +3969,87 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         LogService.Info("离线账户：皮肤已交给内置认证服务端；启动游戏时会自动挂 authlib-injector，进游戏即为此皮肤", "皮肤");
     }
 
+    // ------------------------------------------------------------ 皮肤库（学 Axolotl 的 skin library）
+    /// <summary>皮肤库：保存过的皮肤，带"已应用"标记与模型类型。</summary>
+    public ObservableCollection<TiaMc.App.Services.SavedSkin> SkinLibrary { get; } = [];
+
+    private TiaMc.App.Services.SavedSkin? _selectedLibrarySkin;
+    public TiaMc.App.Services.SavedSkin? SelectedLibrarySkin
+    {
+        get => _selectedLibrarySkin;
+        set { if (Set(ref _selectedLibrarySkin, value)) Raise(); }
+    }
+
+    public RelayCommand ApplyLibrarySkinCommand { get; private set; } = null!;
+    public RelayCommand RemoveLibrarySkinCommand { get; private set; } = null!;
+
+    /// <summary>刷新皮肤库列表（从配置读）。</summary>
+    public void RefreshSkinLibrary()
+    {
+        SkinLibrary.Clear();
+        foreach (var skin in Config.SavedSkins) SkinLibrary.Add(skin);
+        SelectedLibrarySkin = SkinLibrary.FirstOrDefault(s => s.Equipped) ?? SkinLibrary.FirstOrDefault();
+    }
+
+    /// <summary>把当前预览/选中的皮肤存进皮肤库（自动识别 slim/classic）。</summary>
+    public void AddCurrentSkinToLibrary(string? name = null)
+    {
+        var account = SelectedAccount;
+        var path = account?.SkinPath;
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            LogService.Warn("没有本地皮肤文件可入库：先「选择皮肤文件」或从皮肤站获取", "皮肤");
+            return;
+        }
+
+        var model = TiaMc.Core.Skins.SkinModelDetector.Classic;
+        try { model = TiaMc.Core.Skins.SkinModelDetector.Detect(File.ReadAllBytes(path!)); }
+        catch (Exception) { }
+
+        var entry = new TiaMc.App.Services.SavedSkin
+        {
+            Name = string.IsNullOrWhiteSpace(name) ? Path.GetFileNameWithoutExtension(path!) : name!,
+            Path = path!,
+            Model = model,
+            Source = "custom",
+            Equipped = account?.SkinPath == path
+        };
+
+        Config.SavedSkins.RemoveAll(s => string.Equals(s.Path, entry.Path, StringComparison.OrdinalIgnoreCase));
+        Config.SavedSkins.Add(entry);
+        Config.Save();
+        RefreshSkinLibrary();
+        LogService.Ok($"已加入皮肤库: {entry.Name}（模型 {model}）", "皮肤");
+    }
+
+    private void ApplyLibrarySkin()
+    {
+        var skin = SelectedLibrarySkin;
+        var account = SelectedAccount;
+        if (skin is null || account is null) return;
+
+        account.SkinPath = skin.Path;
+        account.SkinVariant = skin.Model;
+        foreach (var item in Config.SavedSkins) item.Equipped = ReferenceEquals(item, skin);
+        Config.Save();
+        _launcher.Accounts.Save();
+
+        Skin3DInput = "";
+        _ = PreviewSkin3DAsync();
+        RefreshSkinLibrary();
+        LogService.Ok($"已应用皮肤 {skin.Name}（{skin.Model}）；点「让游戏里也穿这个皮肤」可推到游戏", "皮肤");
+    }
+
+    private void RemoveLibrarySkin()
+    {
+        var skin = SelectedLibrarySkin;
+        if (skin is null) return;
+        Config.SavedSkins.Remove(skin);
+        Config.Save();
+        RefreshSkinLibrary();
+        LogService.Info($"已从皮肤库移除 {skin.Name}", "皮肤");
+    }
+
     // ------------------------------------------------------------ 服务端核心（PaperMC Fill API）
     private readonly TiaMc.Core.Servers.ServerCoreCatalog _coreCatalog = new();
 
@@ -4441,6 +4524,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         // First run (or an empty folder): look for a usable installation.
         await AutoDetectOnStartupAsync();
 
+        RefreshSkinLibrary();
         // 启动完成后自动拉一次皮肤预览（本地 3D + 在线多角度渲染）
         _ = PreviewSkin3DAsync();
         _ = RefreshSkin3DRenderAsync();
