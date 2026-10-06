@@ -3352,8 +3352,14 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         SelectedVersion = null;
         _launcher.ReloadInstallation();
         RefreshInstalled();
+
+        // 项目树里的节点也要跟着消失：以前只刷新了"已安装实例"列表，
+        // 「设备和网络」下那个节点会一直留着，点它还会去操作一个已经不存在的版本。
+        SelectedNode = null;
+        RebuildTree();
+
         BuildPlan();
-        LogService.Info($"删除后剩余 {_launcher.Installed.Count} 个本地版本", "版本");
+        LogService.Info($"删除后剩余 {_launcher.Installed.Count} 个本地版本（项目树已同步刷新）", "版本");
     }
 
     private void DeleteSelectedModpack()
