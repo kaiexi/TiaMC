@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:vm="clr-namespace:TiaMc.App.ViewModels"
+        xmlns:controls="clr-namespace:TiaMc.App.Controls"
         Title="TIA-MC 工程启动器"
         Icon="{DynamicResource App.Icon}"
         Height="880" Width="1480"
@@ -959,8 +960,69 @@
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel>
                                         <TextBlock Text="账户皮肤" Style="{StaticResource Tia.SectionHeader}" />
-                                        <!-- 实时预览：改模板/颜色立刻更新，可选视角与缩放 -->
+
+                                        <!-- 3D + 2D 预览并排显示：这样 3D 模型和 2D 视角选择都在同一屏里 -->
                                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                            <StackPanel>
+                                                <TextBlock Text="3D 材质预览（皮肤站同款在线渲染，可换角度）"
+                                                           Style="{StaticResource Tia.Label}" Margin="0,0,0,2" />
+                                                <Border BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1"
+                                                        Background="{DynamicResource Tia.PanelBgAlt}">
+                                                    <Image Source="{Binding Skin3DRender}" Width="170" Height="250"
+                                                           Stretch="Uniform"
+                                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                                </Border>
+                                                <ComboBox ItemsSource="{Binding Skin3DAngles}"
+                                                          SelectedItem="{Binding Skin3DAngle, Mode=TwoWay}"
+                                                          Width="170" Margin="0,4,0,0" />
+                                                <!-- 离线时的本地 3D（无网络也能看） -->
+                                                <Expander Header="本地 3D（离线）" Margin="0,6,0,0" Width="170">
+                                                    <controls:SkinPreview3D x:Name="Skin3D" Width="160" Height="200"
+                                                                            Skin="{Binding Skin3DTexture}" />
+                                                </Expander>
+                                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                    <Button Style="{StaticResource Tia.Button}" Content="复位视角"
+                                                            Click="ResetSkin3D_Click" />
+                                                    <CheckBox Content="自动旋转" IsChecked="True" Margin="8,0,0,0"
+                                                              VerticalAlignment="Center"
+                                                              Checked="Skin3DSpin_Changed" Unchecked="Skin3DSpin_Changed" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <StackPanel Margin="10,0,0,0" Width="290">
+                                                <TextBlock Text="皮肤来源（自动获取；也可填皮肤站名称 / UUID / 图片链接 / 本地文件路径）"
+                                                           Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap" />
+                                                <TextBox Text="{Binding Skin3DInput, UpdateSourceTrigger=PropertyChanged}"
+                                                         Margin="0,6,0,0" />
+                                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                    <Button Style="{StaticResource Tia.Button}" Content="用当前账户"
+                                                            Command="{Binding PreviewSkin3DCommand}" />
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Skin3DStatus}" Style="{StaticResource Tia.MutedText}"
+                                                           TextWrapping="Wrap" Margin="0,8,0,0" />
+                                                <!-- 2D 各视角（与 3D 同一张皮肤） -->
+                                                <TextBlock Text="2D 视角" Style="{StaticResource Tia.Label}" Margin="0,10,0,2" />
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Background="{DynamicResource Tia.PanelBgAlt}"
+                                                            BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1" Padding="4">
+                                                        <Image Source="{Binding SkinPreviewBody}" Stretch="None"
+                                                               RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                                                    </Border>
+                                                    <StackPanel Margin="8,0,0,0" Width="130">
+                                                        <ComboBox ItemsSource="{Binding SkinViews}"
+                                                                  SelectedItem="{Binding SkinView, Mode=TwoWay}" />
+                                                        <ComboBox ItemsSource="{Binding SkinZooms}"
+                                                                  SelectedItem="{Binding SkinZoom, Mode=TwoWay}" Margin="0,6,0,0" />
+                                                        <Border Width="48" Height="48" Margin="0,6,0,0" HorizontalAlignment="Left"
+                                                                Background="{DynamicResource Tia.PanelBgAlt}"
+                                                                BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1">
+                                                            <Image Source="{Binding SkinPreviewHead}" Stretch="Fill"
+                                                                   RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Visibility="Collapsed">
                                             <Border Background="{DynamicResource Tia.PanelBgAlt}"
                                                     BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1" Padding="6">
                                                 <Image Source="{Binding SkinPreviewBody}" Stretch="None"

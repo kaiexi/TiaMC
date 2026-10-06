@@ -94,6 +94,16 @@ public partial class MainWindow : Window
             "关于 TIA-MC", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
+    /// <summary>3D 皮肤预览：复位视角。</summary>
+    private void ResetSkin3D_Click(object sender, RoutedEventArgs e) => Skin3D?.Reset();
+
+    /// <summary>3D 皮肤预览：自动旋转开关。</summary>
+    private void Skin3DSpin_Changed(object sender, RoutedEventArgs e)
+    {
+        if (Skin3D is null) return;
+        Skin3D.AutoSpin = sender is System.Windows.Controls.CheckBox { IsChecked: true };
+    }
+
     private void ExpandAll_Click(object sender, RoutedEventArgs e) => SetExpansion(true);
 
     private void CollapseAll_Click(object sender, RoutedEventArgs e) => SetExpansion(false);

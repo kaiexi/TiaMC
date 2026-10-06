@@ -113,6 +113,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         RandomSkinCommand = new RelayCommand(RandomSkin);
         ClearSkinCommand = new RelayCommand(ClearSkin);
         FetchSkinCommand = new AsyncRelayCommand(FetchSkinFromSiteAsync);
+        PreviewSkin3DCommand = new AsyncRelayCommand(PreviewSkin3DAsync);
         PushSkinCommand = new RelayCommand(() => PushSkinToServer());
         foreach (var site in TiaMc.Core.Utils.SkinSites.Presets) SkinSites.Add(site.Name);
         if (SkinSites.Count > 0) _skinSite = SkinSites[0];
@@ -1169,6 +1170,173 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     }
     // ---------------------------------------- 皮肤实时预览（改颜色/模板立刻更新）
 
+    private System.Windows.Media.ImageSource? _skin3dTexture;
+    private System.Windows.Media.ImageSource? _skin3dRender;
+    private string _skin3dAngle = "正面";
+
+    /// <summary>在线 3D 材质渲染图（皮肤站那种全身/多角度视图）。</summary>
+    public System.Windows.Media.ImageSource? Skin3DRender
+    {
+        get => _skin3dRender;
+        private set { if (Set(ref _skin3dRender, value)) Raise(); }
+    }
+
+    public ObservableCollection<string> Skin3DAngles { get; } = ["正面", "左面", "右面", "后面"];
+
+    public string Skin3DAngle
+    {
+        get => _skin3dAngle;
+        set
+        {
+            if (!Set(ref _skin3dAngle, value)) return;
+            Raise();
+            _ = RefreshSkin3DRenderAsync();
+        }
+    }
+
+    /// <summary>按当前账户名拉一张在线 3D 渲染图（缓存到本地，失败就静默保留 2D 视图）。</summary>
+    private async Task RefreshSkin3DRenderAsync()
+    {
+        try
+        {
+            var name = SelectedAccount?.Name;
+            if (string.IsNullOrWhiteSpace(name)) return;
+
+            var angle = _skin3dAngle switch
+            {
+                "左面" => "left",
+                "右面" => "right",
+                "后面" => "back",
+                _ => "front"
+            };
+
+            var result = await Services.SkinTextureService.FetchRenderAsync(name, angle).ConfigureAwait(false);
+            if (result is null) return;
+            Ui.Post(() => Skin3DRender = result);
+        }
+        catch (Exception)
+        {
+            // 在线渲染只是锦上添花，失败不影响 2D/3D 本地视图
+        }
+    }
+
+    private string _skin3dInput = "";
+    private string _skin3dStatus = "3D 预览：点「获取 3D 预览」用当前账户的皮肤，或填皮肤站名称 / 图片链接。";
+
+    /// <summary>3D 预览用的整张皮肤贴图。</summary>
+    public System.Windows.Media.ImageSource? Skin3DTexture
+    {
+        get => _skin3dTexture;
+        private set { if (Set(ref _skin3dTexture, value)) Raise(); }
+    }
+
+    /// <summary>3D 预览来源输入：皮肤站名称 / UUID / 图片链接；留空表示用当前账户的皮肤。</summary>
+    public string Skin3DInput
+    {
+        get => _skin3dInput;
+        set
+        {
+            if (!Set(ref _skin3dInput, value)) return;
+            Raise();
+
+            // 自动获取：输入变化后 700ms 内没有继续输入就去取预览（不用点按钮）
+            _skin3dDebounce ??= new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(700)
+            };
+            _skin3dDebounce.Stop();
+            _skin3dDebounce.Tick -= Skin3DDebounceTick;
+            _skin3dDebounce.Tick += Skin3DDebounceTick;
+            _skin3dDebounce.Start();
+        }
+    }
+
+    private System.Windows.Threading.DispatcherTimer? _skin3dDebounce;
+
+    private void Skin3DDebounceTick(object? sender, EventArgs e)
+    {
+        _skin3dDebounce?.Stop();
+        _ = PreviewSkin3DAsync();
+    }
+
+    public string Skin3DStatus
+    {
+        get => _skin3dStatus;
+        private set { if (Set(ref _skin3dStatus, value)) Raise(); }
+    }
+
+    public ICommand PreviewSkin3DCommand { get; }
+
+    /// <summary>刷新 3D 预览：留空用账户皮肤；填了就用皮肤站/链接。</summary>
+    private async Task PreviewSkin3DAsync()
+    {
+        try
+        {
+            var input = (Skin3DInput ?? "").Trim();
+            Services.SkinTextureService.TextureResult result;
+            var accountForPreview = SelectedAccount;
+
+            if (input.Length == 0)
+            {
+                result = await Services.SkinTextureService.FromAccountAsync(accountForPreview).ConfigureAwait(false);
+            }
+            else if (File.Exists(input))          // 本地皮肤文件（自己选的 / 模板生成的）
+            {
+                var local = Services.SkinTextureService.FromFile(input);
+                result = local is null
+                    ? new Services.SkinTextureService.TextureResult(false, "本地文件读不出来: " + input, null, input)
+                    : new Services.SkinTextureService.TextureResult(true, "本地文件 " + Path.GetFileName(input), local, input);
+            }
+            else if (input.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                result = await Services.SkinTextureService.FromUrlAsync(input).ConfigureAwait(false);
+            }
+            else
+            {
+                var site = TiaMc.Core.Utils.SkinSites.Presets.FirstOrDefault(s => s.Name == SkinSite)
+                           ?? TiaMc.Core.Utils.SkinSites.Presets.FirstOrDefault();
+                result = site is null
+                    ? new Services.SkinTextureService.TextureResult(false, "没有可用的皮肤站", null, "")
+                    : await Services.SkinTextureService.FromSiteAsync(site, input).ConfigureAwait(false);
+            }
+
+            Ui.Post(() =>
+            {
+                if (result.Ok && result.Texture is not null)
+                {
+                    Skin3DTexture = result.Texture;
+                    Skin3DStatus = "预览已加载：" + result.Message;
+                    _ = RefreshSkin3DRenderAsync();
+                    LogService.Ok("皮肤预览: " + result.Message, "Skin");
+
+                    // 2D 各种视角（前/后/左/右/头部）也换成这张皮肤
+                    try
+                    {
+                        var png = EncodePng(result.Texture);
+                        if (png is not null)
+                        {
+                            SkinPreviewHead = Services.SkinPreview.Head(png);
+                            SkinPreviewBody = Services.SkinPreview.Body(png, ViewOf(_skinView), _skinZoom);
+                        }
+                    }
+                    catch (Exception e2)
+                    {
+                        LogService.Warn("2D 预览刷新失败: " + e2.Message, "Skin");
+                    }
+                }
+                else
+                {
+                    Skin3DStatus = "3D 预览失败：" + result.Message;
+                    LogService.Warn("3D 皮肤预览失败: " + result.Message, "Skin");
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            Ui.Post(() => Skin3DStatus = "3D 预览出错：" + e.Message);
+        }
+    }
+
     private System.Windows.Media.ImageSource? _skinPreviewBody;
     private System.Windows.Media.ImageSource? _skinPreviewHead;
     private string _skinView = "前面";
@@ -1552,6 +1720,31 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     // 多源（正版 URL + 镜像 + 本地文件），由 SkinHeadConverter 逐个尝试
     public string? SkinAvatarSource => SelectedAccount?.SkinHeadUrls;
 
+    /// <summary>切换账户后自动重新拉一次 3D 皮肤。</summary>
+    /// <summary>本地皮肤变化（选文件 / 生成模板）后立刻刷新 3D 预览。</summary>
+    /// <summary>把贴图重新编码成 PNG 字节，供 2D 预览合成各视角。</summary>
+    private static byte[]? EncodePng(System.Windows.Media.ImageSource source)
+    {
+        if (source is not System.Windows.Media.Imaging.BitmapSource bitmap) return null;
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var stream = new System.IO.MemoryStream();
+        encoder.Save(stream);
+        return stream.ToArray();
+    }
+
+    private void AutoRefreshSkin3DLocal()
+    {
+        Skin3DInput = "";
+        _ = PreviewSkin3DAsync();
+    }
+
+    private void AutoRefreshSkin3D()
+    {
+        if (!string.IsNullOrWhiteSpace(Skin3DInput)) return;   // 用户自己指定来源时不覆盖
+        _ = PreviewSkin3DAsync();
+    }
+
     private static string SkinDirectory => Path.Combine(Services.AppConfig.ConfigDirectory, "skins");
 
     /// <summary>Applies local skin bytes to the selected account and refreshes the avatar.</summary>
@@ -1579,6 +1772,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _skinRevision++;
         RefreshAccounts();
         Raise(nameof(SkinAvatarSource));
+        AutoRefreshSkin3DLocal();
 
         RefreshSkinPreview();
         SkinStatus = $"已应用皮肤：{sourceText}（{check.Message}）";
@@ -1704,6 +1898,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _skinRevision++;
         RefreshAccounts();
         Raise(nameof(SkinAvatarSource));
+        AutoRefreshSkin3DLocal();
         RefreshSkinPreview();
         SkinStatus = "已清除皮肤（回到默认外观）";
         LogService.User($"清除账户 {account.Name} 的皮肤", "Skin");
@@ -3713,6 +3908,10 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
         // First run (or an empty folder): look for a usable installation.
         await AutoDetectOnStartupAsync();
+
+        // 启动完成后自动拉一次皮肤预览（本地 3D + 在线多角度渲染）
+        _ = PreviewSkin3DAsync();
+        _ = RefreshSkin3DRenderAsync();
 
         Console.AppendHeader("就绪");
 
