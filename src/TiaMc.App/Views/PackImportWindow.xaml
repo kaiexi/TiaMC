@@ -1,0 +1,55 @@
+<Window x:Class="TiaMc.App.Views.PackImportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="导入整合包"
+        Width="620" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Tia.WindowBg}"
+        FontFamily="Segoe UI" FontSize="12">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Height="30" Background="{DynamicResource Tia.Brand}">
+            <TextBlock x:Name="TitleText" Text="导入整合包" VerticalAlignment="Center" Margin="10,0"
+                       Foreground="{DynamicResource Tia.TextOnBrand}" FontWeight="SemiBold" />
+        </Border>
+
+        <Border Grid.Row="1" Margin="14,12,14,0" Padding="10,8"
+                Background="{DynamicResource Tia.PanelBg}"
+                BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1">
+            <StackPanel>
+                <TextBlock x:Name="PackNameText" Style="{StaticResource Tia.TextStrong}" />
+                <TextBlock x:Name="PackInfoText" Style="{StaticResource Tia.MutedText}"
+                           TextWrapping="Wrap" Margin="0,4,0,0" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="2" Margin="14,12,14,0">
+            <TextBlock Text="安装方式" Style="{StaticResource Tia.TextStrong}" />
+            <RadioButton x:Name="DeployRadio" IsChecked="True" Margin="0,6,0,0" GroupName="mode"
+                         Content="导入并加入实例（推荐：mods / config / 资源包 复制到该实例的游戏目录）" />
+            <RadioButton x:Name="OnlyImportRadio" Margin="0,4,0,0" GroupName="mode"
+                         Content="只导入到整合包目录（稍后可用「加入实例」按钮再装）" />
+
+            <TextBlock Text="目标实例" Style="{StaticResource Tia.TextStrong}" Margin="0,10,0,0" />
+            <ComboBox x:Name="InstanceCombo" Margin="0,4,0,0" MinWidth="520" />
+            <TextBlock x:Name="InstanceHintText" Style="{StaticResource Tia.MutedText}"
+                       TextWrapping="Wrap" Margin="0,4,0,0" />
+            <TextBlock Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap" Margin="0,6,0,0"
+                       Text="提示：实例即「版本」页里的 Minecraft 版本。整合包声明的游戏版本与装载器会用来匹配最合适的实例；没有匹配项时请先在版本页下载安装对应装载器版本。" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="14,12,14,14">
+            <Button Style="{StaticResource Tia.Button}" Content="取消" Width="80" Click="Cancel_Click" />
+            <Button Style="{StaticResource Tia.Button.Primary}" Content="开始导入" Width="100" Margin="8,0,0,0"
+                    Click="Ok_Click" IsDefault="True" />
+        </StackPanel>
+    </Grid>
+</Window>

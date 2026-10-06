@@ -1,0 +1,74 @@
+<Window x:Class="TiaMc.App.Views.McScanWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:TiaMc.App.ViewModels"
+        Title="自动检测 Minecraft 目录"
+        Width="880" Height="520"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{DynamicResource Tia.WindowBg}"
+        Foreground="{DynamicResource Tia.Text}"
+        FontFamily="Segoe UI" FontSize="12">
+    <Window.DataContext>
+        <vm:McScanViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="{DynamicResource Tia.Brand}" Height="30">
+            <TextBlock Text="自动检测 Minecraft 目录" VerticalAlignment="Center" Margin="10,0"
+                       Foreground="{DynamicResource Tia.TextOnBrand}" FontWeight="SemiBold" />
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource Tia.Toolbar}">
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource Tia.Button.Tool}" Click="Scan_Click"
+                        Content="{StaticResource ScanLabel.Scan}"
+                        IsEnabled="{Binding IsNotScanning}" />
+                <Button Style="{StaticResource Tia.Button.Tool}" Click="ScanFast_Click"
+                        Content="{StaticResource ScanLabel.ScanFast}"
+                        IsEnabled="{Binding IsNotScanning}"
+                        ToolTip="只检查常见位置与其它启动器，不扫描整块磁盘" />
+                <Separator Style="{StaticResource Tia.Separator}" Margin="6,2" />
+                <Button Style="{StaticResource Tia.Button.Tool}" Click="Browse_Click"
+                        Content="{StaticResource ScanLabel.Browse}" />
+                <TextBlock Text="{Binding Status}" Style="{StaticResource Tia.MutedText}"
+                           VerticalAlignment="Center" Margin="12,0,0,0" />
+            </StackPanel>
+        </Border>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Candidates}"
+                  SelectedItem="{Binding Selected, Mode=TwoWay}"
+                  AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                  HeadersVisibility="Column" RowHeight="24" BorderThickness="0"
+                  Background="{DynamicResource Tia.ContentBg}"
+                  AlternatingRowBackground="{DynamicResource Tia.RowAlt}"
+                  MouseDoubleClick="Grid_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="来源" Binding="{Binding SourceText}" Width="130" />
+                <DataGridTextColumn Header="版本" Binding="{Binding Summary}" Width="150" />
+                <DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Border Grid.Row="3" Margin="10,6,10,0" Padding="8,6"
+                Background="{DynamicResource Tia.PanelBg}"
+                BorderBrush="{DynamicResource Tia.Border}" BorderThickness="1">
+            <TextBlock Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap"
+                       Text="{StaticResource ScanLabel.Hint}" />
+        </Border>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,8,10,12">
+            <Button Style="{StaticResource Tia.Button}" Content="取消" Width="90" Click="Cancel_Click" />
+            <Button Style="{StaticResource Tia.Button.Primary}" Content="使用该目录" Width="110" Margin="8,0,0,0"
+                    Click="Ok_Click" IsDefault="True" />
+        </StackPanel>
+    </Grid>
+</Window>

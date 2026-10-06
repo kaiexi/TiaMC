@@ -1,0 +1,55 @@
+name: build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: 构建 TiaMC（Windows x64）
+    runs-on: windows-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 还原
+        run: dotnet restore TiaMC.slnx
+
+      - name: 构建（Release）
+        run: dotnet build TiaMC.slnx -c Release --no-restore
+
+      - name: 自检（CLI 冒烟测试）
+        shell: pwsh
+        run: |
+          $cli = "src/TiaMc.Cli/bin/Release/net10.0/tiamc-cli.exe"
+          & $cli help
+          & $cli cache
+          # Yggdrasil 服务端规范自测（13/13 通过）
+          & $cli yggdrasil --port 25567
+
+      - name: 发布单文件
+        run: >
+          dotnet publish src/TiaMc.App/TiaMc.App.csproj
+          -c Release -o dist
+          -r win-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=false
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: TiaMC-win-x64
+          path: |
+            dist/TiaMC.exe
+            README.md
+            LICENSE
+            THIRD-PARTY-NOTICES.md
+          if-no-files-found: error

@@ -1,0 +1,3317 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- =====================================================================
+         TiaTheme.xaml - Siemens TIA Portal V17+ inspired WPF theme
+         Flat industrial chrome. Squared corners (2px max). No gradients,
+         no shadows, no blurs, no animations except one indeterminate bar.
+         Self-sufficient: every StaticResource referenced here is declared
+         earlier in this same file. No x:Class, no code-behind, no pack URIs.
+         ===================================================================== -->
+
+    <!-- =====================================================================
+         1. PURE COLOUR TOKENS (namespaced "C." so brush keys stay unique)
+         ===================================================================== -->
+    <Color x:Key="C.Brand">#FF0C5C8C</Color>
+    <Color x:Key="C.BrandDark">#FF08456A</Color>
+    <Color x:Key="C.BrandLight">#FF1479B4</Color>
+    <Color x:Key="C.Accent">#FFE8A33D</Color>
+    <Color x:Key="C.WindowBg">#FFEFF2F5</Color>
+    <Color x:Key="C.PanelBg">#FFF7F8FA</Color>
+    <Color x:Key="C.PanelBgAlt">#FFE7EBF0</Color>
+    <Color x:Key="C.ContentBg">#FFFFFFFF</Color>
+    <Color x:Key="C.Border">#FFC3CBD4</Color>
+    <Color x:Key="C.BorderStrong">#FF9AA6B2</Color>
+    <Color x:Key="C.Text">#FF1E2A33</Color>
+    <Color x:Key="C.TextMuted">#FF5C6B78</Color>
+    <Color x:Key="C.TextDisabled">#FF9BA6B0</Color>
+    <Color x:Key="C.TextOnBrand">#FFFFFFFF</Color>
+    <Color x:Key="C.Selection">#FFCCE4F5</Color>
+    <Color x:Key="C.SelectionText">#FF10344C</Color>
+    <Color x:Key="C.Hover">#FFE2EDF6</Color>
+    <Color x:Key="C.RibbonBg">#FFF4F6F8</Color>
+    <Color x:Key="C.RibbonGroupBg">#FFEDF1F5</Color>
+    <Color x:Key="C.StatusBg">#FF0C5C8C</Color>
+    <Color x:Key="C.StatusText">#FFEAF3FA</Color>
+    <Color x:Key="C.RowAlt">#FFF3F6F9</Color>
+    <Color x:Key="C.Ok">#FF2E7D32</Color>
+    <Color x:Key="C.Warn">#FFB26A00</Color>
+    <Color x:Key="C.Error">#FFC0392B</Color>
+    <Color x:Key="C.Run">#FF1F8A3B</Color>
+    <!-- extra structural tones -->
+    <Color x:Key="C.Pressed">#FFD6E4EF</Color>
+    <Color x:Key="C.ChromeHover">#FFE5EAF0</Color>
+    <Color x:Key="C.ChromePressed">#FFD5DCE3</Color>
+    <Color x:Key="C.ChromeCloseHover">#FFE81123</Color>
+    <Color x:Key="C.ToolTipBg">#FF22313C</Color>
+    <Color x:Key="C.ToolTipBorder">#FF0C1A24</Color>
+    <Color x:Key="C.ConsoleBg">#FF10161B</Color>
+    <Color x:Key="C.ConsoleBorder">#FF2A3540</Color>
+    <Color x:Key="C.ConsoleText">#FFC8D2DA</Color>
+    <Color x:Key="C.StatusSeparator">#FF2E7BA6</Color>
+    <!-- badge tints -->
+    <Color x:Key="C.BadgeInfoBg">#FFD9E9F4</Color>
+    <Color x:Key="C.BadgeInfoBorder">#FF7FAFCD</Color>
+    <Color x:Key="C.BadgeOkBg">#FFDDEEDC</Color>
+    <Color x:Key="C.BadgeOkBorder">#FF8FB98D</Color>
+    <Color x:Key="C.BadgeWarnBg">#FFF7E7CC</Color>
+    <Color x:Key="C.BadgeWarnBorder">#FFD3A45C</Color>
+    <Color x:Key="C.BadgeErrorBg">#FFF7DCD8</Color>
+    <Color x:Key="C.BadgeErrorBorder">#FFCE857B</Color>
+
+    <!-- =====================================================================
+         2. SOLID COLOUR BRUSHES
+         ===================================================================== -->
+    <SolidColorBrush x:Key="Tia.Brand" Color="{StaticResource C.Brand}"/>
+    <SolidColorBrush x:Key="Tia.BrandDark" Color="{StaticResource C.BrandDark}"/>
+    <SolidColorBrush x:Key="Tia.BrandLight" Color="{StaticResource C.BrandLight}"/>
+    <SolidColorBrush x:Key="Tia.Accent" Color="{StaticResource C.Accent}"/>
+    <SolidColorBrush x:Key="Tia.WindowBg" Color="{StaticResource C.WindowBg}"/>
+    <SolidColorBrush x:Key="Tia.PanelBg" Color="{StaticResource C.PanelBg}"/>
+    <SolidColorBrush x:Key="Tia.PanelBgAlt" Color="{StaticResource C.PanelBgAlt}"/>
+    <SolidColorBrush x:Key="Tia.ContentBg" Color="{StaticResource C.ContentBg}"/>
+    <!-- server modpack highlight (orange): rows, badges and borders -->
+    <SolidColorBrush x:Key="Tia.ServerPackRow" Color="#FFF4E6"/>
+    <SolidColorBrush x:Key="Tia.ServerPackRowAlt" Color="#FFEAD2"/>
+    <SolidColorBrush x:Key="Tia.ServerPackText" Color="#A85B00"/>
+    <SolidColorBrush x:Key="Tia.ServerPackBadge" Color="#E8A33D"/>
+    <SolidColorBrush x:Key="Tia.ClientPackBadge" Color="#5C6B78"/>
+    <SolidColorBrush x:Key="Tia.Border" Color="{StaticResource C.Border}"/>
+    <SolidColorBrush x:Key="Tia.BorderStrong" Color="{StaticResource C.BorderStrong}"/>
+    <SolidColorBrush x:Key="Tia.Text" Color="{StaticResource C.Text}"/>
+    <SolidColorBrush x:Key="Tia.TextMuted" Color="{StaticResource C.TextMuted}"/>
+    <SolidColorBrush x:Key="Tia.TextDisabled" Color="{StaticResource C.TextDisabled}"/>
+    <SolidColorBrush x:Key="Tia.TextOnBrand" Color="{StaticResource C.TextOnBrand}"/>
+    <SolidColorBrush x:Key="Tia.Selection" Color="{StaticResource C.Selection}"/>
+    <SolidColorBrush x:Key="Tia.SelectionText" Color="{StaticResource C.SelectionText}"/>
+    <SolidColorBrush x:Key="Tia.Hover" Color="{StaticResource C.Hover}"/>
+    <SolidColorBrush x:Key="Tia.RibbonBg" Color="{StaticResource C.RibbonBg}"/>
+    <SolidColorBrush x:Key="Tia.RibbonGroupBg" Color="{StaticResource C.RibbonGroupBg}"/>
+    <SolidColorBrush x:Key="Tia.StatusBg" Color="{StaticResource C.StatusBg}"/>
+    <!-- The consumer uses "Tia.StatusText" as a TextBlock *Style*, so the
+         matching on-brand brush is exposed as Tia.StatusBarText. -->
+    <SolidColorBrush x:Key="Tia.StatusBarText" Color="{StaticResource C.StatusText}"/>
+    <SolidColorBrush x:Key="Tia.RowAlt" Color="{StaticResource C.RowAlt}"/>
+    <SolidColorBrush x:Key="Tia.Ok" Color="{StaticResource C.Ok}"/>
+    <SolidColorBrush x:Key="Tia.Warn" Color="{StaticResource C.Warn}"/>
+    <SolidColorBrush x:Key="Tia.Error" Color="{StaticResource C.Error}"/>
+    <SolidColorBrush x:Key="Tia.Run" Color="{StaticResource C.Run}"/>
+    <!-- extra brushes -->
+    <SolidColorBrush x:Key="Tia.Pressed" Color="{StaticResource C.Pressed}"/>
+    <SolidColorBrush x:Key="Tia.ChromeHover" Color="{StaticResource C.ChromeHover}"/>
+    <SolidColorBrush x:Key="Tia.ChromePressed" Color="{StaticResource C.ChromePressed}"/>
+    <SolidColorBrush x:Key="Tia.ChromeCloseHover" Color="{StaticResource C.ChromeCloseHover}"/>
+    <SolidColorBrush x:Key="Tia.ToolTipBg" Color="{StaticResource C.ToolTipBg}"/>
+    <SolidColorBrush x:Key="Tia.ToolTipBorder" Color="{StaticResource C.ToolTipBorder}"/>
+    <SolidColorBrush x:Key="Tia.ConsoleBg" Color="{StaticResource C.ConsoleBg}"/>
+    <SolidColorBrush x:Key="Tia.ConsoleBorder" Color="{StaticResource C.ConsoleBorder}"/>
+    <SolidColorBrush x:Key="Tia.ConsoleText" Color="{StaticResource C.ConsoleText}"/>
+    <SolidColorBrush x:Key="Tia.StatusSeparatorBrush" Color="{StaticResource C.StatusSeparator}"/>
+    <SolidColorBrush x:Key="Tia.Mono" Color="{StaticResource C.ConsoleText}"/>
+    <SolidColorBrush x:Key="Tia.Transparent" Color="#00000000"/>
+    <SolidColorBrush x:Key="Tia.Badge.InfoBg" Color="{StaticResource C.BadgeInfoBg}"/>
+    <SolidColorBrush x:Key="Tia.Badge.InfoBorder" Color="{StaticResource C.BadgeInfoBorder}"/>
+    <SolidColorBrush x:Key="Tia.Badge.OkBg" Color="{StaticResource C.BadgeOkBg}"/>
+    <SolidColorBrush x:Key="Tia.Badge.OkBorder" Color="{StaticResource C.BadgeOkBorder}"/>
+    <SolidColorBrush x:Key="Tia.Badge.WarnBg" Color="{StaticResource C.BadgeWarnBg}"/>
+    <SolidColorBrush x:Key="Tia.Badge.WarnBorder" Color="{StaticResource C.BadgeWarnBorder}"/>
+    <SolidColorBrush x:Key="Tia.Badge.ErrorBg" Color="{StaticResource C.BadgeErrorBg}"/>
+    <SolidColorBrush x:Key="Tia.Badge.ErrorBorder" Color="{StaticResource C.BadgeErrorBorder}"/>
+
+    <!-- =====================================================================
+         3. ICON GEOMETRIES - flat industrial pictograms on a 24x24 box.
+         Structured PathGeometry (NOT a Figures attribute and NOT element text
+         content): StreamGeometry exposes no ContentProperty/TypeConverter, so
+         only explicit PathFigure/segment elements load correctly.
+         Geometries are colourless by design - the consumer sets Path.Fill.
+         ===================================================================== -->
+    <PathGeometry x:Key="Icon.Project">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="2,5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="9,5"/>
+                    <LineSegment Point="11.5,8"/>
+                    <LineSegment Point="22,8"/>
+                    <LineSegment Point="22,19"/>
+                    <LineSegment Point="2,19"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="5,11" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="19,11"/>
+                    <LineSegment Point="19,12.4"/>
+                    <LineSegment Point="5,12.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="5,14.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="19,14.6"/>
+                    <LineSegment Point="19,16"/>
+                    <LineSegment Point="5,16"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Instance">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,3" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21,7.5"/>
+                    <LineSegment Point="12,12"/>
+                    <LineSegment Point="3,7.5"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="3,11.9" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="12,16.4"/>
+                    <LineSegment Point="21,11.9"/>
+                    <LineSegment Point="21,13.3"/>
+                    <LineSegment Point="12,17.8"/>
+                    <LineSegment Point="3,13.3"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="3,15.9" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="12,20.4"/>
+                    <LineSegment Point="21,15.9"/>
+                    <LineSegment Point="21,17.3"/>
+                    <LineSegment Point="12,21.8"/>
+                    <LineSegment Point="3,17.3"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Version" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="3,4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="11,4"/>
+                    <LineSegment Point="21,14"/>
+                    <LineSegment Point="13.5,21.5"/>
+                    <LineSegment Point="3,11"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="7,9.4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="7.01,9.4" Size="1.7,1.7" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Play">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="7,4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="20,12"/>
+                    <LineSegment Point="7,20"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Stop">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="6,6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="18,6"/>
+                    <LineSegment Point="18,18"/>
+                    <LineSegment Point="6,18"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Refresh">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="20.7,8.9" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="20.7,15.1" Size="9.4,9.4" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                    <LineSegment Point="18.9,14.2"/>
+                    <ArcSegment Point="18.9,9.8" Size="7.4,7.4" RotationAngle="0" IsLargeArc="True" SweepDirection="Clockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="10.7,1" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="16.6,1"/>
+                    <LineSegment Point="13.65,5.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Download">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="10.6,3" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="13.4,3"/>
+                    <LineSegment Point="13.4,10.4"/>
+                    <LineSegment Point="16.8,10.4"/>
+                    <LineSegment Point="12,16.6"/>
+                    <LineSegment Point="7.2,10.4"/>
+                    <LineSegment Point="10.6,10.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="4,18.4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="20,18.4"/>
+                    <LineSegment Point="20,21"/>
+                    <LineSegment Point="4,21"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Folder">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="2.5,5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="9,5"/>
+                    <LineSegment Point="11.5,8"/>
+                    <LineSegment Point="21.5,8"/>
+                    <LineSegment Point="21.5,19.5"/>
+                    <LineSegment Point="2.5,19.5"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Settings" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="9.4,2.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="14.6,2.5"/>
+                    <LineSegment Point="15.3,5.6"/>
+                    <LineSegment Point="17.4,6.9"/>
+                    <LineSegment Point="20.4,5.9"/>
+                    <LineSegment Point="22,10.5"/>
+                    <LineSegment Point="19.4,12"/>
+                    <LineSegment Point="19.4,14.3"/>
+                    <LineSegment Point="22,15.8"/>
+                    <LineSegment Point="20.4,20.4"/>
+                    <LineSegment Point="17.4,19.4"/>
+                    <LineSegment Point="15.3,20.7"/>
+                    <LineSegment Point="14.6,23.5"/>
+                    <LineSegment Point="9.4,23.5"/>
+                    <LineSegment Point="8.7,20.7"/>
+                    <LineSegment Point="6.6,19.4"/>
+                    <LineSegment Point="3.6,20.4"/>
+                    <LineSegment Point="2,15.8"/>
+                    <LineSegment Point="4.6,14.3"/>
+                    <LineSegment Point="4.6,12"/>
+                    <LineSegment Point="2,10.5"/>
+                    <LineSegment Point="3.6,5.9"/>
+                    <LineSegment Point="6.6,6.9"/>
+                    <LineSegment Point="8.7,5.6"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="12,9.1" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="12.01,9.1" Size="3,3" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Account">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,3.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="11.99,3.2" Size="4.2,4.2" RotationAngle="0" IsLargeArc="True" SweepDirection="Clockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="4,21" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <BezierSegment Point1="4,15.8" Point2="7.6,13.6" Point3="12,13.6"/>
+                    <BezierSegment Point1="16.4,13.6" Point2="20,15.8" Point3="20,21"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Java">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="4,10" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="17,10"/>
+                    <LineSegment Point="17,16.4"/>
+                    <BezierSegment Point1="17,18.6" Point2="15.2,20.4" Point3="13,20.4"/>
+                    <LineSegment Point="8,20.4"/>
+                    <BezierSegment Point1="5.8,20.4" Point2="4,18.6" Point3="4,16.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="19.6,12" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <BezierSegment Point1="21.6,12" Point2="22.6,13.3" Point3="22.6,14.8"/>
+                    <BezierSegment Point1="22.6,16.3" Point2="21.6,17.4" Point3="19.6,17.4"/>
+                    <LineSegment Point="19.6,15.9"/>
+                    <BezierSegment Point1="20.4,15.9" Point2="21.1,15.5" Point3="21.1,14.8"/>
+                    <BezierSegment Point1="21.1,14.1" Point2="20.4,13.5" Point3="19.6,13.5"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="7.3,3.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="8.6,3.2"/>
+                    <BezierSegment Point1="8.5,4.4" Point2="6.7,5.1" Point3="7.7,6.6"/>
+                    <LineSegment Point="7.7,7.8"/>
+                    <LineSegment Point="6.4,7.8"/>
+                    <LineSegment Point="6.4,6.6"/>
+                    <BezierSegment Point1="7.4,5.1" Point2="5.6,4.4" Point3="7.3,3.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="11.6,3.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="12.9,3.2"/>
+                    <BezierSegment Point1="12.8,4.4" Point2="11,5.1" Point3="12,6.6"/>
+                    <LineSegment Point="12,7.8"/>
+                    <LineSegment Point="10.7,7.8"/>
+                    <LineSegment Point="10.7,6.6"/>
+                    <BezierSegment Point1="11.7,5.1" Point2="9.9,4.4" Point3="11.6,3.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Mod">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="3,5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="8.6,5"/>
+                    <BezierSegment Point1="8.4,3.6" Point2="9.4,2.4" Point3="10.9,2.4"/>
+                    <BezierSegment Point1="12.4,2.4" Point2="13.4,3.6" Point3="13.2,5"/>
+                    <LineSegment Point="19,5"/>
+                    <LineSegment Point="19,10.6"/>
+                    <BezierSegment Point1="20.4,10.4" Point2="21.6,11.4" Point3="21.6,12.9"/>
+                    <BezierSegment Point1="21.6,14.4" Point2="20.4,15.4" Point3="19,15.2"/>
+                    <LineSegment Point="19,21"/>
+                    <LineSegment Point="3,21"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.World" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,3" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="12.01,3" Size="9,9" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="3.2,11.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="20.8,11.2"/>
+                    <LineSegment Point="20.8,12.8"/>
+                    <LineSegment Point="3.2,12.8"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="11.2,3.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="12.8,3.2"/>
+                    <LineSegment Point="12.8,20.8"/>
+                    <LineSegment Point="11.2,20.8"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.ResourcePack">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="3.5,7.4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="12,3"/>
+                    <LineSegment Point="20.5,7.4"/>
+                    <LineSegment Point="20.5,17.6"/>
+                    <LineSegment Point="12,22"/>
+                    <LineSegment Point="3.5,17.6"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="11.2,3.7" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="12.8,3.7"/>
+                    <LineSegment Point="12.8,21.3"/>
+                    <LineSegment Point="11.2,21.3"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Shader" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,3" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21.5,19.5"/>
+                    <LineSegment Point="2.5,19.5"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="12,8.4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="17.2,17.4"/>
+                    <LineSegment Point="6.8,17.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Server">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="3,3.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21,3.5"/>
+                    <LineSegment Point="21,7.5"/>
+                    <LineSegment Point="3,7.5"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="3,9.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21,9.5"/>
+                    <LineSegment Point="21,13.5"/>
+                    <LineSegment Point="3,13.5"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="3,15.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21,15.5"/>
+                    <LineSegment Point="21,19.5"/>
+                    <LineSegment Point="3,19.5"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="6.4,5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="8.6,5"/>
+                    <LineSegment Point="8.6,6.4"/>
+                    <LineSegment Point="6.4,6.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="6.4,11" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="8.6,11"/>
+                    <LineSegment Point="8.6,12.4"/>
+                    <LineSegment Point="6.4,12.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="6.4,17" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="8.6,17"/>
+                    <LineSegment Point="8.6,18.4"/>
+                    <LineSegment Point="6.4,18.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Console">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="2.5,4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21.5,4"/>
+                    <LineSegment Point="21.5,20"/>
+                    <LineSegment Point="2.5,20"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="6.2,8.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="9.6,11.2"/>
+                    <LineSegment Point="6.2,13.8"/>
+                    <LineSegment Point="6.2,12.2"/>
+                    <LineSegment Point="7.6,11.2"/>
+                    <LineSegment Point="6.2,9.8"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="11.4,14.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="16.8,14.6"/>
+                    <LineSegment Point="16.8,16"/>
+                    <LineSegment Point="11.4,16"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Search" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="6.4,10.9" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="6.41,10.9" Size="4.5,4.5" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="7.9,10.9" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="7.91,10.9" Size="3,3" RotationAngle="0" IsLargeArc="True" SweepDirection="Clockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="14.2,13.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="15.6,15"/>
+                    <LineSegment Point="21.6,21"/>
+                    <LineSegment Point="20.2,22.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Plus">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="10.7,3.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="13.3,3.5"/>
+                    <LineSegment Point="13.3,10.7"/>
+                    <LineSegment Point="20.5,10.7"/>
+                    <LineSegment Point="20.5,13.3"/>
+                    <LineSegment Point="13.3,13.3"/>
+                    <LineSegment Point="13.3,20.5"/>
+                    <LineSegment Point="10.7,20.5"/>
+                    <LineSegment Point="10.7,13.3"/>
+                    <LineSegment Point="3.5,13.3"/>
+                    <LineSegment Point="3.5,10.7"/>
+                    <LineSegment Point="10.7,10.7"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Trash">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="8.5,3" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="15.5,3"/>
+                    <LineSegment Point="16.6,5.2"/>
+                    <LineSegment Point="21,5.2"/>
+                    <LineSegment Point="21,7.6"/>
+                    <LineSegment Point="3,7.6"/>
+                    <LineSegment Point="3,5.2"/>
+                    <LineSegment Point="7.4,5.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="5,9" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="19,9"/>
+                    <LineSegment Point="17.9,20.2"/>
+                    <BezierSegment Point1="17.8,21.2" Point2="17,22" Point3="16,22"/>
+                    <LineSegment Point="8,22"/>
+                    <BezierSegment Point1="7,22" Point2="6.2,21.2" Point3="6.1,20.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="10,11.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="11.4,11.6"/>
+                    <LineSegment Point="11.4,19.2"/>
+                    <LineSegment Point="10,19.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="12.6,11.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="14,11.6"/>
+                    <LineSegment Point="14,19.2"/>
+                    <LineSegment Point="12.6,19.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Copy">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="8,2.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="19.5,2.5"/>
+                    <LineSegment Point="19.5,16"/>
+                    <LineSegment Point="8,16"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="4.5,6.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="6.4,6.5"/>
+                    <LineSegment Point="6.4,18.6"/>
+                    <LineSegment Point="16.5,18.6"/>
+                    <LineSegment Point="16.5,20.5"/>
+                    <LineSegment Point="4.5,20.5"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Edit">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="16.4,2.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21.4,7.6"/>
+                    <LineSegment Point="9,20"/>
+                    <LineSegment Point="4,20"/>
+                    <LineSegment Point="4,15"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="14.6,5.8" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="18.2,9.4"/>
+                    <LineSegment Point="16.8,10.8"/>
+                    <LineSegment Point="13.2,7.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Save">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="3,3" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="17.2,3"/>
+                    <LineSegment Point="21,6.8"/>
+                    <LineSegment Point="21,21"/>
+                    <LineSegment Point="3,21"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="7,3" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="15,3"/>
+                    <LineSegment Point="15,9"/>
+                    <LineSegment Point="7,9"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="6.5,13" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="17.5,13"/>
+                    <LineSegment Point="17.5,21"/>
+                    <LineSegment Point="6.5,21"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Info" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,2.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="12.01,2.5" Size="9.5,9.5" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="11.1,6.1" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="11.11,6.1" Size="1.5,1.5" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="10.5,10.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="13.5,10.6"/>
+                    <LineSegment Point="13.5,19"/>
+                    <LineSegment Point="10.5,19"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Warning" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,2.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="22.5,21"/>
+                    <LineSegment Point="1.5,21"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="10.7,8.4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="13.3,8.4"/>
+                    <LineSegment Point="13.3,15.4"/>
+                    <LineSegment Point="10.7,15.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="10.7,17.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="13.3,17.2"/>
+                    <LineSegment Point="13.3,19.6"/>
+                    <LineSegment Point="10.7,19.6"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Error" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,2.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="12.01,2.5" Size="9.5,9.5" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="7.9,7.9" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="10.4,7.9"/>
+                    <LineSegment Point="12,10.6"/>
+                    <LineSegment Point="13.6,7.9"/>
+                    <LineSegment Point="16.1,7.9"/>
+                    <LineSegment Point="13.4,12"/>
+                    <LineSegment Point="16.1,16.1"/>
+                    <LineSegment Point="13.6,16.1"/>
+                    <LineSegment Point="12,13.4"/>
+                    <LineSegment Point="10.4,16.1"/>
+                    <LineSegment Point="7.9,16.1"/>
+                    <LineSegment Point="10.6,12"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Online" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,2.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="12.01,2.5" Size="9.5,9.5" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="12,8.4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="12.01,8.4" Size="3.6,3.6" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Offline" FillRule="EvenOdd">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="12,2.5" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="12.01,2.5" Size="9.5,9.5" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="12,5.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <ArcSegment Point="12.01,5.2" Size="6.8,6.8" RotationAngle="0" IsLargeArc="True" SweepDirection="Counterclockwise"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Compile">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="3,3" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21,3"/>
+                    <LineSegment Point="21,21"/>
+                    <LineSegment Point="3,21"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="6.4,5.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="17.6,5.6"/>
+                    <LineSegment Point="17.6,18.4"/>
+                    <LineSegment Point="6.4,18.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="7.4,11.8" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="10.6,15"/>
+                    <LineSegment Point="16.8,8.4"/>
+                    <LineSegment Point="18.2,9.8"/>
+                    <LineSegment Point="10.6,17.6"/>
+                    <LineSegment Point="6,13.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Diagnostics">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="2.5,11.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="6.2,11.2"/>
+                    <LineSegment Point="8.6,5.2"/>
+                    <LineSegment Point="11.4,18.8"/>
+                    <LineSegment Point="14.2,11.2"/>
+                    <LineSegment Point="21.5,11.2"/>
+                    <LineSegment Point="21.5,12.8"/>
+                    <LineSegment Point="15.4,12.8"/>
+                    <LineSegment Point="10.8,24"/>
+                    <LineSegment Point="8.3,10.9"/>
+                    <LineSegment Point="7.3,12.8"/>
+                    <LineSegment Point="2.5,12.8"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Devices">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="2.5,4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="15.5,4"/>
+                    <LineSegment Point="15.5,14"/>
+                    <LineSegment Point="2.5,14"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="7.2,15.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="10.8,15.2"/>
+                    <LineSegment Point="10.8,18.4"/>
+                    <LineSegment Point="7.2,18.4"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="4.6,18.4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="13.4,18.4"/>
+                    <LineSegment Point="13.4,20"/>
+                    <LineSegment Point="4.6,20"/>
+                </PathFigure.Segments>
+            </PathFigure>
+            <PathFigure StartPoint="17,8" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="21.5,8"/>
+                    <LineSegment Point="21.5,18"/>
+                    <LineSegment Point="17,18"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.TreeExpander">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="4,2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="16,10"/>
+                    <LineSegment Point="4,18"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.TreeExpanderOpen">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="2,4" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="18,4"/>
+                    <LineSegment Point="10,16"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.Check">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="3.4,11.2" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="6.1,8.4"/>
+                    <LineSegment Point="10,12.6"/>
+                    <LineSegment Point="18,4"/>
+                    <LineSegment Point="20.8,6.6"/>
+                    <LineSegment Point="10,18.2"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <PathGeometry x:Key="Icon.ChevronDown">
+        <PathGeometry.Figures>
+            <PathFigure StartPoint="0,0.6" IsClosed="True" IsFilled="True">
+                <PathFigure.Segments>
+                    <LineSegment Point="1.5,0"/>
+                    <LineSegment Point="5,3.6"/>
+                    <LineSegment Point="8.5,0"/>
+                    <LineSegment Point="10,0.6"/>
+                    <LineSegment Point="5,5.8"/>
+                </PathFigure.Segments>
+            </PathFigure>
+        </PathGeometry.Figures>
+    </PathGeometry>
+
+    <!-- =====================================================================
+         4. CONTROL TEMPLATES
+         ===================================================================== -->
+
+    <!-- flat button -->
+    <ControlTemplate x:Key="Tia.ButtonTemplate" TargetType="{x:Type Button}">
+        <Border x:Name="Bd"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <ContentPresenter x:Name="BtnContent"
+                                  Margin="{TemplateBinding Padding}"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  RecognizesAccessKey="True"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                <Border x:Name="FocusRing"
+                        Margin="1"
+                        BorderBrush="{StaticResource Tia.Accent}"
+                        BorderThickness="1"
+                        Visibility="Collapsed"
+                        SnapsToDevicePixels="True"/>
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Pressed}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="FocusRing" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- primary / brand button -->
+    <ControlTemplate x:Key="Tia.ButtonPrimaryTemplate" TargetType="{x:Type Button}">
+        <Border x:Name="Bd"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <ContentPresenter Margin="{TemplateBinding Padding}"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  RecognizesAccessKey="True"/>
+                <Border x:Name="FocusRing"
+                        Margin="1"
+                        BorderBrush="{StaticResource Tia.Accent}"
+                        BorderThickness="1"
+                        Visibility="Collapsed"
+                        SnapsToDevicePixels="True"/>
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.BrandLight}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.BrandDark}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="FocusRing" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- ribbon tool button: no chrome until hover -->
+    <ControlTemplate x:Key="Tia.ButtonToolTemplate" TargetType="{x:Type Button}">
+        <Border x:Name="Bd"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                BorderThickness="1"
+                SnapsToDevicePixels="True">
+            <ContentPresenter Margin="{TemplateBinding Padding}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RecognizesAccessKey="True"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Pressed}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BorderStrong}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+                <Setter TargetName="Bd" Property="Opacity" Value="0.6"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- window chrome button (min / max) -->
+    <ControlTemplate x:Key="Tia.ButtonChromeTemplate" TargetType="{x:Type Button}">
+        <Border x:Name="Bd" Background="Transparent" SnapsToDevicePixels="True">
+            <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              RecognizesAccessKey="False"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.ChromeHover}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.ChromePressed}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- window chrome close button -->
+    <ControlTemplate x:Key="Tia.ButtonChromeCloseTemplate" TargetType="{x:Type Button}">
+        <Border x:Name="Bd" Background="Transparent" SnapsToDevicePixels="True">
+            <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              RecognizesAccessKey="False"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.ChromeCloseHover}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextOnBrand}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Error}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextOnBrand}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- ribbon large command button -->
+    <ControlTemplate x:Key="Tia.ButtonRibbonBigTemplate" TargetType="{x:Type Button}">
+        <Border x:Name="Bd"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                BorderThickness="1"
+                SnapsToDevicePixels="True">
+            <ContentPresenter Margin="{TemplateBinding Padding}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RecognizesAccessKey="True"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Pressed}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BorderStrong}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+                <Setter TargetName="Bd" Property="Opacity" Value="0.6"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- text box -->
+    <ControlTemplate x:Key="Tia.TextBoxTemplate" TargetType="{x:Type TextBox}">
+        <Border x:Name="Bd"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
+            <ScrollViewer x:Name="PART_ContentHost"
+                          Margin="{TemplateBinding Padding}"
+                          Background="Transparent"
+                          Focusable="False"
+                          HorizontalScrollBarVisibility="Hidden"
+                          VerticalScrollBarVisibility="Hidden"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BorderStrong}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BrandLight}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+            <Trigger Property="IsReadOnly" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+            </Trigger>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Error}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- password box -->
+    <ControlTemplate x:Key="Tia.PasswordBoxTemplate" TargetType="{x:Type PasswordBox}">
+        <Border x:Name="Bd"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
+            <ScrollViewer x:Name="PART_ContentHost"
+                          Margin="{TemplateBinding Padding}"
+                          Background="Transparent"
+                          Focusable="False"
+                          HorizontalScrollBarVisibility="Hidden"
+                          VerticalScrollBarVisibility="Hidden"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BorderStrong}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BrandLight}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Error}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- console / log text box -->
+    <ControlTemplate x:Key="Tia.ConsoleTextBoxTemplate" TargetType="{x:Type TextBox}">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
+            <ScrollViewer x:Name="PART_ContentHost"
+                          Margin="{TemplateBinding Padding}"
+                          Background="Transparent"
+                          Focusable="False"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"/>
+        </Border>
+    </ControlTemplate>
+
+    <!-- combo box (non editable) -->
+    <ControlTemplate x:Key="Tia.ComboBoxTemplate" TargetType="{x:Type ComboBox}">
+        <Grid SnapsToDevicePixels="True">
+            <Border x:Name="Bd"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"/>
+            <ToggleButton x:Name="ToggleButton"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          ClickMode="Press"
+                          Focusable="False"
+                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                <ToggleButton.Template>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid Background="Transparent">
+                            <Path x:Name="Arrow"
+                                  Width="10"
+                                  Height="6"
+                                  Margin="0,0,7,0"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"
+                                  Data="{StaticResource Icon.ChevronDown}"
+                                  Fill="{StaticResource Tia.TextMuted}"
+                                  Stretch="Fill"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Tia.Brand}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Tia.TextDisabled}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </ToggleButton.Template>
+            </ToggleButton>
+            <ContentPresenter x:Name="ContentSite"
+                              Margin="{TemplateBinding Padding}"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Center"
+                              Content="{TemplateBinding SelectionBoxItem}"
+                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                              IsHitTestVisible="False"
+                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+            <Popup x:Name="PART_Popup"
+                   AllowsTransparency="True"
+                   Focusable="False"
+                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                   Placement="Bottom"
+                   PopupAnimation="None">
+                <Popup.Resources>
+                    <Style TargetType="{x:Type ScrollViewer}">
+                        <Setter Property="CanContentScroll" Value="True"/>
+                    </Style>
+                </Popup.Resources>
+                <Border x:Name="DropDownBorder"
+                        MinWidth="{Binding ActualWidth, ElementName=Bd}"
+                        MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                        Margin="0,1,0,0"
+                        Background="{StaticResource Tia.ContentBg}"
+                        BorderBrush="{StaticResource Tia.BorderStrong}"
+                        BorderThickness="1"
+                        SnapsToDevicePixels="True">
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                    </ScrollViewer>
+                </Border>
+            </Popup>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="HasItems" Value="False">
+                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="24"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BorderStrong}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BrandLight}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Error}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- combo box item -->
+    <ControlTemplate x:Key="Tia.ComboBoxItemTemplate" TargetType="{x:Type ComboBoxItem}">
+        <Border x:Name="Bd"
+                Background="Transparent"
+                BorderThickness="0"
+                SnapsToDevicePixels="True">
+            <ContentPresenter Margin="{TemplateBinding Padding}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="Center"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </Trigger>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Selection}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.SelectionText}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- check box -->
+    <ControlTemplate x:Key="Tia.CheckBoxTemplate" TargetType="{x:Type CheckBox}">
+        <Grid SnapsToDevicePixels="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="Box"
+                    Width="14"
+                    Height="14"
+                    Background="{StaticResource Tia.ContentBg}"
+                    BorderBrush="{StaticResource Tia.BorderStrong}"
+                    BorderThickness="1"
+                    SnapsToDevicePixels="True">
+                <Path x:Name="Tick"
+                      Width="10"
+                      Height="8"
+                      Data="{StaticResource Icon.Check}"
+                      Fill="{StaticResource Tia.TextOnBrand}"
+                      Stretch="Fill"
+                      Visibility="Collapsed"/>
+            </Border>
+            <ContentPresenter x:Name="Label"
+                              Grid.Column="1"
+                              Margin="6,0,0,0"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="Center"
+                              RecognizesAccessKey="True"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Box" Property="Background" Value="{StaticResource Tia.Brand}"/>
+                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Tia.BrandDark}"/>
+                <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsChecked" Value="{x:Null}">
+                <Setter TargetName="Box" Property="Background" Value="{StaticResource Tia.Brand}"/>
+                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Tia.BrandDark}"/>
+                <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
+                <Setter TargetName="Tick" Property="Opacity" Value="0.55"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Tia.BrandLight}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Tia.Accent}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Box" Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+                <Setter TargetName="Label" Property="TextElement.Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- radio button -->
+    <ControlTemplate x:Key="Tia.RadioButtonTemplate" TargetType="{x:Type RadioButton}">
+        <Grid SnapsToDevicePixels="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="Ring"
+                    Width="14"
+                    Height="14"
+                    Background="{StaticResource Tia.ContentBg}"
+                    BorderBrush="{StaticResource Tia.BorderStrong}"
+                    BorderThickness="1"
+                    CornerRadius="7"
+                    SnapsToDevicePixels="True">
+                <Ellipse x:Name="Dot"
+                         Width="6"
+                         Height="6"
+                         Fill="{StaticResource Tia.Brand}"
+                         Visibility="Collapsed"/>
+            </Border>
+            <ContentPresenter x:Name="Label"
+                              Grid.Column="1"
+                              Margin="6,0,0,0"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="Center"
+                              RecognizesAccessKey="True"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Ring" Property="BorderBrush" Value="{StaticResource Tia.Brand}"/>
+                <Setter TargetName="Dot" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Ring" Property="BorderBrush" Value="{StaticResource Tia.BrandLight}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Ring" Property="BorderBrush" Value="{StaticResource Tia.Accent}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Ring" Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+                <Setter TargetName="Ring" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+                <Setter TargetName="Dot" Property="Fill" Value="{StaticResource Tia.TextDisabled}"/>
+                <Setter TargetName="Label" Property="TextElement.Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- slider -->
+    <ControlTemplate x:Key="Tia.SliderTemplate" TargetType="{x:Type Slider}">
+        <Border Background="Transparent" SnapsToDevicePixels="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TickBar x:Name="TopTick"
+                         Grid.Row="0"
+                         Height="4"
+                         Margin="0,0,0,2"
+                         Fill="{StaticResource Tia.BorderStrong}"
+                         Placement="Top"
+                         Visibility="Collapsed"/>
+                <TickBar x:Name="BottomTick"
+                         Grid.Row="2"
+                         Height="4"
+                         Margin="0,2,0,0"
+                         Fill="{StaticResource Tia.BorderStrong}"
+                         Placement="Bottom"
+                         Visibility="Collapsed"/>
+                <Track x:Name="PART_Track" Grid.Row="1" VerticalAlignment="Center">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Command="Slider.DecreaseLarge" Focusable="False">
+                            <RepeatButton.Template>
+                                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                                    <Border Background="Transparent" SnapsToDevicePixels="True"/>
+                                </ControlTemplate>
+                            </RepeatButton.Template>
+                        </RepeatButton>
+                    </Track.DecreaseRepeatButton>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Command="Slider.IncreaseLarge" Focusable="False">
+                            <RepeatButton.Template>
+                                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                                    <Border Background="Transparent" SnapsToDevicePixels="True"/>
+                                </ControlTemplate>
+                            </RepeatButton.Template>
+                        </RepeatButton>
+                    </Track.IncreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb x:Name="Thumb" Width="11" Height="15" Focusable="False">
+                            <Thumb.Template>
+                                <ControlTemplate TargetType="{x:Type Thumb}">
+                                    <Border x:Name="ThumbBd"
+                                            Background="{StaticResource Tia.Brand}"
+                                            BorderBrush="{StaticResource Tia.BrandDark}"
+                                            BorderThickness="1"
+                                            CornerRadius="1"
+                                            SnapsToDevicePixels="True"/>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="ThumbBd" Property="Background" Value="{StaticResource Tia.BrandLight}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsDragging" Value="True">
+                                            <Setter TargetName="ThumbBd" Property="Background" Value="{StaticResource Tia.BrandDark}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+                    </Track.Thumb>
+                </Track>
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="TickPlacement" Value="TopLeft">
+                <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="TickPlacement" Value="BottomRight">
+                <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="TickPlacement" Value="Both">
+                <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Thumb" Property="Opacity" Value="0.5"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- progress bar -->
+    <ControlTemplate x:Key="Tia.ProgressBarTemplate" TargetType="{x:Type ProgressBar}">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <Rectangle x:Name="PART_Track"/>
+                <Rectangle x:Name="PART_Indicator" HorizontalAlignment="Left"/>
+            </Grid>
+        </Border>
+    </ControlTemplate>
+
+    <!-- indeterminate progress bar (separate opt-in style) -->
+    <ControlTemplate x:Key="Tia.ProgressBarIndeterminateTemplate" TargetType="{x:Type ProgressBar}">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <Rectangle x:Name="PART_Track"/>
+                <Rectangle x:Name="PART_Indicator" HorizontalAlignment="Left"/>
+                <Rectangle x:Name="Pulse"
+                           Fill="{StaticResource Tia.BrandLight}"
+                           Opacity="0.45"/>
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsIndeterminate" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="PulseStory">
+                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                            <DoubleAnimation Storyboard.TargetName="Pulse"
+                                             Storyboard.TargetProperty="Opacity"
+                                             From="0.15"
+                                             To="0.55"
+                                             Duration="0:0:0.9"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <StopStoryboard BeginStoryboardName="PulseStory"/>
+                </Trigger.ExitActions>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="PART_Indicator" Property="Fill" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- group box -->
+    <ControlTemplate x:Key="Tia.GroupBoxTemplate" TargetType="{x:Type GroupBox}">
+        <Grid SnapsToDevicePixels="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0"
+                    Background="{StaticResource Tia.PanelBgAlt}"
+                    BorderBrush="{StaticResource Tia.Border}"
+                    BorderThickness="1,1,1,0"
+                    Padding="6,3">
+                <ContentPresenter ContentSource="Header"
+                                  RecognizesAccessKey="True"
+                                  TextElement.FontSize="12"
+                                  TextElement.FontWeight="SemiBold"
+                                  TextElement.Foreground="{StaticResource Tia.Brand}"/>
+            </Border>
+            <Border Grid.Row="1"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{StaticResource Tia.Border}"
+                    BorderThickness="1"
+                    Padding="6">
+                <ContentPresenter Margin="{TemplateBinding Padding}"/>
+            </Border>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- menu item (top level and submenu share this template) -->
+    <ControlTemplate x:Key="Tia.MenuItemTemplate" TargetType="{x:Type MenuItem}">
+        <Grid SnapsToDevicePixels="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="Bd"
+                    Grid.ColumnSpan="4"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
+                    BorderThickness="1"/>
+            <ContentPresenter x:Name="Icon"
+                              Grid.Column="0"
+                              Width="18"
+                              Height="16"
+                              Margin="3,0,4,0"
+                              VerticalAlignment="Center"
+                              ContentSource="Icon"/>
+            <Path x:Name="Check"
+                  Grid.Column="0"
+                  Width="10"
+                  Height="8"
+                  Margin="3,0,4,0"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Data="{StaticResource Icon.Check}"
+                  Fill="{StaticResource Tia.Brand}"
+                  Stretch="Fill"
+                  Visibility="Collapsed"/>
+            <ContentPresenter x:Name="HeaderHost"
+                              Grid.Column="1"
+                              Margin="4,0,8,0"
+                              VerticalAlignment="Center"
+                              ContentSource="Header"
+                              RecognizesAccessKey="True"/>
+            <TextBlock x:Name="IGT"
+                       Grid.Column="2"
+                       Margin="8,0,8,0"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource Tia.TextMuted}"
+                       Text="{TemplateBinding InputGestureText}"/>
+            <Path x:Name="SubArrow"
+                  Grid.Column="3"
+                  Width="5"
+                  Height="9"
+                  Margin="0,0,5,0"
+                  VerticalAlignment="Center"
+                  Data="M0,0 L5,5 L0,10 Z"
+                  Fill="{StaticResource Tia.TextMuted}"
+                  Stretch="Fill"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="Icon" Value="{x:Null}">
+                <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Check" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+            </Trigger>
+            <Trigger Property="IsSubmenuOpen" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+                <Setter TargetName="IGT" Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+                <Setter TargetName="SubArrow" Property="Fill" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+            <Trigger Property="Role" Value="SubmenuHeader">
+                <Setter TargetName="SubArrow" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+                <Setter TargetName="Bd" Property="BorderThickness" Value="0,0,0,1"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Trigger>
+            <Trigger Property="Role" Value="TopLevelHeader">
+                <Setter TargetName="SubArrow" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="IGT" Property="Visibility" Value="Collapsed"/>
+            </Trigger>
+            <Trigger Property="Role" Value="TopLevelItem">
+                <Setter TargetName="SubArrow" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="IGT" Property="Visibility" Value="Collapsed"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Menu separators
+         A Menu/ContextMenu cannot carry a "Resources" Setter (Resources is a
+         read-only property, so Setter rejects it), which removes the usual
+         MenuItem.SeparatorStyleKey route for styling menu separators from a
+         style. Menu/ContextMenu item templates are still fully themed; only the
+         separator rows keep the default system rendering. Separators outside
+         menus use Style="{StaticResource Tia.Separator}". -->
+
+    <!-- ribbon tab control -->
+    <ControlTemplate x:Key="Tia.RibbonTabControlTemplate" TargetType="{x:Type TabControl}">
+        <Grid KeyboardNavigation.TabNavigation="Local" SnapsToDevicePixels="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Background="{StaticResource Tia.RibbonBg}">
+                <TabPanel x:Name="HeaderPanel"
+                          MinHeight="26"
+                          Margin="2,0,2,0"
+                          IsItemsHost="True"
+                          KeyboardNavigation.TabIndex="1"
+                          Panel.ZIndex="1"/>
+            </Grid>
+            <Border x:Name="ContentPanel"
+                    Grid.Row="1"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{StaticResource Tia.Border}"
+                    BorderThickness="1,1,1,0"
+                    KeyboardNavigation.DirectionalNavigation="Contained"
+                    KeyboardNavigation.TabIndex="2"
+                    KeyboardNavigation.TabNavigation="Local">
+                <ContentPresenter x:Name="PART_SelectedContentHost"
+                                  Margin="{TemplateBinding Padding}"
+                                  ContentSource="SelectedContent"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+            </Border>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- ribbon tab item -->
+    <ControlTemplate x:Key="Tia.RibbonTabItemTemplate" TargetType="{x:Type TabItem}">
+        <Border x:Name="Bd"
+                Margin="0,2,1,0"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                BorderThickness="1,1,1,0"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border x:Name="TopRule"
+                        Grid.Row="0"
+                        Background="Transparent"
+                        SnapsToDevicePixels="True"/>
+                <ContentPresenter x:Name="HeaderHost"
+                                  Grid.Row="1"
+                                  Margin="{TemplateBinding Padding}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  ContentSource="Header"
+                                  RecognizesAccessKey="True"/>
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+                <Setter TargetName="TopRule" Property="Background" Value="{StaticResource Tia.Brand}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+                <Setter Property="Panel.ZIndex" Value="2"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- document tab item -->
+    <ControlTemplate x:Key="Tia.TabItemTemplate" TargetType="{x:Type TabItem}">
+        <Border x:Name="Bd"
+                Margin="0,3,1,0"
+                Background="{StaticResource Tia.PanelBgAlt}"
+                BorderBrush="{StaticResource Tia.Border}"
+                BorderThickness="1,1,1,0"
+                SnapsToDevicePixels="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border x:Name="TopRule"
+                        Grid.Row="0"
+                        Background="Transparent"
+                        SnapsToDevicePixels="True"/>
+                <ContentPresenter x:Name="HeaderHost"
+                                  Grid.Row="1"
+                                  Margin="{TemplateBinding Padding}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  ContentSource="Header"
+                                  RecognizesAccessKey="True"/>
+            </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+                <Setter TargetName="TopRule" Property="Background" Value="{StaticResource Tia.Accent}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+                <Setter Property="Panel.ZIndex" Value="2"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- document tab control -->
+    <ControlTemplate x:Key="Tia.TabControlTemplate" TargetType="{x:Type TabControl}">
+        <Grid KeyboardNavigation.TabNavigation="Local" SnapsToDevicePixels="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TabPanel x:Name="HeaderPanel"
+                      Grid.Row="0"
+                      MinHeight="26"
+                      Margin="2,0,2,0"
+                      IsItemsHost="True"
+                      KeyboardNavigation.TabIndex="1"
+                      Panel.ZIndex="1"/>
+            <Border x:Name="ContentPanel"
+                    Grid.Row="1"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{StaticResource Tia.Border}"
+                    BorderThickness="1,1,1,0"
+                    KeyboardNavigation.DirectionalNavigation="Contained"
+                    KeyboardNavigation.TabIndex="2"
+                    KeyboardNavigation.TabNavigation="Local">
+                <ContentPresenter x:Name="PART_SelectedContentHost"
+                                  Margin="{TemplateBinding Padding}"
+                                  ContentSource="SelectedContent"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+            </Border>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- tree view item: flat row + rotating triangle -->
+    <ControlTemplate x:Key="Tia.TreeViewItemTemplate" TargetType="{x:Type TreeViewItem}">
+        <Grid SnapsToDevicePixels="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="14"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <ToggleButton x:Name="Expander"
+                          Grid.Row="0"
+                          Grid.Column="0"
+                          Width="14"
+                          Height="18"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Center"
+                          ClickMode="Press"
+                          Focusable="False"
+                          IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                <ToggleButton.Template>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid Background="Transparent">
+                            <Path x:Name="Glyph"
+                                  Width="9"
+                                  Height="9"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="{StaticResource Icon.TreeExpander}"
+                                  Fill="{StaticResource Tia.TextMuted}"
+                                  Stretch="Fill"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <!-- The expanded glyph is swapped as geometry rather than by
+                                 targeting a named RotateTransform: a named transform lives in
+                                 its own name scope, so TargetName cannot reach it from a
+                                 ControlTemplate trigger (MC4111). -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Glyph" Property="Data" Value="{StaticResource Icon.TreeExpanderOpen}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Glyph" Property="Fill" Value="{StaticResource Tia.Brand}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Glyph" Property="Fill" Value="{StaticResource Tia.TextDisabled}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </ToggleButton.Template>
+            </ToggleButton>
+            <Border x:Name="Bd"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    SnapsToDevicePixels="True">
+                <ContentPresenter x:Name="PART_Header"
+                                  Margin="{TemplateBinding Padding}"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="Center"
+                                  ContentSource="Header"/>
+            </Border>
+            <ItemsPresenter x:Name="ItemsHost"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="14,0,0,0"
+                            Visibility="Collapsed"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsExpanded" Value="True">
+                <Setter TargetName="ItemsHost" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="HasItems" Value="False">
+                <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" SourceName="Bd" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Selection}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.SelectionText}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- tree view -->
+    <ControlTemplate x:Key="Tia.TreeViewTemplate" TargetType="{x:Type TreeView}">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                SnapsToDevicePixels="True">
+            <ScrollViewer x:Name="PART_ScrollViewer"
+                          Padding="{TemplateBinding Padding}"
+                          Background="Transparent"
+                          CanContentScroll="True"
+                          Focusable="False"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsPresenter/>
+            </ScrollViewer>
+        </Border>
+    </ControlTemplate>
+
+    <!-- list box item -->
+    <ControlTemplate x:Key="Tia.ListBoxItemTemplate" TargetType="{x:Type ListBoxItem}">
+        <Border x:Name="Bd"
+                Background="{TemplateBinding Background}"
+                BorderThickness="0"
+                SnapsToDevicePixels="True">
+            <ContentPresenter Margin="{TemplateBinding Padding}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsMouseOver" Value="True"/>
+                    <Condition Property="IsSelected" Value="False"/>
+                </MultiTrigger.Conditions>
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </MultiTrigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Selection}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.SelectionText}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- list view item (used by the TIA table look) -->
+    <ControlTemplate x:Key="Tia.ListViewItemTemplate" TargetType="{x:Type ListViewItem}">
+        <Border x:Name="Bd"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{StaticResource Tia.Border}"
+                BorderThickness="0,0,0,1"
+                SnapsToDevicePixels="True">
+            <!-- GridViewRowPresenter takes Content and generates the cells from
+                 Columns. It has no ContentTemplate dependency property, so only
+                 those two are bound. No Style is set here: a StaticResource
+                 lookup from inside a ControlTemplate is not guaranteed to reach
+                 a key that lives in the merged dictionary, so templates only
+                 reference keys declared locally. -->
+            <GridViewRowPresenter x:Name="RowHost"
+                                  Columns="{TemplateBinding GridView.ColumnCollection}"
+                                  Content="{TemplateBinding Content}"/>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.RowAlt}"/>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsMouseOver" Value="True"/>
+                    <Condition Property="IsSelected" Value="False"/>
+                </MultiTrigger.Conditions>
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </MultiTrigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Selection}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.SelectionText}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- grid view column header: keeps the native resize gripper -->
+    <ControlTemplate x:Key="Tia.GridViewColumnHeaderTemplate" TargetType="{x:Type GridViewColumnHeader}">
+        <Grid SnapsToDevicePixels="True">
+            <Border x:Name="Bd"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{StaticResource Tia.Border}"
+                    BorderThickness="0,0,1,1"
+                    Padding="{TemplateBinding Padding}">
+                <ContentPresenter x:Name="Content"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="Center"
+                                  RecognizesAccessKey="True"/>
+            </Border>
+            <Thumb x:Name="PART_HeaderGripper"
+                   Width="8"
+                   HorizontalAlignment="Right"
+                   Cursor="SizeWE"
+                   Focusable="False">
+                <Thumb.Template>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Grid Background="Transparent">
+                            <Rectangle x:Name="GripMark"
+                                       Width="1"
+                                       HorizontalAlignment="Center"
+                                       Fill="{StaticResource Tia.Border}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="GripMark" Property="Fill" Value="{StaticResource Tia.BrandLight}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Thumb.Template>
+            </Thumb>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- grid view row presenter: rows keep an explicit 1px horizontal gridline.
+         The default presenter is used so generated cells stay intact; the
+         gridline is declared on the item container. -->
+    <Style x:Key="Tia.GridViewRowPresenter" TargetType="{x:Type GridViewRowPresenter}">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    </Style>
+
+    <!-- scroll bar -->
+    <ControlTemplate x:Key="Tia.ScrollBarTemplate" TargetType="{x:Type ScrollBar}">
+        <Grid Background="{StaticResource Tia.PanelBgAlt}" SnapsToDevicePixels="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <RepeatButton x:Name="PART_LineUpButton"
+                          Grid.Row="0"
+                          Grid.Column="1"
+                          Command="ScrollBar.LineUpCommand"
+                          Focusable="False"
+                          Style="{x:Null}">
+                <RepeatButton.Template>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Grid Background="Transparent">
+                            <Path x:Name="Arrow"
+                                  Width="7"
+                                  Height="4"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M0,4 L3.5,0 L7,4 Z"
+                                  Fill="{StaticResource Tia.TextMuted}"
+                                  Stretch="Fill"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Tia.Text}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </RepeatButton.Template>
+            </RepeatButton>
+            <RepeatButton x:Name="PART_LineDownButton"
+                          Grid.Row="2"
+                          Grid.Column="1"
+                          Command="ScrollBar.LineDownCommand"
+                          Focusable="False"
+                          Style="{x:Null}">
+                <RepeatButton.Template>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Grid Background="Transparent">
+                            <Path x:Name="Arrow"
+                                  Width="7"
+                                  Height="4"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M0,0 L3.5,4 L7,0 Z"
+                                  Fill="{StaticResource Tia.TextMuted}"
+                                  Stretch="Fill"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Tia.Text}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </RepeatButton.Template>
+            </RepeatButton>
+            <RepeatButton x:Name="PART_LineLeftButton"
+                          Grid.Row="1"
+                          Grid.Column="0"
+                          Command="ScrollBar.LineLeftCommand"
+                          Focusable="False"
+                          Style="{x:Null}">
+                <RepeatButton.Template>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Grid Background="Transparent">
+                            <Path x:Name="Arrow"
+                                  Width="4"
+                                  Height="7"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M4,0 L0,3.5 L4,7 Z"
+                                  Fill="{StaticResource Tia.TextMuted}"
+                                  Stretch="Fill"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Tia.Text}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </RepeatButton.Template>
+            </RepeatButton>
+            <RepeatButton x:Name="PART_LineRightButton"
+                          Grid.Row="1"
+                          Grid.Column="2"
+                          Command="ScrollBar.LineRightCommand"
+                          Focusable="False"
+                          Style="{x:Null}">
+                <RepeatButton.Template>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Grid Background="Transparent">
+                            <Path x:Name="Arrow"
+                                  Width="4"
+                                  Height="7"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M0,0 L4,3.5 L0,7 Z"
+                                  Fill="{StaticResource Tia.TextMuted}"
+                                  Stretch="Fill"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Tia.Text}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </RepeatButton.Template>
+            </RepeatButton>
+            <Track x:Name="PART_Track"
+                   Grid.Row="1"
+                   Grid.Column="1"
+                   IsDirectionReversed="True">
+                <Track.DecreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False" Style="{x:Null}">
+                        <RepeatButton.Template>
+                            <ControlTemplate TargetType="{x:Type RepeatButton}">
+                                <Border Background="Transparent" SnapsToDevicePixels="True"/>
+                            </ControlTemplate>
+                        </RepeatButton.Template>
+                    </RepeatButton>
+                </Track.DecreaseRepeatButton>
+                <Track.IncreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False" Style="{x:Null}">
+                        <RepeatButton.Template>
+                            <ControlTemplate TargetType="{x:Type RepeatButton}">
+                                <Border Background="Transparent" SnapsToDevicePixels="True"/>
+                            </ControlTemplate>
+                        </RepeatButton.Template>
+                    </RepeatButton>
+                </Track.IncreaseRepeatButton>
+                <Track.Thumb>
+                    <Thumb x:Name="Thumb" MinHeight="18" MinWidth="18" Focusable="False">
+                        <Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                <Border x:Name="ThumbBd"
+                                        Margin="2"
+                                        Background="{StaticResource Tia.BorderStrong}"
+                                        CornerRadius="1"
+                                        SnapsToDevicePixels="True"/>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="ThumbBd" Property="Background" Value="{StaticResource Tia.TextMuted}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsDragging" Value="True">
+                                        <Setter TargetName="ThumbBd" Property="Background" Value="{StaticResource Tia.Brand}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Thumb.Template>
+                    </Thumb>
+                </Track.Thumb>
+            </Track>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter TargetName="PART_LineUpButton" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="PART_LineDownButton" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="PART_LineLeftButton" Property="Grid.Row" Value="0"/>
+                <Setter TargetName="PART_LineLeftButton" Property="Grid.RowSpan" Value="3"/>
+                <Setter TargetName="PART_LineLeftButton" Property="Grid.Column" Value="0"/>
+                <Setter TargetName="PART_LineRightButton" Property="Grid.Row" Value="0"/>
+                <Setter TargetName="PART_LineRightButton" Property="Grid.RowSpan" Value="3"/>
+                <Setter TargetName="PART_LineRightButton" Property="Grid.Column" Value="2"/>
+                <Setter TargetName="PART_Track" Property="Grid.Row" Value="1"/>
+                <Setter TargetName="PART_Track" Property="Grid.RowSpan" Value="1"/>
+                <Setter TargetName="PART_Track" Property="Grid.Column" Value="1"/>
+                <Setter TargetName="PART_Track" Property="Orientation" Value="Horizontal"/>
+                <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- =====================================================================
+         5. STYLES - text
+         ===================================================================== -->
+
+    <!-- NOTE on key collisions (WPF requires every x:Key in one dictionary to be
+         unique; a duplicate key silently replaces the earlier entry and a
+         StaticResource of the wrong type throws InvalidCastException at load):
+
+           * "Tia.Text" (#1E2A33) and "Tia.TextMuted" (#5C6B78) are the required
+             BRUSH keys - Views/MainWindow.xaml consumes them as brushes, e.g.
+             Foreground="{DynamicResource Tia.Text}". They therefore CANNOT also
+             be TextBlock styles. The TextBlock styles are named:
+                 Tia.TextBlock       (12px, neutral colour, inherits Foreground)
+                 Tia.TextMutedText   (11.5px, Tia.TextMuted)  alias Tia.MutedText
+             "Tia.TextStrong" is unambiguous (no brush by that name) and is used
+             verbatim as the 12px SemiBold TextBlock style.
+           * "Tia.StatusText" is consumed as a TextBlock Style, so it is the
+             Style and the brush is "Tia.StatusBarText".
+         Every other key in the required list is used verbatim. -->
+
+    <Style x:Key="Tia.TextBlock" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.TextStrong" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <Style x:Key="Tia.TextMutedText" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextMuted}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <Style x:Key="Tia.MutedText" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Tia.TextMutedText}"/>
+
+    <Style x:Key="Tia.SectionHeader" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Brand}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <Style x:Key="Tia.Label" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextMuted}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <Style x:Key="Tia.RibbonGroupLabel" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextMuted}"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+        <Setter Property="Margin" Value="0,3,0,0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.StatusText" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.StatusBarText}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.StatusTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource Tia.StatusText}"/>
+
+    <Style x:Key="Tia.ToolTipText" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextOnBrand}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <!-- =====================================================================
+         6. STYLES - buttons
+         ===================================================================== -->
+
+    <Style x:Key="Tia.Button" TargetType="{x:Type Button}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,3"/>
+        <Setter Property="MinHeight" Value="23"/>
+        <Setter Property="MinWidth" Value="64"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Arrow"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ButtonTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.Button.Primary" TargetType="{x:Type Button}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextOnBrand}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.Brand}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.BrandDark}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,3"/>
+        <Setter Property="MinHeight" Value="23"/>
+        <Setter Property="MinWidth" Value="64"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ButtonPrimaryTemplate}"/>
+    </Style>
+
+    <!-- orange button: server modpack actions are always highlighted in orange -->
+    <Style x:Key="Tia.Button.ServerPack" TargetType="{x:Type Button}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ServerPackBadge}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.ServerPackText}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,3"/>
+        <Setter Property="MinHeight" Value="23"/>
+        <Setter Property="MinWidth" Value="64"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Accent}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.ServerPackText}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="Tia.Button.Tool" TargetType="{x:Type Button}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="6,2"/>
+        <Setter Property="MinHeight" Value="22"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ButtonToolTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.Button.Chrome" TargetType="{x:Type Button}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Width" Value="45"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ButtonChromeTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.Button.ChromeClose" TargetType="{x:Type Button}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Width" Value="45"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ButtonChromeCloseTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.Button.RibbonBig" TargetType="{x:Type Button}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Width" Value="64"/>
+        <Setter Property="Height" Value="62"/>
+        <Setter Property="Padding" Value="3"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Top"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ButtonRibbonBigTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.Button.RibbonSmall" TargetType="{x:Type Button}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Padding" Value="4,1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ButtonToolTemplate}"/>
+    </Style>
+
+    <!-- =====================================================================
+         7. STYLES - inputs
+         ===================================================================== -->
+
+    <Style x:Key="Tia.TextBox" TargetType="{x:Type TextBox}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4,3"/>
+        <Setter Property="MinHeight" Value="23"/>
+        <Setter Property="CaretBrush" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource Tia.Selection}"/>
+        <Setter Property="SelectionOpacity" Value="1"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template" Value="{StaticResource Tia.TextBoxTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.PasswordBox" TargetType="{x:Type PasswordBox}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4,3"/>
+        <Setter Property="MinHeight" Value="23"/>
+        <Setter Property="CaretBrush" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource Tia.Selection}"/>
+        <Setter Property="SelectionOpacity" Value="1"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template" Value="{StaticResource Tia.PasswordBoxTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.Console" TargetType="{x:Type TextBox}">
+        <Setter Property="FontFamily" Value="Consolas"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.ConsoleText}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ConsoleBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.ConsoleBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="5,3"/>
+        <Setter Property="CaretBrush" Value="{StaticResource Tia.ConsoleText}"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource Tia.BrandLight}"/>
+        <Setter Property="SelectionOpacity" Value="0.6"/>
+        <Setter Property="AcceptsReturn" Value="True"/>
+        <Setter Property="TextWrapping" Value="NoWrap"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ConsoleTextBoxTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.ComboBoxItem" TargetType="{x:Type ComboBoxItem}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="MinHeight" Value="22"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ComboBoxItemTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.ComboBox" TargetType="{x:Type ComboBox}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="5,2"/>
+        <Setter Property="MinHeight" Value="23"/>
+        <Setter Property="MinWidth" Value="72"/>
+        <Setter Property="MaxDropDownHeight" Value="260"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Tia.ComboBoxItem}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ComboBoxTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.CheckBox" TargetType="{x:Type CheckBox}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="MinHeight" Value="18"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.CheckBoxTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.RadioButton" TargetType="{x:Type RadioButton}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="MinHeight" Value="18"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.RadioButtonTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.Slider" TargetType="{x:Type Slider}">
+        <Setter Property="MinHeight" Value="20"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.SliderTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.ProgressBar" TargetType="{x:Type ProgressBar}">
+        <Setter Property="Height" Value="14"/>
+        <Setter Property="MinWidth" Value="40"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Brand}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ProgressBarTemplate}"/>
+        <Style.Triggers>
+            <Trigger Property="IsIndeterminate" Value="True">
+                <Setter Property="Template" Value="{StaticResource Tia.ProgressBarIndeterminateTemplate}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="Tia.ProgressBar.Indeterminate" TargetType="{x:Type ProgressBar}">
+        <Setter Property="Height" Value="14"/>
+        <Setter Property="MinWidth" Value="40"/>
+        <Setter Property="IsIndeterminate" Value="True"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Brand}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ProgressBarIndeterminateTemplate}"/>
+    </Style>
+
+    <!-- =====================================================================
+         8. STYLES - containers and chrome
+         ===================================================================== -->
+
+    <Style x:Key="Tia.GroupBox" TargetType="{x:Type GroupBox}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="6"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template" Value="{StaticResource Tia.GroupBoxTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.Separator" TargetType="{x:Type Separator}">
+        <Setter Property="Height" Value="1"/>
+        <Setter Property="Margin" Value="0,3"/>
+        <Setter Property="Background" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Separator}">
+                    <Border Height="1"
+                            Background="{TemplateBinding Background}"
+                            SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Tia.Card" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="10"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.DockHeader" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource Tia.Brand}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.BrandDark}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.DockHeaderText" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextOnBrand}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.StatusBar" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource Tia.StatusBg}"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.StatusSeparator" TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="1"/>
+        <Setter Property="Height" Value="14"/>
+        <Setter Property="Margin" Value="6,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Background" Value="{StaticResource Tia.StatusSeparatorBrush}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.Toolbar" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding" Value="4,3"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.RibbonGroup" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource Tia.RibbonGroupBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.Splitter" TargetType="{x:Type GridSplitter}">
+        <Setter Property="Width" Value="5"/>
+        <Setter Property="Cursor" Value="SizeWE"/>
+        <Setter Property="ResizeDirection" Value="Columns"/>
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type GridSplitter}">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            SnapsToDevicePixels="True"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.BrandLight}"/>
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Brand}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Tia.FieldRow" TargetType="{x:Type Grid}">
+        <Setter Property="Margin" Value="0,3"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <!-- badges -->
+    <Style x:Key="Tia.Badge" TargetType="{x:Type Border}">
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4,1"/>
+        <Setter Property="Background" Value="{StaticResource Tia.Badge.InfoBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Badge.InfoBorder}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.Badge.Info" TargetType="{x:Type Border}" BasedOn="{StaticResource Tia.Badge}"/>
+
+    <Style x:Key="Tia.Badge.Ok" TargetType="{x:Type Border}" BasedOn="{StaticResource Tia.Badge}">
+        <Setter Property="Background" Value="{StaticResource Tia.Badge.OkBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Badge.OkBorder}"/>
+    </Style>
+
+    <Style x:Key="Tia.Badge.Warn" TargetType="{x:Type Border}" BasedOn="{StaticResource Tia.Badge}">
+        <Setter Property="Background" Value="{StaticResource Tia.Badge.WarnBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Badge.WarnBorder}"/>
+    </Style>
+
+    <Style x:Key="Tia.Badge.Error" TargetType="{x:Type Border}" BasedOn="{StaticResource Tia.Badge}">
+        <Setter Property="Background" Value="{StaticResource Tia.Badge.ErrorBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Badge.ErrorBorder}"/>
+    </Style>
+
+    <Style x:Key="Tia.BadgeText" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="10.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.SelectionText}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <!-- =====================================================================
+         9. STYLES - menus and ribbon
+         ===================================================================== -->
+
+    <Style x:Key="Tia.MenuItem" TargetType="{x:Type MenuItem}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="7,3"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template" Value="{StaticResource Tia.MenuItemTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.ContextMenu" TargetType="{x:Type ContextMenu}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.BorderStrong}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="1"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Tia.MenuItem}"/>
+    </Style>
+
+    <Style x:Key="Tia.Menu" TargetType="{x:Type Menu}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.RibbonBg}"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Padding" Value="2,0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Tia.MenuItem}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Menu}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource Tia.Border}"
+                            BorderThickness="0,0,0,1"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ItemsPresenter SnapsToDevicePixels="True"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Tia.RibbonTabItem" TargetType="{x:Type TabItem}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextMuted}"/>
+        <Setter Property="Padding" Value="12,4"/>
+        <Setter Property="MinWidth" Value="64"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.RibbonTabItemTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.RibbonTabControl" TargetType="{x:Type TabControl}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Background" Value="{StaticResource Tia.RibbonGroupBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Tia.RibbonTabItem}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.RibbonTabControlTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.TabItem" TargetType="{x:Type TabItem}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextMuted}"/>
+        <Setter Property="Padding" Value="12,3"/>
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.TabItemTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.TabControl" TargetType="{x:Type TabControl}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Tia.TabItem}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.TabControlTemplate}"/>
+    </Style>
+
+    <!-- industrial toggle switch: used as the authentication server on/off switch -->
+    <Style x:Key="Tia.Switch" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Width" Value="34"/>
+        <Setter Property="Height" Value="16"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <Grid>
+                        <Border x:Name="Track" CornerRadius="8"
+                                Background="{StaticResource Tia.PanelBgAlt}"
+                                BorderBrush="{StaticResource Tia.BorderStrong}" BorderThickness="1"
+                                SnapsToDevicePixels="True"/>
+                        <Border x:Name="Knob" Width="12" Height="12" CornerRadius="6"
+                                Background="{StaticResource Tia.BorderStrong}"
+                                HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0"
+                                SnapsToDevicePixels="True"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{StaticResource Tia.Brand}"/>
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{StaticResource Tia.Brand}"/>
+                            <Setter TargetName="Knob" Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+                            <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right"/>
+                            <Setter TargetName="Knob" Property="Margin" Value="0,0,2,0"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{StaticResource Tia.Brand}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- horizontal bar splitter: used above the output window and between stacked lists -->
+    <Style x:Key="Tia.Splitter.H" TargetType="{x:Type GridSplitter}">
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="Cursor" Value="SizeNS"/>
+        <Setter Property="ResizeDirection" Value="Rows"/>
+        <Setter Property="ResizeBehavior" Value="PreviousAndNext"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type GridSplitter}">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource Tia.Border}" BorderThickness="0,1,0,1"
+                            SnapsToDevicePixels="True">
+                        <Border Height="2" Width="46" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Background="{StaticResource Tia.BorderStrong}" CornerRadius="1"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Selection}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- =====================================================================
+         10. STYLES - trees and lists
+         ===================================================================== -->
+
+    <Style x:Key="Tia.TreeViewItem" TargetType="{x:Type TreeViewItem}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="2,3"/>
+        <Setter Property="MinHeight" Value="22"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.TreeViewItemTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.TreeView" TargetType="{x:Type TreeView}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="2"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Tia.TreeViewItem}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.TreeViewTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.ListBoxItem" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="5,2"/>
+        <Setter Property="MinHeight" Value="22"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ListBoxItemTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.ListBoxItem.Alt" TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource Tia.ListBoxItem}">
+        <Setter Property="MinHeight" Value="21"/>
+    </Style>
+
+    <Style x:Key="Tia.ListBox" TargetType="{x:Type ListBox}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="1"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Tia.ListBoxItem}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBox}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer Padding="{TemplateBinding Padding}"
+                                      Background="Transparent"
+                                      Focusable="False">
+                            <ItemsPresenter SnapsToDevicePixels="True"/>
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Tia.ListViewItem" TargetType="{x:Type ListViewItem}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ListViewItemTemplate}"/>
+    </Style>
+
+    <Style x:Key="Tia.GridViewColumnHeader" TargetType="{x:Type GridViewColumnHeader}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextMuted}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.GridViewColumnHeaderTemplate}"/>
+    </Style>
+
+    <!-- GridView is a ViewBase, not a FrameworkElement, so it cannot carry a
+         Style. Apply the header style directly instead:
+             <GridView ColumnHeaderContainerStyle="{StaticResource Tia.GridViewColumnHeader}"/> -->
+
+    <Style x:Key="Tia.ListView" TargetType="{x:Type ListView}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="AlternationCount" Value="2"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Tia.ListViewItem}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListView}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer Padding="{TemplateBinding Padding}"
+                                      Background="Transparent"
+                                      Focusable="False"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter SnapsToDevicePixels="True"/>
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- =====================================================================
+         11. STYLES - scrollbars, tooltips, misc
+         ===================================================================== -->
+
+    <Style x:Key="Tia.ScrollBar" TargetType="{x:Type ScrollBar}">
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+        <Setter Property="Width" Value="12"/>
+        <Setter Property="MinWidth" Value="12"/>
+        <Setter Property="Height" Value="12"/>
+        <Setter Property="MinHeight" Value="12"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template" Value="{StaticResource Tia.ScrollBarTemplate}"/>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Width" Value="Auto"/>
+                <Setter Property="MinWidth" Value="0"/>
+                <Setter Property="Height" Value="12"/>
+                <Setter Property="MinHeight" Value="12"/>
+            </Trigger>
+            <Trigger Property="Orientation" Value="Vertical">
+                <Setter Property="Width" Value="12"/>
+                <Setter Property="MinWidth" Value="12"/>
+                <Setter Property="Height" Value="Auto"/>
+                <Setter Property="MinHeight" Value="0"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="Tia.ScrollViewer" TargetType="{x:Type ScrollViewer}">
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBg}"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="Tia.ToolTip" TargetType="{x:Type ToolTip}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextOnBrand}"/>
+        <Setter Property="Background" Value="{StaticResource Tia.ToolTipBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.ToolTipBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="5,3"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToolTip}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="2"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ribbon group caption shown under a command strip -->
+    <Style x:Key="Tia.RibbonGroupCaptionHost" TargetType="{x:Type Grid}">
+        <Setter Property="Margin" Value="0,1,0,0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <!-- =====================================================================
+         9. STYLES - TIA style shell additions (breadcrumb, palette, pane tabs)
+         ===================================================================== -->
+
+    <Style x:Key="Tia.BreadcrumbRoot" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextMuted}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="Tia.BreadcrumbItem" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Brand}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="Tia.BreadcrumbSeparator" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextDisabled}"/>
+        <Setter Property="Margin" Value="6,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="Tia.BreadcrumbCurrent" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- palette section: TIA draws a bold header with a disclosure triangle -->
+    <Style x:Key="Tia.PaletteHeaderToggle" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Background" Value="{StaticResource Tia.PanelBgAlt}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Path x:Name="Arrow" Grid.Column="0" Width="9" Height="9" Stretch="Uniform"
+                                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                                  Fill="{StaticResource Tia.TextMuted}">
+                                <Path.Style>
+                                    <Style TargetType="{x:Type Path}">
+                                        <Setter Property="Data" Value="{StaticResource Icon.TreeExpander}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
+                                                         Value="True">
+                                                <Setter Property="Data" Value="{StaticResource Icon.TreeExpanderOpen}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                            <ContentPresenter Grid.Column="1" Margin="2,0,6,0"
+                                              HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Tia.PaletteRow" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="Padding" Value="4,0"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="Transparent" BorderThickness="0,0,0,1"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Hover}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Border}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Selection}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Tia.SelectionText}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- vertical pane selector on the far right, mirroring TIA's pane tabs -->
+    <Style x:Key="Tia.PaneTab" TargetType="{x:Type RadioButton}">
+        <Setter Property="Width" Value="22"/>
+        <Setter Property="Height" Value="86"/>
+        <Setter Property="Margin" Value="0,0,0,2"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RadioButton}">
+                    <Border x:Name="Bd" Background="{StaticResource Tia.PanelBgAlt}"
+                            BorderBrush="{StaticResource Tia.Border}" BorderThickness="1,1,0,1"
+                            SnapsToDevicePixels="True">
+                        <TextBlock Text="{TemplateBinding Content}" VerticalAlignment="Center"
+                                   HorizontalAlignment="Center" Foreground="{TemplateBinding Foreground}">
+                            <TextBlock.LayoutTransform>
+                                <RotateTransform Angle="90"/>
+                            </TextBlock.LayoutTransform>
+                        </TextBlock>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.Brand}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Tia.TextOnBrand}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.BrandLight}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Tia.PaletteGroupLabel" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.TextMuted}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+</ResourceDictionary>

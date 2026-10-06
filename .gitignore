@@ -1,0 +1,35 @@
+# 构建产物
+bin/
+obj/
+*.user
+.vs/
+
+# 发布目录（成品从 Release 下载，不入库）
+dist/
+publish/
+
+# 运行期数据（便携模式的配置、缓存、日志、游戏目录）
+config/
+runtime/
+logs/
+.minecraft/
+minecraft/
+*.tiamc-download
+
+# 测试 / 基准 / 截图目录
+# 截图会带上本机路径与个人模组列表，因此不入库（tools\capture-window.ps1 可自行生成）
+artifacts/
+preview/
+# （截图目录名也一并忽略：会带出本机路径）
+docs/images/
+
+# 压缩包 / 日志 / 崩溃报告
+*.zip
+*.log
+hs_err_pid*.log
+crash-*.txt
+
+# 编辑器
+.idea/
+.vscode/
+*.swp

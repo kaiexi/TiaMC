@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>TiaMc.App</RootNamespace>
+    <AssemblyName>TiaMC</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\TiaMC.ico</ApplicationIcon>
+    <SatelliteResourceLanguages>zh-Hans;en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TiaMc.Core\TiaMc.Core.csproj" />
+  </ItemGroup>
+
+  <!-- The window icon is loaded through a pack URI, so the .ico has to be an
+       embedded WPF resource as well as the executable icon. -->
+  <ItemGroup>
+    <Resource Include="Assets\TiaMC.ico" />
+  </ItemGroup>
+
+  <!-- The launcher must ship as a single self-contained TiaMC.exe: no .NET
+       installation, no extra DLLs next to the executable. Trimming stays off
+       because WPF resolves XAML types reflectively, and native libraries are
+       kept unextracted so the executable can also start from a locked down
+       account where %TEMP%\.net is not writable. -->
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <DebugType>none</DebugType>
+    <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+</Project>
