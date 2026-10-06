@@ -58,6 +58,31 @@
 | 从 XP 机器复制整份 `Internet Explorer` 目录 | ⚠️ 可放进 `ie6\` 引擎槽，但 IE6 的 mshtml 6.0 依赖 XP 系统栈，在新系统上**大概率加载失败**（启动器会如实报错） |
 
 
+### 实测：XP 的 IEXPLORE.EXE 6.00.2900.5512 在 Windows 11 上能不能跑
+
+拿一份**真的** IE6 外壳（`C:\Users\3214\Desktop\Internet Explorer\IEXPLORE.EXE`，
+版本 `6.00.2900.5512 (xpsp.080413-2105)`）在本机（Windows 11 26100）实测三种兼容手段：
+
+| 手段 | 命令/做法 | 结果 |
+|------|-----------|------|
+| 直接启动 | `Start-Process IEXPLORE.EXE about:blank` | ❌ 退出码 **0xC0000142**（STATUS_DLL_INIT_FAILED） |
+| XP 兼容层 | `__COMPAT_LAYER=WINXPSP3` | ❌ 同样 0xC0000142 |
+| DLL 重定向 | 建 `IEXPLORE.EXE.local` 让同目录 DLL 优先 | ❌ 同样 0xC0000142 |
+
+原因（可复核）：
+
+* 该目录里**只有外壳**：`IEXPLORE.EXE` + `HMMAPI.DLL` + `iedw.exe`；缺少 **18 个引擎文件**
+  （`mshtml.dll`、`shdocvw.dll`、`urlmon.dll`、`wininet.dll`、`browseui.dll`、`inseng.dll`、`mlang.dll`、
+  `cdfview.dll`、`danim.dll`、`dxtmsft.dll`、`dxtrans.dll`、`iedkcs32.dll`、`iepeers.dll`、`imgutil.dll`、
+  `occache.dll`、`webcheck.dll`、`iecont.dll`、`msrating.dll`）。
+* IE6 外壳按名字绑定 `mshtml/shdocvw/urlmon/wininet` 等，Win11 上这些解析到 **IE11 版本**
+  （`SysWOW64\mshtml.dll 11.00.26100`、`shdocvw 10.0.26100`），COM 接口与导出都不兼容。
+* 即使把 XP 的整套 IE6 DLL 拷进来，`kernel32/user32/ole32/shlwapi` 等受 **KnownDLLs / WRP** 约束
+  仍会加载系统版本，XP 时代的调用点在新版 DLL 上不存在 → 初始化失败。
+
+**因此：Windows 11 上无法直接运行 IE6 内核。** 启动器把这三种尝试做成了「IE6 兼容启动」按钮，
+并把退出码含义、缺失文件清单、替代方案直接显示在界面上（不让使用者猜）。
+
 ### 关于"从泄露的 XP 源码构建 IE6 内核"（明确不做）
 
 网上（例如 GitHub 上的某些仓库）存在包含 **Windows XP 泄露源码树** 的项目（目录形如

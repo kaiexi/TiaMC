@@ -306,6 +306,10 @@ function loadIe6() {
       : ("未检测到真 IE6 引擎目录。把含 iexplore.exe + mshtml.dll 的目录放到 " + esc(d.engineDirectory)));
     setText("ie6-host", "进程 " + esc(d.processBits) + " 位；宿主引擎 " + esc(d.hostedEngineDll) +
       "（版本 " + esc(d.hostedEngineVersion) + "，真 IE6=" + esc(d.hostedIsIe6) + "）");
+    if (d.missingEngineFiles && d.missingEngineFiles.length > 0) {
+      setText("ie6-engine", $("ie6-engine").innerHTML + "；缺少 " + d.missingEngineFiles.length +
+        " 个引擎文件（" + d.missingEngineFiles.slice(0, 6).join(", ") + " …）");
+    }
     setText("ie6-note", d.wsl
       ? ("WSL: " + (d.wsl.wslPresent ? "已安装" : "未安装") +
          "；发行版 " + (d.wsl.defaultDistro || "无") +
@@ -339,6 +343,14 @@ function openEngineDir() {
 
 function launchRealIe6() {
   post("/api/ie6/launch", { url: location.href }, function (d) { status(d.ok ? "完成" : "失败", d.message || ""); });
+}
+
+function compatLaunch() {
+  status("正在以 XP 兼容层启动真 IE6…", "");
+  post("/api/ie6/compat-launch", { url: location.href }, function (d) {
+    status(d.ok ? "完成" : "无法在 Win11 上直接运行", d.message || "");
+    setText("ie6-note", esc(d.message || ""));
+  });
 }
 
 function launchWslIe6() {

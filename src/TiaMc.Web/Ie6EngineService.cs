@@ -75,9 +75,12 @@ internal sealed class Ie6EngineService
                 if (exe is null) continue;
 
                 var mshtml = Directory.GetFiles(directory, "mshtml.dll", SearchOption.AllDirectories).FirstOrDefault();
-                var version = mshtml is not null ? FileVersion(mshtml) : "";
+                var shellVersion = FileVersion(exe);
+                var version = mshtml is not null
+                    ? FileVersion(mshtml)
+                    : (shellVersion.Length > 0 ? shellVersion + "（仅外壳，缺 mshtml.dll 引擎）" : "未知");
 
-                _cached = new Engine(directory, exe, version.Length > 0 ? version : "未知", "本地引擎目录");
+                _cached = new Engine(directory, exe, version, mshtml is not null ? "本地引擎目录（含引擎）" : "本地引擎目录（仅外壳）");
                 return _cached;
             }
             catch (Exception)
@@ -281,6 +284,8 @@ internal sealed class Ie6EngineService
                 "如果你手上是 ie6setup.exe（472 KB、微软签名的在线安装存根）：它内部只有下载向导（ie6wzd.exe/wininet.dll/iesetup.inf），" +
                 "不含 mshtml.dll 与 iexplore.exe，且微软下载服务器早已下线，无法提供引擎。" +
                 "可插拔槽需要的是**可运行的引擎目录**（iexplore.exe + mshtml.dll 6.0），例如从已装好 IE6 的 XP 机器上复制整份 Internet Explorer 目录。",
+            ["shellOnly"] = engine is not null && MissingEngineFiles().Count == EngineFiles.Length - 1,
+            ["missingEngineFiles"] = new JsonArray(MissingEngineFiles().Select(f => (JsonNode)f).ToArray()),
             ["explanation"] =
                 "真 IE6 内核是 XP/2000 的系统组件，无法由本程序打包（许可 + 新版系统不加载）。" +
                 "把引擎目录放到 ie6\\ 即可被检测并直接使用；未放引擎时可用系统 IE 引擎的 IE5 quirks 模式（≈IE6 排版）。",
@@ -500,6 +505,107 @@ internal sealed class Ie6EngineService
         catch (Exception e)
         {
             return new ActionResult(false, "启动 WSL 真 IE6 失败: " + e.Message);
+        }
+    }
+    // ------------------------------------------------ IE6 兼容启动（Win11）
+    // 结论（实测）：XP 的 IEXPLORE.EXE 6.00.2900.5512 在 Win11 上三种方式都秒退，
+    // 退出码 0xC0000142 = STATUS_DLL_INIT_FAILED（DLL 初始化失败）：
+    //   1) 直接启动           → 失败
+    //   2) __COMPAT_LAYER=WINXPSP3（XP 兼容层） → 失败
+    //   3) iexplore.exe.local（目录内 DLL 优先）→ 失败
+    // 原因是它按名字绑定 mshtml/shdocvw/urlmon/wininet 等，Win11 上这些解析到 IE11 版本，
+    // 接口不兼容；而且该目录只有外壳，没有 mshtml.dll 6.0 引擎。
+    // 因此本项目提供"兼容启动"+ 结果解释 + 缺失文件清单，并把真 IE6 的正路指向 WSL+Wine。
+
+    /// <summary>SP1 引擎目录所需的随行文件（XP 的 Internet Explorer 目录内容）。</summary>
+    private static readonly string[] EngineFiles =
+    [
+        "mshtml.dll", "shdocvw.dll", "urlmon.dll", "wininet.dll", "browseui.dll",
+        "inseng.dll", "mlang.dll", "cdfview.dll", "danim.dll", "dxtmsft.dll", "dxtrans.dll",
+        "iedkcs32.dll", "iepeers.dll", "imgutil.dll", "occache.dll", "webcheck.dll",
+        "iecont.dll", "msrating.dll", "hmmapi.dll", "iexplore.exe"
+    ];
+
+    /// <summary>目录里缺哪些引擎文件（只有 iexplore.exe 时就是"纯外壳"）。</summary>
+    public List<string> MissingEngineFiles()
+    {
+        var engine = Discover();
+        if (engine is null) return EngineFiles.ToList();
+
+        var missing = new List<string>();
+        foreach (var name in EngineFiles)
+        {
+            var found = Directory.GetFiles(engine.Directory, name, SearchOption.AllDirectories).Length > 0;
+            if (!found) missing.Add(name);
+        }
+
+        return missing;
+    }
+
+    /// <summary>把退出码翻译成人话。</summary>
+    public static string ExplainExitCode(int code) => code switch
+    {
+        0 => "正常退出",
+        -1073741502 => "0xC0000142 STATUS_DLL_INIT_FAILED：DLL 初始化失败——IE6 外壳绑定到 Win11 上的 IE11 系统 DLL（mshtml/shdocvw/urlmon 等），接口不兼容；若目录里没有 mshtml.dll 6.0 引擎则更不可能初始化",
+        -1073741515 => "0xC0000135 STATUS_DLL_NOT_FOUND：缺少依赖 DLL",
+        -1073741819 => "0xC0000005 访问冲突",
+        _ => $"退出码 {code}（0x{(uint)code:X8}）"
+    };
+
+    /// <summary>
+    /// IE6 兼容启动：XP 兼容层（__COMPAT_LAYER）+ 目录内 DLL 重定向（*.local）+ 结果解释。
+    /// 这是 Windows 上能做到的全部；实测仍会以 0xC0000142 退出，界面会如实显示原因与替代方案。
+    /// </summary>
+    public ActionResult CompatLaunch(string url)
+    {
+        var engine = Discover(refresh: true);
+        if (engine is null) return new ActionResult(false, "没有找到 IE6 引擎目录（ie6\\ 或配置里的路径）");
+
+        try
+        {
+            // 1) DLL 重定向标记：<exe>.local 让同目录 DLL 优先加载
+            var local = engine.Executable + ".local";
+            if (!File.Exists(local)) File.WriteAllText(local, "");
+
+            // 2) XP 兼容层：通过当前进程环境传给子进程（UseShellExecute 不能直接设环境变量）
+            var previous = Environment.GetEnvironmentVariable("__COMPAT_LAYER");
+            Environment.SetEnvironmentVariable("__COMPAT_LAYER", "WINXPSP3");
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = engine.Executable,
+                Arguments = url.Length > 0 ? $"\"{url}\"" : "about:blank",
+                WorkingDirectory = engine.Directory,
+                UseShellExecute = true
+            };
+
+            var missing = MissingEngineFiles();
+            using var process = Process.Start(startInfo);
+            if (process is null) return new ActionResult(false, "无法启动引擎进程");
+
+            Environment.SetEnvironmentVariable("__COMPAT_LAYER", previous);
+
+            var exited = process.WaitForExit(8000);
+            if (!exited)
+            {
+                LogService.User($"IE6 兼容启动成功（仍在运行）: {url}", "IE6");
+                return new ActionResult(true, $"IE6 已启动并保持运行（引擎 {engine.Version}）", engine.Executable);
+            }
+
+            var explanation = ExplainExitCode(process.ExitCode);
+            var message = $"IE6 兼容启动失败：{explanation}。" +
+                          (missing.Count > 0
+                              ? $" 另外该目录缺少 {missing.Count} 个引擎文件（{string.Join(", ", missing.Take(8))}…），只有外壳无法渲染。"
+                              : "") +
+                          " 在 Win11 上运行真 IE6 的现实办法：WSL + Wine（winetricks ie6，本启动器有一键通道与准备命令），" +
+                          "或在一台真实的 XP 机器上用局域网访问本页。";
+
+            LogService.Warn(message, "IE6");
+            return new ActionResult(false, message, engine.Executable);
+        }
+        catch (Exception e)
+        {
+            return new ActionResult(false, "IE6 兼容启动异常: " + e.Message);
         }
     }
 }

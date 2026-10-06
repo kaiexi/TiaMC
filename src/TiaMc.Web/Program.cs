@@ -435,6 +435,7 @@ internal static class Program
             if (request.Has("extraJvmArgs")) config.ExtraJvmArgs = request.Field("extraJvmArgs");
             if (request.Has("javaPath")) config.JavaPath = request.Field("javaPath");
             if (request.Has("flashProjectorPath")) config.FlashProjectorPath = request.Field("flashProjectorPath");
+            if (request.Has("ie6EnginePath")) config.Ie6EnginePath = request.Field("ie6EnginePath");
             var rootChanged = false;
             if (request.Field("minecraftRoot").Length > 0 &&
                 !string.Equals(config.MinecraftRoot, request.Field("minecraftRoot"), StringComparison.OrdinalIgnoreCase))
@@ -484,6 +485,14 @@ internal static class Program
             if (url.Length == 0) url = $"http://127.0.0.1:{server.Port}/legacy";
             var result = _ie6.LaunchViaWsl(url, request.Field("distro"));
             return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message };
+        });
+
+        server.MapJson("POST", "/api/ie6/compat-launch", request =>
+        {
+            var url = request.Field("url");
+            if (url.Length == 0) url = $"http://127.0.0.1:{server.Port}/legacy";
+            var result = _ie6.CompatLaunch(url);
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message, ["engine"] = result.Engine };
         });
 
         server.MapJson("POST", "/api/ie6/open-directory", _ =>
@@ -594,6 +603,7 @@ internal static class Program
         ["extraJvmArgs"] = _launcher.Config.ExtraJvmArgs ?? "",
         ["javaPath"] = _launcher.Config.JavaPath ?? "",
         ["isolateInstances"] = _launcher.Config.IsolateInstances,
-        ["flashProjectorPath"] = _launcher.Config.FlashProjectorPath ?? ""
+        ["flashProjectorPath"] = _launcher.Config.FlashProjectorPath ?? "",
+        ["ie6EnginePath"] = _launcher.Config.Ie6EnginePath ?? ""
     };
 }
