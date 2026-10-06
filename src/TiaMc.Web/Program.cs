@@ -144,10 +144,10 @@ internal static class Program
                 }
                 else
                 {
-                    // 内置 IE6 打开兼容页；系统浏览器打开现代页
-                    OpenEmbeddedIe6(
-                        legacyFirst ? $"http://127.0.0.1:{actualPort}/legacy" : $"http://127.0.0.1:{actualPort}/",
-                        ie11Mode ? 11001 : 5000);
+                    // 内置 IE 内核（JScript）跑不了现代页的 ES2017 语法，
+                    // 所以：内嵌窗口显示 IE6 兼容页（ES3，功能完整），现代页交给系统浏览器。
+                    OpenEmbeddedIe6($"http://127.0.0.1:{actualPort}/legacy", ie11Mode ? 11001 : 5000);
+                    if (!legacyFirst) OpenBrowser($"http://127.0.0.1:{actualPort}/");
                 }
             }
 
