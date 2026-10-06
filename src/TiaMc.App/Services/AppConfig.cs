@@ -75,7 +75,7 @@ public sealed class AppConfig
     [JsonPropertyName("extraClasspath")] public string ExtraClasspath { get; set; } = "";
     [JsonPropertyName("environmentVariables")] public string EnvironmentVariables { get; set; } = "";
     [JsonPropertyName("javaAgentPath")] public string JavaAgentPath { get; set; } = "";
-    [JsonPropertyName("downloadSource")] public DownloadSource DownloadSource { get; set; } = DownloadSource.BmclApi;
+    [JsonPropertyName("downloadSource")] public DownloadSource DownloadSource { get; set; } = DownloadSource.Auto;
     [JsonPropertyName("activeInstance")] public string? ActiveInstance { get; set; }
     [JsonPropertyName("autoCheckFiles")] public bool AutoCheckFiles { get; set; } = true;
     [JsonPropertyName("autoDownloadMissing")] public bool AutoDownloadMissing { get; set; }

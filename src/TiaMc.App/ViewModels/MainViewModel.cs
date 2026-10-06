@@ -3702,6 +3702,35 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         set { if (Config.AutoDownloadMissing == value) return; Config.AutoDownloadMissing = value; Raise(); }
     }
 
+    /// <summary>下载源下拉里的三个选项（对应 PCL 的"自动/官方/镜像"）。</summary>
+    public ObservableCollection<string> DownloadSourceModes { get; } = ["自动（推荐）", "官方（Mojang）", "BMCLAPI 镜像（国内快）"];
+
+    /// <summary>当前下载源；改动后立即生效（下次下载就用新源）。</summary>
+    public string SelectedDownloadSource
+    {
+        get => Config.DownloadSource switch
+        {
+            TiaMc.Core.Integrity.DownloadSource.Official => "官方（Mojang）",
+            TiaMc.Core.Integrity.DownloadSource.BmclApi => "BMCLAPI 镜像（国内快）",
+            _ => "自动（推荐）"
+        };
+        set
+        {
+            Config.DownloadSource = value switch
+            {
+                "官方（Mojang）" => TiaMc.Core.Integrity.DownloadSource.Official,
+                "BMCLAPI 镜像（国内快）" => TiaMc.Core.Integrity.DownloadSource.BmclApi,
+                _ => TiaMc.Core.Integrity.DownloadSource.Auto
+            };
+            Config.Save();
+            Raise();
+            Raise(nameof(UseBmclApi));
+            Raise(nameof(UseOfficialSource));
+            Raise(nameof(DownloadSourceText));
+            TiaMc.App.Services.LogService.Info("下载源已切换为 " + value, "下载");
+        }
+    }
+
     public bool UseBmclApi
     {
         get => Config.DownloadSource == DownloadSource.BmclApi;

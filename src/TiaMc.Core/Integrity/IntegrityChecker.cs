@@ -251,6 +251,10 @@ public static class IntegrityChecker
     {
         var urls = new List<string>();
 
+        // 三种下载源（PCL 的默认行为是"自动"）：
+        //   BmclApi —— 镜像优先，失败回官方
+        //   Auto    —— 官方优先，失败回镜像
+        //   Official—— 只走官方
         if (source == DownloadSource.BmclApi)
         {
             var mirrored = RewriteUrl(file.Url, source);
@@ -262,6 +266,17 @@ public static class IntegrityChecker
         if (!urls.Any(u => string.Equals(u, file.Url, StringComparison.OrdinalIgnoreCase)))
         {
             urls.Add(file.Url);
+        }
+
+        // Auto：官方排在前面，镜像作为回退接在后面
+        if (source == DownloadSource.Auto)
+        {
+            var mirrored = RewriteUrl(file.Url, DownloadSource.BmclApi);
+            if (!string.IsNullOrWhiteSpace(mirrored) &&
+                !urls.Any(u => string.Equals(u, mirrored, StringComparison.OrdinalIgnoreCase)))
+            {
+                urls.Add(mirrored);
+            }
         }
 
         return urls;
@@ -376,6 +391,12 @@ public static class IntegrityChecker
 
 public enum DownloadSource
 {
+    /// <summary>自动：先用官方地址，失败再换镜像（PCL 的默认行为）。</summary>
+    Auto,
+
+    /// <summary>只走官方（Mojang）地址。</summary>
     Official,
+
+    /// <summary>优先走 BMCLAPI 镜像，失败再回官方。</summary>
     BmclApi
 }

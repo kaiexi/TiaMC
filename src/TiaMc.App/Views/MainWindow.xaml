@@ -767,6 +767,12 @@
                                 <Button Style="{StaticResource Tia.Button.Tool}" Content="获取在线版本清单"
                                         Command="{Binding RefreshManifestCommand}" />
                                 <Separator Style="{StaticResource Tia.Separator}" Margin="6,2" />
+                                <TextBlock Text="下载源" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" Margin="4,0,4,0" />
+                                <ComboBox Width="180" VerticalAlignment="Center" Margin="0,0,6,0"
+                                          ItemsSource="{Binding DownloadSourceModes}"
+                                          SelectedItem="{Binding SelectedDownloadSource, Mode=TwoWay}"
+                                          ToolTip="在线版本 / 库 / 资源的下载来源；自动＝官方优先，失败自动切镜像" />
+                                <Separator Style="{StaticResource Tia.Separator}" Margin="6,2" />
                                 <!-- 删除本地版本：就放在"已安装实例"列表这一行，选中即可删 -->
                                 <Button Style="{StaticResource Tia.Button.Tool}" Content="删除选中的本地版本"
                                         Command="{Binding DeleteVersionCommand}"
