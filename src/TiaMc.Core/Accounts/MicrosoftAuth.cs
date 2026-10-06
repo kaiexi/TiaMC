@@ -94,9 +94,11 @@ public sealed class MicrosoftAuth
     /// <summary>Requests a device code; show <see cref="DeviceCodeInfo.UserCode"/> to the user.</summary>
     public async Task<DeviceCodeInfo> RequestDeviceCodeAsync(CancellationToken token = default)
     {
-        var endpoints = UsesLegacyEndpoint
-            ? new[] { LiveDeviceCodeEndpoint, ConsumersDeviceCodeEndpoint }
-            : new[] { ConsumersDeviceCodeEndpoint, LiveDeviceCodeEndpoint };
+        // 顺序很关键：内置客户端 ID（00000000402b5328，官方启动器那个）在
+        // login.microsoftonline.com/consumers 端点会被拒（实测 HTTP 400），
+        // 而 login.live.com 的 MBI_SSL 流程实测可用 —— 所以**固定先走 live.com**，
+        // 再把 consumers 当兜底（换成自建 Azure 应用时它才有用）。
+        var endpoints = new[] { LiveDeviceCodeEndpoint, ConsumersDeviceCodeEndpoint };
 
         Exception? last = null;
         var lastDetail = "";
