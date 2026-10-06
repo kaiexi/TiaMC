@@ -36,6 +36,9 @@ public sealed class RelayCommand : ICommand
     {
         _execute = execute;
         _canExecute = canExecute;
+
+        // 同上：让条件变化（例如账户数量从 1 变 2）能真正刷新按钮的可用状态
+        System.Windows.Input.CommandManager.RequerySuggested += (_, _) => RaiseCanExecuteChanged();
     }
 
     public event EventHandler? CanExecuteChanged;
@@ -127,6 +130,11 @@ public sealed class AsyncRelayCommand : ICommand
     {
         _execute = execute;
         _canExecute = canExecute;
+
+        // 跟随 WPF 的全局重新查询。否则 "() => !IsBusy" / "SelectedAccount is not null"
+        // 这类命令只在启动时被查询过一次（那一刻条件可能不成立），之后再也没有机会重判，
+        // 按钮就一直灰着点不动——「Microsoft 正版登录 / 刷新登录状态 / 删除账户」都是这个病。
+        System.Windows.Input.CommandManager.RequerySuggested += (_, _) => RaiseCanExecuteChanged();
     }
 
     public event EventHandler? CanExecuteChanged;

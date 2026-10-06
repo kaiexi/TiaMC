@@ -166,7 +166,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         AddOfflineAccountCommand = new AsyncRelayCommand(AddOfflineAccountAsync);
         AddMicrosoftAccountCommand = new AsyncRelayCommand(AddMicrosoftAccountAsync, () => !IsBusy);
         RefreshAccountCommand = new AsyncRelayCommand(RefreshAccountAsync, () => SelectedAccount is not null && !IsBusy);
-        RemoveAccountCommand = new RelayCommand(RemoveAccount, () => _launcher.Accounts.Accounts.Count > 1);
+        // 允许删除任意账户（包括最后一个）：以前要求 >1，只有一个账户时按钮永远是灰的
+        RemoveAccountCommand = new RelayCommand(RemoveAccount, () => _launcher.Accounts.Accounts.Count > 0);
         RefreshModsCommand = new AsyncRelayCommand(RefreshModsAsync);
         ToggleModCommand = new RelayCommand(ToggleMod, () => SelectedMod is not null);
         DeleteModCommand = new RelayCommand(DeleteMod, () => SelectedMod is not null);
@@ -1548,7 +1549,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>Avatar source of the selected account (URL or local file).</summary>
-    public string? SkinAvatarSource => SelectedAccount?.SkinSource;
+    // 多源（正版 URL + 镜像 + 本地文件），由 SkinHeadConverter 逐个尝试
+    public string? SkinAvatarSource => SelectedAccount?.SkinHeadUrls;
 
     private static string SkinDirectory => Path.Combine(Services.AppConfig.ConfigDirectory, "skins");
 
@@ -2673,6 +2675,15 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Raise(nameof(AccountSkinText));
     }
 
+    /// <summary>账户列表/选择变化后，显式刷新账户相关按钮的可用状态。</summary>
+    private void RaiseAccountCommands()
+    {
+        (AddMicrosoftAccountCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+        (RefreshAccountCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+        (RemoveAccountCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+    }
+
     private async Task AddOfflineAccountAsync()
     {
         var name = Views.TextInputWindow.Prompt(
@@ -2725,6 +2736,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
                 tokenSource.Token);
 
             _launcher.Accounts.AddOrUpdate(result.Account);
+        RaiseAccountCommands();
             RefreshAccounts();
             SelectedAccount = _accountList.FirstOrDefault(a => a.Key == result.Account.Key);
 
@@ -2785,6 +2797,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             IsBusy = true;
             var result = await _launcher.MicrosoftAuth.RefreshAccountAsync(account);
             _launcher.Accounts.AddOrUpdate(result.Account);
+        RaiseAccountCommands();
             RefreshAccounts();
             SelectedAccount = _accountList.FirstOrDefault(a => a.Key == result.Account.Key);
             LogService.Ok($"已刷新账户 {result.Account.Name}", "Account");
@@ -2810,6 +2823,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
         var name = SelectedAccount.Name;
         _launcher.Accounts.Remove(SelectedAccount);
+        RaiseAccountCommands();
         RefreshAccounts();
         SelectedAccount = _accountList.FirstOrDefault();
         LogService.Info($"已删除账户 {name}", "Account");
@@ -3348,6 +3362,11 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             if (!Set(ref _isBusy, value)) return;
             Raise(nameof(IsNotBusy));
             (CheckFilesCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+
+            // 关键：所有 "() => !IsBusy" 的命令都必须重新查询可用状态。
+            // 以前只通知了 CheckFilesCommand，于是启动过程中被判为不可用的按钮
+            // （例如「Microsoft 正版登录」）会一直灰着、点不动。
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         }
     }
 

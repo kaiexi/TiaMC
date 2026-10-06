@@ -37,6 +37,9 @@ public static class AppPaths
     /// <summary>Extracted mod icons.</summary>
     public static string ModIconDirectory => Path.Combine(CacheRoot, "mod-icons");
 
+    /// <summary>下载过的正版皮肤（头像/预览用），离线时也能显示。</summary>
+    public static string SkinCacheDirectory => Path.Combine(CacheRoot, "skins");
+
     /// <summary>Mod jar metadata cache.</summary>
     public static string ModMetadataFile => Path.Combine(CacheRoot, "mod-cache.json");
 

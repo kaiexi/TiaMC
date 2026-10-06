@@ -912,7 +912,7 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Image Width="26" Height="26" Margin="4,0" Stretch="Fill"
-                                                   Source="{Binding SkinSource, Converter={StaticResource SkinHead}}"
+                                                   Source="{Binding SkinHeadUrls, Converter={StaticResource SkinHead}}"
                                                    RenderOptions.BitmapScalingMode="NearestNeighbor" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>

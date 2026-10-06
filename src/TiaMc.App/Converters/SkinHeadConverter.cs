@@ -1,26 +1,43 @@
 using System.Globalization;
 using System.IO;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using TiaMc.App.Services;
+using TiaMc.Core.Utils;
 
 namespace TiaMc.App.Converters;
 
 /// <summary>
-/// Turns a Minecraft skin texture URL into a head image: the face is the 8x8
-/// tile at (8,8) of the 64x64 skin and the hat/overlay layer sits at (40,8).
+/// 皮肤 → 头像（8×8 脸部，含帽子层）。
+///
+/// 输入可以是：
+///   * 一个来源字符串，或**多个来源用 '|' 分隔**（按顺序尝试，第一个成功即用）；
+///   * 本地皮肤文件路径；
+///   * http(s) 皮肤地址（正版皮肤来自 textures.minecraft.net）。
+///
+/// 特点（为了"正版登录后头像一定显示得出来"）：
+///   * 下载成功的皮肤会**落到磁盘缓存**（&lt;配置目录&gt;\cache\skins\），下次离线也能显示；
+///   * 下载失败只缓存 60 秒就重试，避免一次网络抖动导致头像永久空白；
+///   * 主域名失败会自动尝试镜像（由账户模型给出的 crafatar / mc-heads 地址）。
 /// </summary>
 public sealed class SkinHeadConverter : IValueConverter
 {
-    private static readonly Dictionary<string, BitmapSource?> Cache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, (BitmapSource? Image, DateTime At)> Cache =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly TimeSpan FailureRetry = TimeSpan.FromSeconds(60);
+
+    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(15) };
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not string source || source.Length == 0) return null;
 
-        // Local skin files (offline accounts) carry a timestamp so a regenerated skin
-        // refreshes the avatar without restarting.
         var key = source;
         try
         {
@@ -31,21 +48,30 @@ public sealed class SkinHeadConverter : IValueConverter
             // keep the plain source as key
         }
 
-        if (Cache.TryGetValue(key, out var cached)) return cached;
+        if (Cache.TryGetValue(key, out var cached))
+        {
+            // 成功的结果一直用；失败的结果 60 秒后允许重试
+            if (cached.Image is not null || DateTime.UtcNow - cached.At < FailureRetry) return cached.Image;
+        }
 
         BitmapSource? head = null;
-        try
+        foreach (var candidate in source.Split('|', StringSplitOptions.RemoveEmptyEntries))
         {
-            head = File.Exists(source)
-                ? LoadLocal(source)
-                : Task.Run(() => LoadAsync(source)).GetAwaiter().GetResult();
-        }
-        catch (Exception)
-        {
-            head = null;
+            try
+            {
+                head = File.Exists(candidate)
+                    ? LoadLocal(candidate)
+                    : Task.Run(() => LoadRemote(candidate)).GetAwaiter().GetResult();
+
+                if (head is not null) break;
+            }
+            catch (Exception)
+            {
+                // 试下一个来源
+            }
         }
 
-        Cache[key] = head;
+        Cache[key] = (head, DateTime.UtcNow);
         return head;
     }
 
@@ -60,6 +86,57 @@ public sealed class SkinHeadConverter : IValueConverter
         skin.EndInit();
         skin.Freeze();
         return Crop(skin);
+    }
+
+    /// <summary>Downloads a remote skin (with a disk cache) and crops the face.</summary>
+    private static async Task<BitmapSource?> LoadRemote(string url)
+    {
+        try
+        {
+            var cacheFile = CacheFileFor(url);
+            byte[] bytes;
+
+            if (File.Exists(cacheFile) && new FileInfo(cacheFile).Length > 0)
+            {
+                bytes = await File.ReadAllBytesAsync(cacheFile).ConfigureAwait(false);
+            }
+            else
+            {
+                bytes = await Http.GetByteArrayAsync(url).ConfigureAwait(false);
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
+                    await File.WriteAllBytesAsync(cacheFile, bytes).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // 缓存写不进去也不影响本次显示
+                }
+            }
+
+            var skin = new BitmapImage();
+            using (var stream = new MemoryStream(bytes))
+            {
+                skin.BeginInit();
+                skin.CacheOption = BitmapCacheOption.OnLoad;
+                skin.StreamSource = stream;
+                skin.EndInit();
+                skin.Freeze();
+            }
+
+            return Crop(skin);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>&lt;配置目录&gt;\cache\skins\&lt;url 的 sha1&gt;.png</summary>
+    private static string CacheFileFor(string url)
+    {
+        var hash = System.Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(url))).ToLowerInvariant();
+        return Path.Combine(AppPaths.SkinCacheDirectory, hash + ".png");
     }
 
     private static BitmapSource? Crop(BitmapSource skin)
@@ -85,31 +162,6 @@ public sealed class SkinHeadConverter : IValueConverter
         target.Render(visual);
         target.Freeze();
         return target;
-    }
-
-    private static async Task<BitmapSource?> LoadAsync(string url)
-    {
-        try
-        {
-            using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(20) };
-            var bytes = await http.GetByteArrayAsync(url).ConfigureAwait(false);
-
-            var skin = new BitmapImage();
-            using (var stream = new MemoryStream(bytes))
-            {
-                skin.BeginInit();
-                skin.CacheOption = BitmapCacheOption.OnLoad;
-                skin.StreamSource = stream;
-                skin.EndInit();
-                skin.Freeze();
-            }
-
-            return Crop(skin);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

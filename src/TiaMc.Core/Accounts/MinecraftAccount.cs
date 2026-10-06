@@ -92,6 +92,36 @@ public sealed class MinecraftAccount
         : !string.IsNullOrWhiteSpace(SkinPath) && File.Exists(SkinPath) ? SkinPath
         : null;
 
+    /// <summary>
+    /// 头像可取的全部来源，用 '|' 分隔（转换器会按顺序尝试，第一个成功的就用）。
+    /// 正版账户的皮肤来自 textures.minecraft.net，这个域名在部分网络会失败，
+    /// 因此这里再补两个镜像（Crafatar / MC-Heads，都按 UUID 取），最后才用本地皮肤文件。
+    /// </summary>
+    [JsonIgnore]
+    public string SkinHeadUrls
+    {
+        get
+        {
+            var list = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(SkinUrl)) list.Add(SkinUrl!);
+
+            if (!string.IsNullOrWhiteSpace(Uuid))
+            {
+                list.Add($"https://crafatar.com/skins/{Uuid}");
+                list.Add($"https://mc-heads.net/skin/{Uuid}");
+            }
+            else if (!string.IsNullOrWhiteSpace(Name))
+            {
+                list.Add($"https://mc-heads.net/skin/{Name}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(SkinPath) && File.Exists(SkinPath)) list.Add(SkinPath!);
+
+            return string.Join('|', list);
+        }
+    }
+
     [JsonIgnore]
     public bool HasLocalSkin => !string.IsNullOrWhiteSpace(SkinPath) && File.Exists(SkinPath);
     [JsonPropertyName("lastLoginUtc")] public DateTime? LastLoginUtc { get; set; }
