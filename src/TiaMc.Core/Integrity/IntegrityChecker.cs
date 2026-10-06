@@ -255,7 +255,7 @@ public static class IntegrityChecker
         //   BmclApi —— 镜像优先，失败回官方
         //   Auto    —— 官方优先，失败回镜像
         //   Official—— 只走官方
-        if (source == DownloadSource.BmclApi)
+        if (source is DownloadSource.BmclApi or DownloadSource.Custom)
         {
             var mirrored = RewriteUrl(file.Url, source);
             if (!string.IsNullOrWhiteSpace(mirrored)) urls.Add(mirrored);
@@ -283,6 +283,9 @@ public static class IntegrityChecker
     }
 
     /// <summary>Asset URLs point at resources.download.minecraft.net; mirror them (PCL2 compatible).</summary>
+    /// <summary>自定义下载源基址，例如 https://你的反代（路径规则同 BMCLAPI）。</summary>
+    public static string? CustomBaseUrl { get; set; }
+
     public static string RewriteAssetUrl(string url, DownloadSource source) => RewriteUrl(url, source);
 
     /// <summary>Library URLs are Maven artifacts; mirror them (PCL2 compatible).</summary>
@@ -303,6 +306,18 @@ public static class IntegrityChecker
     /// </summary>
     public static string RewriteUrl(string url, DownloadSource source)
     {
+        if (source == DownloadSource.Custom)
+        {
+            if (string.IsNullOrWhiteSpace(CustomBaseUrl)) return url;
+            var mirroredPath = RewriteUrl(url, DownloadSource.BmclApi);
+            var bmclHost = "https://bmclapi2.bangbang93.com/";
+            if (mirroredPath.StartsWith(bmclHost, StringComparison.OrdinalIgnoreCase))
+            {
+                return CustomBaseUrl!.TrimEnd('/') + "/" + mirroredPath[bmclHost.Length..];
+            }
+            return url;
+        }
+
         if (source != DownloadSource.BmclApi) return url;
         if (string.IsNullOrWhiteSpace(url)) return url;
         if (url.StartsWith(BmclHost, StringComparison.OrdinalIgnoreCase)) return url;
@@ -398,5 +413,8 @@ public enum DownloadSource
     Official,
 
     /// <summary>优先走 BMCLAPI 镜像，失败再回官方。</summary>
-    BmclApi
+    BmclApi,
+
+    /// <summary>优先走自定义镜像基址（自建/合作反代，路径规则与 BMCLAPI 相同）。</summary>
+    Custom
 }

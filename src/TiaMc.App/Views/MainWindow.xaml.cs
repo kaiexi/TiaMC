@@ -194,6 +194,133 @@ public partial class MainWindow : Window
         return null;
     }
 
+    /// <summary>
+    /// 响应式标签栏：窗口窄的时候标签会折成两行、白白占掉工作区高度，
+    /// 所以窄窗口只留前 4 个标签（概览/控制台/启动方案/日志），窗口放大后恢复全部。
+    /// </summary>
+    private void WorkspaceTabs_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.TabControl tabs) return;
+
+        // 用**窗口**宽度判断：标签栏自身宽度在 DPI 缩放下不好估算
+        var window = System.Windows.Window.GetWindow(tabs);
+        var width = window?.ActualWidth > 0 ? window!.ActualWidth : e.NewSize.Width;
+        const double NarrowThreshold = 1000;   // 逻辑像素；DPI 缩放下窗口 1300 设备像素 ≈ 1040 逻辑
+        const int NarrowVisibleCount = 4;
+        var narrow = width > 0 && width < NarrowThreshold;
+
+        for (var i = 0; i < tabs.Items.Count; i++)
+        {
+            if (tabs.Items[i] is not System.Windows.Controls.TabItem item) continue;
+            item.Visibility = narrow && i >= NarrowVisibleCount
+                ? System.Windows.Visibility.Collapsed
+                : System.Windows.Visibility.Visible;
+        }
+
+        // 选中的标签被隐藏时回到第一个，避免"看不到自己在哪一页"
+        if (narrow && tabs.SelectedIndex >= NarrowVisibleCount)
+        {
+            tabs.SelectedIndex = 0;
+        }
+    }
+
+    // ------------------------------------------------------------ 输出窗口代码高亮
+    private const int MaxConsoleLines = 2000;
+    private bool _consoleHooked;
+
+    /// <summary>
+    /// 输出窗口按"代码高亮"上色：级别决定颜色（ERROR 红 / WARN 黄 / OK 绿 / INFO 蓝灰），
+    /// 来源再微调（java 橙、Minecraft 青）。工具菜单里的开关切换后整窗重绘。
+    /// </summary>
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        HookConsoleHighlight();          // 输出窗口代码高亮
+    }
+
+    private void HookConsoleHighlight()
+    {
+        if (_consoleHooked) return;
+        _consoleHooked = true;
+
+
+        foreach (var entry in Services.LogService.Entries.TakeLast(MaxConsoleLines))
+        {
+            AppendConsoleEntry(entry);
+        }
+
+        Services.LogService.EntryAdded += entry =>
+            Dispatcher.BeginInvoke(new Action(() => AppendConsoleEntry(entry)));
+
+        if (ViewModel is { } vm)
+        {
+            vm.LogHighlightChanged += () => Dispatcher.BeginInvoke(new Action(RebuildConsole));
+        }
+    }
+
+    private void AppendConsoleEntry(Services.LogEntry entry)
+    {
+        var paragraph = new System.Windows.Documents.Paragraph
+        {
+            Margin = new System.Windows.Thickness(0),
+            LineHeight = 15
+        };
+        paragraph.Inlines.Add(new System.Windows.Documents.Run(FormatConsoleLine(entry))
+        {
+            Foreground = ConsoleBrushFor(entry)
+        });
+
+        ConsoleStrip.Document.Blocks.Add(paragraph);
+
+        // 只留最近若干行，避免长时间挂机吃内存
+        while (ConsoleStrip.Document.Blocks.Count > MaxConsoleLines)
+        {
+            ConsoleStrip.Document.Blocks.Remove(ConsoleStrip.Document.Blocks.FirstBlock);
+        }
+
+        ConsoleStrip.ScrollToEnd();
+    }
+
+    private static string FormatConsoleLine(Services.LogEntry entry)
+        => $"{entry.TimeText} [{entry.LevelText}] {entry.Source}: {entry.Message}";
+
+    private System.Windows.Media.Brush ConsoleBrushFor(Services.LogEntry entry)
+    {
+        var highlight = ViewModel?.LogHighlight ?? true;
+        if (!highlight)
+        {
+            return (System.Windows.Media.Brush)FindResource("Tia.Text");
+        }
+
+        // 代码高亮配色（暗黑模式下同色也读得清）
+        var color = entry.Level switch
+        {
+            Services.LogLevel.Error => "#F44747",      // 红
+            Services.LogLevel.Warning => "#DCDCAA",    // 黄
+            Services.LogLevel.Success => "#4EC9B0",    // 青绿（OK）
+            _ => entry.Source switch
+            {
+                "java" => "#CE9178",                   // 橙
+                "Minecraft" => "#4EC9B0",              // 青
+                "Check" or "Net" => "#569CD6",         // 蓝
+                "Account" => "#C586C0",                // 紫
+                _ => "#9CDCFE"                         // 浅蓝
+            }
+        };
+
+        var brush = new System.Windows.Media.SolidColorBrush(
+            (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(color));
+        brush.Freeze();
+        return brush;
+    }
+
+    private void RebuildConsole()
+    {
+        ConsoleStrip.Document.Blocks.Clear();
+        foreach (var entry in Services.LogService.Entries.TakeLast(MaxConsoleLines))
+        {
+            AppendConsoleEntry(entry);
+        }
+    }
     private void ProjectTree_Loaded(object sender, RoutedEventArgs e)
     {
         Dispatcher.BeginInvoke(new Action(ExpandAllNodes), System.Windows.Threading.DispatcherPriority.Loaded);

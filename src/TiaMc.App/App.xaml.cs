@@ -95,6 +95,8 @@ public partial class App : Application
             // be reported afterwards (the file is flushed per line).
             // 日志上限来自配置（先应用，再打开日志文件）
             var logConfig = Services.AppConfig.Load();
+            TiaMc.Core.Integrity.IntegrityChecker.CustomBaseUrl = logConfig.DownloadSourceCustom;
+            Services.ThemeService.Initialize(logConfig.DarkMode, logConfig.Skin);
             Services.LogService.ApplyLimits(logConfig.LogMaxFileMb, logConfig.LogKeepFiles, logConfig.LogMaxTotalMb);
 
             Services.LogService.InitializeLogFile(

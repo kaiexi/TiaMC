@@ -120,7 +120,15 @@ public sealed class ResourceFile
 /// </summary>
 public sealed class ResourceCatalog
 {
-    private const string ModrinthApi = "https://api.modrinth.com/v2";
+    public const string OfficialApi = "https://api.modrinth.com/v2";
+
+    /// <summary>
+    /// Modrinth 接口基址：默认官方，可在设置里改成自建/合作镜像（国内直连官方常失败）。
+    /// 自定义基址请求失败时会自动回退官方，避免"换个设备就搜不到模组"。
+    /// </summary>
+    public string BaseUrl { get; set; } = OfficialApi;
+
+    private string Api(string path) => BaseUrl.TrimEnd('/') + path;
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>Chinese name dictionary (Axolotl compatible format).</summary>
@@ -155,7 +163,7 @@ public sealed class ResourceCatalog
             facets.Add($"[\"categories:{loader}\"]");
         }
 
-        var url = $"{ModrinthApi}/search?query={Uri.EscapeDataString(effectiveQuery)}" +
+        var url = Api($"/search?query={Uri.EscapeDataString(effectiveQuery)}") +
                   $"&facets={Uri.EscapeDataString("[" + string.Join(",", facets) + "]")}" +
                   $"&limit={Math.Clamp(limit, 1, 100)}&offset={Math.Max(0, offset)}&index=relevance";
 
@@ -207,7 +215,7 @@ public sealed class ResourceCatalog
     public async Task<List<ResourceFile>> GetFilesAsync(string slug, string? gameVersion = null, string? loader = null,
         CancellationToken token = default)
     {
-        var url = $"{ModrinthApi}/project/{Uri.EscapeDataString(slug)}/version";
+        var url = Api($"/project/{Uri.EscapeDataString(slug)}/version");
         var filters = new List<string>();
         if (!string.IsNullOrWhiteSpace(gameVersion))
         {

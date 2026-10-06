@@ -76,6 +76,24 @@ public sealed class AppConfig
     [JsonPropertyName("environmentVariables")] public string EnvironmentVariables { get; set; } = "";
     [JsonPropertyName("javaAgentPath")] public string JavaAgentPath { get; set; } = "";
     [JsonPropertyName("downloadSource")] public DownloadSource DownloadSource { get; set; } = DownloadSource.Auto;
+
+    /// <summary>自定义下载源基址（选「自定义」时用，路径规则同 BMCLAPI），例如 https://你的反代 。</summary>
+    [JsonPropertyName("downloadSourceCustom")] public string DownloadSourceCustom { get; set; } = "";
+
+    /// <summary>输出窗口代码高亮（按级别/来源上色）。</summary>
+    [JsonPropertyName("logHighlight")] public bool LogHighlight { get; set; } = true;
+
+    /// <summary>暗黑模式（代码高亮配色）。</summary>
+    [JsonPropertyName("darkMode")] public bool DarkMode { get; set; }
+
+    /// <summary>皮肤（强调色预设名）。</summary>
+    [JsonPropertyName("skin")] public string Skin { get; set; } = "工程蓝（默认）";
+
+    /// <summary>资源（模组/资源包）搜索来源：modrinth（官方）或 custom（自定义镜像基址）。</summary>
+    [JsonPropertyName("resourceSource")] public string ResourceSource { get; set; } = "modrinth";
+
+    /// <summary>自定义 Modrinth 镜像基址，例如 https://你的反代/v2 。</summary>
+    [JsonPropertyName("resourceMirror")] public string ResourceMirror { get; set; } = "";
     [JsonPropertyName("activeInstance")] public string? ActiveInstance { get; set; }
     [JsonPropertyName("autoCheckFiles")] public bool AutoCheckFiles { get; set; } = true;
     [JsonPropertyName("autoDownloadMissing")] public bool AutoDownloadMissing { get; set; }

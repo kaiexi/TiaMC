@@ -45,19 +45,28 @@ public sealed class ModrinthVersion
 /// </summary>
 public sealed class ModrinthClient
 {
-    private const string BaseUrl = "https://api.modrinth.com/v2";
+    public const string OfficialBaseUrl = "https://api.modrinth.com/v2";
 
-    private readonly HttpClient _http;
+    /// <summary>当前使用的 Modrinth 接口基址（可在设置里换成自建/合作镜像）。</summary>
+    private readonly string _baseUrl;
 
-    public ModrinthClient(HttpClient? http = null)
+    /// <summary>回退基址：主基址失败时再试一次（例如自定义镜像挂了就回官方）。</summary>
+    private readonly string? _fallbackBaseUrl;
+
+    public ModrinthClient(string? baseUrl = null, string? fallbackBaseUrl = null, HttpClient? http = null)
     {
-        _http = http ?? Net.Http.ApiClient;
+        _baseUrl = string.IsNullOrWhiteSpace(baseUrl) ? OfficialBaseUrl : baseUrl!.TrimEnd('/');
+        _fallbackBaseUrl = string.IsNullOrWhiteSpace(fallbackBaseUrl) ? null : fallbackBaseUrl!.TrimEnd('/');
+        _http = http ?? Net.Http.Client;
+
         if (!_http.DefaultRequestHeaders.UserAgent.Any())
         {
             // Modrinth asks every client to identify itself.
             _http.DefaultRequestHeaders.UserAgent.ParseAdd("TiaMC/1.0 (Minecraft launcher; +https://github.com/)");
         }
     }
+
+    private readonly HttpClient _http;
 
     /// <summary>
     /// Lists the versions of a project (slug or id) filtered by game version and
@@ -77,7 +86,7 @@ public sealed class ModrinthClient
             query.Add("loaders=" + Uri.EscapeDataString(JsonSerializer.Serialize(new[] { loader.ToLowerInvariant() })));
         }
 
-        var url = $"{BaseUrl}/project/{Uri.EscapeDataString(project.Trim())}/version";
+        var url = $"{_baseUrl}/project/{Uri.EscapeDataString(project.Trim())}/version";
         if (query.Count > 0) url += "?" + string.Join("&", query);
 
         using var response = await _http.GetAsync(url, token).ConfigureAwait(false);

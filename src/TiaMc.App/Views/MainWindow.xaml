@@ -6,6 +6,7 @@
         xmlns:controls="clr-namespace:TiaMc.App.Controls"
         Title="{Binding WindowTitle}"
         ResizeMode="CanResize"
+        Loaded="Window_Loaded"
         Icon="{DynamicResource App.Icon}"
         Height="720" Width="1100"
         MinHeight="540" MinWidth="900"
@@ -202,6 +203,25 @@
             </MenuItem>
 
             <MenuItem Header="工具(_L)" Style="{StaticResource Tia.MenuItem}">
+                <MenuItem Header="输出窗口代码高亮" IsCheckable="True"
+                          IsChecked="{Binding LogHighlight, Mode=TwoWay}"
+                          Style="{StaticResource Tia.MenuItem}"
+                          ToolTip="按日志级别与来源上色（ERROR 红 / WARN 黄 / OK 绿 / java 橙 …）" />
+                <MenuItem Header="暗黑模式（代码高亮配色）" IsCheckable="True"
+                          IsChecked="{Binding DarkMode, Mode=TwoWay}"
+                          Style="{StaticResource Tia.MenuItem}"
+                          ToolTip="VS Code Dark+ 风格：关键字蓝 / 字符串橙 / 类型青" />
+                <MenuItem Header="皮肤更换" Style="{StaticResource Tia.MenuItem}" ItemsSource="{Binding Skins}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource Tia.MenuItem}">
+                            <Setter Property="Header" Value="{Binding}" />
+                            <Setter Property="Command"
+                                    Value="{Binding DataContext.SelectSkinCommand, RelativeSource={RelativeSource AncestorType=Menu}}" />
+                            <Setter Property="CommandParameter" Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <Separator />
                 <MenuItem Header="生成启动方案" Command="{Binding BuildPlanCommand}" />
                 <MenuItem Header="实例操作" Style="{StaticResource Tia.MenuItem}">
                     <MenuItem Header="设为当前实例" Click="SetActiveInstance_Click"
@@ -377,7 +397,7 @@
         <!-- ===================================================== workspace -->
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="235" MinWidth="170" MaxWidth="360" />
+                <ColumnDefinition Width="240" MinWidth="150" />
                 <ColumnDefinition Width="4" />
                 <ColumnDefinition Width="*" MinWidth="380" />
                 <ColumnDefinition Width="4" />
@@ -489,12 +509,15 @@
                 </DockPanel>
             </Border>
 
-            <GridSplitter Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Style="{StaticResource Tia.Splitter}"
+            <GridSplitter Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Width="6" Cursor="SizeWE"
+                              ToolTip="拖动调整项目树宽度" Style="{StaticResource Tia.Splitter}"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
             <!-- workspace tabs -->
             <!-- 标签页只占工作区那一行，否则内容会延伸到输出窗口下面被遮住 -->
             <TabControl Grid.Row="1" Grid.Column="2" Style="{StaticResource Tia.TabControl}"
+                        x:Name="WorkspaceTabs"
+                        SizeChanged="WorkspaceTabs_SizeChanged"
                         SelectedIndex="{Binding WorkspaceTab, Mode=TwoWay}">
                 <!-- ============ overview -->
                 <TabItem Header="概览" Style="{StaticResource Tia.TabItem}">
@@ -1472,6 +1495,13 @@
                                     <TextBlock Text="类别" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" />
                                     <ComboBox Width="92" ItemsSource="{Binding ResourceKinds}"
                                               SelectedItem="{Binding ResourceKindName, Mode=TwoWay}" />
+                                              <TextBlock Text="来源" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" Margin="10,0,4,0" />
+                                              <ComboBox Width="140" VerticalAlignment="Center" ItemsSource="{Binding ResourceSourceModes}"
+                                                        SelectedItem="{Binding SelectedResourceSource, Mode=TwoWay}"
+                                                        ToolTip="模组/资源包的搜索来源；国内直连官方常失败，可填自建镜像基址" />
+                                              <TextBox Width="190" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                       Text="{Binding ResourceMirror, UpdateSourceTrigger=LostFocus}"
+                                                       ToolTip="自定义基址，形如 https://example.com/v2" />
                                     <TextBlock Text="关键词" Style="{StaticResource Tia.Label}" VerticalAlignment="Center"
                                                Margin="10,0,4,0" />
                                     <TextBox Width="190" Text="{Binding ResourceQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -1894,10 +1924,14 @@
                             </StackPanel>
                         </Grid>
                     </Border>
-                    <TextBox x:Name="ConsoleStrip" Style="{StaticResource Tia.Console}"
-                             Text="{Binding Console.Text, Mode=OneWay}" IsReadOnly="True"
-                             AcceptsReturn="True" TextWrapping="NoWrap"
-                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
+                    <!-- 代码高亮输出窗口：按日志级别/来源上色，可在「工具」菜单切换 -->
+                    <!-- 输出窗口：换成 RichTextBox 以便逐行代码高亮（样式不能复用 TextBox 的 Tia.Console） -->
+                    <RichTextBox x:Name="ConsoleStrip"
+                                 FontFamily="Consolas" FontSize="12" BorderThickness="0" Padding="6,4"
+                                 Foreground="{DynamicResource Tia.ConsoleText}"
+                                 Background="{DynamicResource Tia.ConsoleBg}"
+                                 IsReadOnly="True" AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
                 </DockPanel>
             </Border>
 

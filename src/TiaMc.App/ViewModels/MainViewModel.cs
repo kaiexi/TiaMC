@@ -142,6 +142,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         }
         OpenModpackFolderCommand = new RelayCommand(OpenModpackFolder);
         DeleteModpackCommand = new RelayCommand(DeleteSelectedModpack);
+        SelectSkinCommand = new RelayCommand(p => SelectedSkin = p as string ?? "");
         // 删除本地版本（删除 versions/<id> 整个目录，共享的存档/模组不动）
         DeleteVersionCommand = new RelayCommand(DeleteSelectedVersion,
             () => SelectedVersion is not null && !_launcher.IsRunning);
@@ -622,7 +623,19 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private ResourceFile? _selectedResourceFile;
     private bool _resourceBusy;
 
-    private ResourceCatalog ResourceSvc => _catalog ??= new ResourceCatalog();
+    private ResourceCatalog ResourceSvc
+    {
+        get
+        {
+            _catalog ??= new ResourceCatalog();
+
+            // 来源按设置走：自定义镜像（国内常用自建反代）失败时回退官方，
+            // 避免"换台设备就搜不到模组"。
+            var custom = Config.ResourceSource == "custom" && !string.IsNullOrWhiteSpace(Config.ResourceMirror);
+            _catalog.BaseUrl = custom ? Config.ResourceMirror.Trim() : ResourceCatalog.OfficialApi;
+            return _catalog;
+        }
+    }
 
     public ObservableCollection<string> ResourceKinds { get; } = ["模组", "整合包", "资源包", "光影"];
     public ObservableCollection<string> ResourceGameVersions { get; } = [];
@@ -3703,7 +3716,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>下载源下拉里的三个选项（对应 PCL 的"自动/官方/镜像"）。</summary>
-    public ObservableCollection<string> DownloadSourceModes { get; } = ["自动（推荐）", "官方（Mojang）", "BMCLAPI 镜像（国内快）"];
+    public ObservableCollection<string> DownloadSourceModes { get; } = ["自动（推荐）", "官方（Mojang）", "BMCLAPI 镜像（国内快）", "自定义（填地址）"];
 
     /// <summary>当前下载源；改动后立即生效（下次下载就用新源）。</summary>
     public string SelectedDownloadSource
@@ -3712,6 +3725,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         {
             TiaMc.Core.Integrity.DownloadSource.Official => "官方（Mojang）",
             TiaMc.Core.Integrity.DownloadSource.BmclApi => "BMCLAPI 镜像（国内快）",
+            TiaMc.Core.Integrity.DownloadSource.Custom => "自定义（填地址）",
             _ => "自动（推荐）"
         };
         set
@@ -3720,14 +3734,58 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             {
                 "官方（Mojang）" => TiaMc.Core.Integrity.DownloadSource.Official,
                 "BMCLAPI 镜像（国内快）" => TiaMc.Core.Integrity.DownloadSource.BmclApi,
+                "自定义（填地址）" => TiaMc.Core.Integrity.DownloadSource.Custom,
                 _ => TiaMc.Core.Integrity.DownloadSource.Auto
             };
             Config.Save();
+            TiaMc.Core.Integrity.IntegrityChecker.CustomBaseUrl = Config.DownloadSourceCustom;   // 自定义源生效
             Raise();
             Raise(nameof(UseBmclApi));
             Raise(nameof(UseOfficialSource));
             Raise(nameof(DownloadSourceText));
             TiaMc.App.Services.LogService.Info("下载源已切换为 " + value, "下载");
+        }
+    }
+
+    /// <summary>资源（模组/资源包）来源选项。</summary>
+    public ObservableCollection<string> ResourceSourceModes { get; } = ["Modrinth 官方", "自定义镜像（填基址）"];
+
+    public string SelectedResourceSource
+    {
+        get => Config.ResourceSource == "custom" ? "自定义镜像（填基址）" : "Modrinth 官方";
+        set
+        {
+            Config.ResourceSource = value.StartsWith("自定义") ? "custom" : "modrinth";
+            Config.Save();
+            Raise();
+            TiaMc.App.Services.LogService.Info("资源来源已切换为 " + value, "资源");
+        }
+    }
+
+    /// <summary>自定义 Modrinth 镜像基址（形如 https://example.com/v2）。</summary>
+    public string ResourceMirror
+    {
+        get => Config.ResourceMirror;
+        set
+        {
+            if (Config.ResourceMirror == value) return;
+            Config.ResourceMirror = value ?? "";
+            Config.Save();
+            Raise();
+        }
+    }
+
+    /// <summary>自定义下载源基址（选「自定义」时生效）。</summary>
+    public string DownloadSourceCustomBase
+    {
+        get => Config.DownloadSourceCustom;
+        set
+        {
+            if (Config.DownloadSourceCustom == value) return;
+            Config.DownloadSourceCustom = value ?? "";
+            Config.Save();
+            TiaMc.Core.Integrity.IntegrityChecker.CustomBaseUrl = Config.DownloadSourceCustom;
+            Raise();
         }
     }
 
@@ -3772,6 +3830,59 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         get => _downloadSpeedText;
         private set { if (Set(ref _downloadSpeedText, value)) Raise(); }
     }
+
+    /// <summary>输出窗口代码高亮开关（切换后界面立刻重绘）。</summary>
+    public bool LogHighlight
+    {
+        get => Config.LogHighlight;
+        set
+        {
+            if (Config.LogHighlight == value) return;
+            Config.LogHighlight = value;
+            Config.Save();
+            Raise();
+            LogHighlightChanged?.Invoke();
+        }
+    }
+
+    /// <summary>高亮开关变化时通知界面重绘输出窗口。</summary>
+    public event Action? LogHighlightChanged;
+
+    /// <summary>暗黑模式（代码高亮配色）。</summary>
+    public bool DarkMode
+    {
+        get => Config.DarkMode;
+        set
+        {
+            if (Config.DarkMode == value) return;
+            Config.DarkMode = value;
+            Config.Save();
+            TiaMc.App.Services.ThemeService.Apply(Config.DarkMode, Config.Skin);
+            Raise();
+            LogService.Info(value ? "已切换到暗黑模式（代码高亮配色）" : "已切回浅色模式", "主题");
+        }
+    }
+
+    public ObservableCollection<string> Skins { get; } =
+        new(TiaMc.App.Services.ThemeService.Skins.Select(s => s.Name));
+
+    /// <summary>皮肤（强调色）。</summary>
+    public string SelectedSkin
+    {
+        get => Config.Skin;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value) || Config.Skin == value) return;
+            Config.Skin = value;
+            Config.Save();
+            TiaMc.App.Services.ThemeService.Apply(Config.DarkMode, Config.Skin);
+            Raise();
+            LogService.Info("已切换皮肤: " + value, "主题");
+        }
+    }
+
+    /// <summary>工具菜单里选皮肤（参数是皮肤名）。</summary>
+    public RelayCommand SelectSkinCommand { get; private set; } = null!;
 
     public bool IsBusy
     {
