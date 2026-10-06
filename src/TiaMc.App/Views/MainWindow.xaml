@@ -4,7 +4,7 @@
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:vm="clr-namespace:TiaMc.App.ViewModels"
         xmlns:controls="clr-namespace:TiaMc.App.Controls"
-        Title="TIA-MC 工程启动器"
+        Title="{Binding WindowTitle}"
         Icon="{DynamicResource App.Icon}"
         Height="880" Width="1480"
         MinHeight="620" MinWidth="1080"
