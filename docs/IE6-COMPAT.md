@@ -80,6 +80,38 @@
 * 即使把 XP 的整套 IE6 DLL 拷进来，`kernel32/user32/ole32/shlwapi` 等受 **KnownDLLs / WRP** 约束
   仍会加载系统版本，XP 时代的调用点在新版 DLL 上不存在 → 初始化失败。
 
+### 复测：把你自己的 XP 虚拟机镜像里的真引擎补齐后
+
+你机器上有 XP 虚拟机（`Windows XP Professional-s001.vmdk`，twoGbMaxExtentSparse 分卷）。
+**7z / NanaZip 能直接读 VMDK**，所以不必启动虚拟机、也不需要来宾密码就能取到真引擎——
+启动器已内置这个动作（`POST /api/ie6/extract`，参数 `image` + `target`）：
+
+```powershell
+7z x "Windows XP Professional.vmdk" -o<引擎目录> WINDOWS\system32\mshtml.dll WINDOWS\system32\shdocvw.dll ...
+```
+
+实测取到 18 个文件，全部 `6.00.2900.5512 (xpsp.080413-2105)`：
+`mshtml.dll` 2,994 KB、`shdocvw.dll` 1,464 KB、`danim.dll` 1,024 KB、`browseui.dll` 1,000 KB、
+`wininet.dll` 636 KB、`urlmon.dll` 598 KB、`mlang.dll` 572 KB、`dxtmsft.dll` 350 KB、`iedkcs32.dll` 316 KB、
+`webcheck.dll` 260 KB、`iepeers.dll` 245 KB、`dxtrans.dll` 200 KB、`cdfview.dll` 146 KB、`msrating.dll` 143 KB、
+`inseng.dll` 94 KB、`occache.dll` 92 KB、`imgutil.dll` 35 KB、`IEXPLORE.EXE` 91 KB。
+（`iecont.dll` 与 `hmmapi.dll` 在 XP SP3 里本就不存在/不参与渲染。）
+
+补齐后再测（`.local` DLL 重定向 + `__COMPAT_LAYER=WINXPSP3`）：
+
+| 状态 | 实测结果 |
+|------|----------|
+| 只有外壳（缺 18 个 DLL） | ❌ 进程秒退 `0xC0000142`（STATUS_DLL_INIT_FAILED） |
+| **补齐 17 个 XP 引擎 DLL** | ⚠️ 进程**不再秒退**（8 秒后仍存活），但 `MainWindowHandle = 0`：**不创建窗口**；CPU 时间 0.03 s、1 线程，**也没有加载 mshtml/shdocvw** —— 卡在启动早期 |
+| 加载模块检查 | ❌ 进程里看不到 `mshtml.dll` / `shdocvw.dll` / `urlmon.dll` 等任何 IE 引擎模块 |
+
+原因：IE6 的框架窗口依赖**它自己的 COM/注册表注册**（类工厂指向 XP 路径，加上 XP 时代的
+`HKLM\...\Internet Explorer` 状态）。这些注册在 Win11 上受 **WRP** 保护无法写入；即使用户级 CLSID
+劫持绕过，也会破坏系统的 IE/WebBrowser 引擎——而本启动器的内置浏览器窗口正是用它。
+
+**结论：Windows 11 上拿不到可用的 IE6 窗口。** 启动器把这套流程做成了「从 XP 镜像提取引擎」+「IE6 兼容启动」，
+并把真实结果（退出码含义、缺失文件、无窗口的实际情况）直接显示在界面上。
+
 **因此：Windows 11 上无法直接运行 IE6 内核。** 启动器把这三种尝试做成了「IE6 兼容启动」按钮，
 并把退出码含义、缺失文件清单、替代方案直接显示在界面上（不让使用者猜）。
 

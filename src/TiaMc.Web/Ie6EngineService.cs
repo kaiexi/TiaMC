@@ -608,4 +608,108 @@ internal sealed class Ie6EngineService
             return new ActionResult(false, "IE6 兼容启动异常: " + e.Message);
         }
     }
+    // ------------------------------------------------- 从 XP 虚拟机镜像提取引擎
+    // 你机器上有 XP 虚拟机（twoGbMaxExtentSparse 分卷 vmdk）。7z/NanaZip 能直接读 VMDK，
+    // 所以不必启动虚拟机、也不需要来宾密码：把 vmdk 里的 IE6 引擎 DLL 解出来即可。
+    // 实测（Windows 11 26100）：
+    //   * 只有外壳（缺 18 个 DLL）→ 进程 0xC0000142 秒退
+    //   * 补齐 17 个 XP SP3 引擎 DLL + IEXPLORE.EXE.local + XP 兼容层 → 进程不再秒退，
+    //     但**始终不创建窗口、也不加载 mshtml/shdocvw**（启动早期卡住）
+    //   * 结论：Win11 上拿不到可用的 IE6 窗口；要真 IE6 请用 WSL+Wine 或真 XP 机器
+    public sealed record ExtractResult(bool Ok, string Message, int Files, string Directory);
+
+    /// <summary>引擎目录里需要的文件（XP 的 system32 + IE 目录）。</summary>
+    private static readonly string[] RequiredFromXp =
+    [
+        "mshtml.dll", "shdocvw.dll", "urlmon.dll", "wininet.dll", "browseui.dll", "inseng.dll",
+        "mlang.dll", "cdfview.dll", "danim.dll", "dxtmsft.dll", "dxtrans.dll", "iedkcs32.dll",
+        "iepeers.dll", "imgutil.dll", "occache.dll", "webcheck.dll", "msrating.dll"
+    ];
+
+    /// <summary>
+    /// 从 XP 虚拟机磁盘（.vmdk/.vhd）里提取 IE6 引擎到引擎目录，并铺平 + 生成 .local。
+    /// 需要系统里有 7-Zip / NanaZip 的 7z 命令。
+    /// </summary>
+    public ExtractResult ExtractFromImage(string imagePath, string? targetDirectory = null)
+    {
+        if (imagePath.Length == 0 || !File.Exists(imagePath))
+        {
+            return new ExtractResult(false, "找不到镜像文件：" + imagePath, 0, "");
+        }
+
+        var target = targetDirectory is { Length: > 0 }
+            ? targetDirectory
+            : Path.Combine(AppConfig.ConfigDirectory, "ie6");
+
+        try
+        {
+            AppPaths.EnsureDirectory(target);
+
+            // 1) 先把镜像里的目标文件解出来（保持目录结构）
+            var staged = Path.Combine(target, "_from-xp");
+            var arguments = new List<string> { "x", imagePath, "-o" + staged, "-y" };
+            foreach (var name in RequiredFromXp) arguments.Add($"WINDOWS\\system32\\{name}");
+            arguments.Add("Program Files\\Internet Explorer\\IEXPLORE.EXE");
+
+            var (exitCode, output) = RunProcess("7z", arguments);
+            if (exitCode != 0)
+            {
+                return new ExtractResult(false,
+                    $"7z 解包失败（退出码 {exitCode}）：{output.Split('\n').LastOrDefault(l => l.Trim().Length > 0)}。" +
+                    " 需要系统里有 7-Zip / NanaZip。", 0, "");
+            }
+
+            // 2) 铺平：所有文件放到引擎目录同一层（DLL 重定向要求同级）
+            var moved = 0;
+            foreach (var file in Directory.GetFiles(staged, "*", SearchOption.AllDirectories))
+            {
+                var destination = Path.Combine(target, Path.GetFileName(file));
+                File.Copy(file, destination, overwrite: true);
+                moved++;
+            }
+
+            // 3) 生成 .local（目录内 DLL 优先）
+            var exe = Directory.GetFiles(target, "iexplore.exe", SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (exe is not null && !File.Exists(exe + ".local")) File.WriteAllText(exe + ".local", "");
+
+            try
+            {
+                Directory.Delete(staged, recursive: true);
+            }
+            catch (Exception)
+            {
+                // 留着也无妨
+            }
+
+            _cached = null;
+            var missing = MissingEngineFiles();
+            LogService.Ok($"已从镜像提取 IE6 引擎：{moved} 个文件 → {target}（仍缺 {missing.Count} 个）", "IE6");
+            return new ExtractResult(true,
+                $"已提取 {moved} 个文件到 {target}" + (missing.Count > 0 ? $"；仍缺 {missing.Count} 个（{string.Join(", ", missing)}）" : ""),
+                moved, target);
+        }
+        catch (Exception e)
+        {
+            return new ExtractResult(false, "提取失败: " + e.Message, 0, target);
+        }
+    }
+
+    private static (int ExitCode, string Output) RunProcess(string fileName, IEnumerable<string> arguments)
+    {
+        var startInfo = new ProcessStartInfo(fileName)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        foreach (var argument in arguments) startInfo.ArgumentList.Add(argument);
+
+        using var process = Process.Start(startInfo);
+        if (process is null) return (-1, "无法启动进程");
+
+        var output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
+        process.WaitForExit(120000);
+        return (process.HasExited ? process.ExitCode : -1, output);
+    }
 }

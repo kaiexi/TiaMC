@@ -487,6 +487,13 @@ internal static class Program
             return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message };
         });
 
+        server.MapJson("POST", "/api/ie6/extract", request =>
+        {
+            var image = request.Field("image");
+            var result = _ie6.ExtractFromImage(image, request.Field("target"));
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message, ["files"] = result.Files, ["directory"] = result.Directory };
+        });
+
         server.MapJson("POST", "/api/ie6/compat-launch", request =>
         {
             var url = request.Field("url");
