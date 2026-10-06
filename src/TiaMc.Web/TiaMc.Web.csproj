@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- UseWPF is only here because the shared host services (LaunchService /
+         AppConfig / LogService) live in the WPF project and reference WPF types.
+         The web build never creates a window: it serves a browser UI instead. -->
+    <UseWPF>true</UseWPF>
+    <!-- 内置 IE6 外观浏览器：WinForms 的 WebBrowser 控件就是系统自带的 MSHTML/Trident -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>TiaMc.Web</RootNamespace>
+    <AssemblyName>TiaMC-Web</AssemblyName>
+    <ApplicationIcon>..\TiaMc.App\Assets\TiaMC.ico</ApplicationIcon>
+    <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TiaMc.Core\TiaMc.Core.csproj" />
+    <ProjectReference Include="..\TiaMc.App\TiaMc.App.csproj" />
+  </ItemGroup>
+
+  <!-- The browser UI is plain HTML/CSS/JS so it needs no build step. -->
+  <ItemGroup>
+    <Content Include="wwwroot\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+</Project>

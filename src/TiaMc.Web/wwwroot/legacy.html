@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=5">
+<title>TIA-MC 启动器（IE6 兼容页）</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div id="page">
+
+  <div class="site-header">
+    <span class="site-logo">TIA-MC</span>
+    <span class="site-title">西门子 TIA Portal 风格 Minecraft 启动器 · 内置 IE6 兼容页</span>
+    <span class="gray" id="root-path">—</span>
+  </div>
+
+  <div class="toolbar">
+    <button class="xp" onclick="refreshAll()">刷新</button>
+    <button class="xp" onclick="getManifest()">获取版本清单</button>
+    <button class="xp primary" onclick="launch()">启动游戏</button>
+    <button class="xp danger" onclick="stopGame()">结束游戏</button>
+    <button class="xp" onclick="diagnose()">诊断上次启动</button>
+  </div>
+
+  <div class="content">
+
+    <fieldset class="xp-fieldset">
+      <legend>概览</legend>
+      <table class="xp-table cards">
+        <tr>
+          <td><b>实例</b><div class="big" id="ov-instances">—</div><small id="ov-active">—</small></td>
+          <td><b>账户</b><div class="big" id="ov-accounts">—</div><small id="ov-account">—</small></td>
+          <td><b>Java</b><div class="big" id="ov-java">—</div><small>缺失可自动补齐</small></td>
+          <td><b>Flash</b><div class="big" id="ov-flash">—</div><small id="ov-flash-note">Ruffle / 投影播放器</small></td>
+        </tr>
+      </table>
+      <pre class="console" id="plan-box">点「启动游戏」后这里显示启动方案与命令行。</pre>
+    </fieldset>
+
+    <fieldset class="xp-fieldset">
+      <legend>已安装实例</legend>
+      <table class="xp-table" id="installed-table">
+        <tr><th>版本 ID</th><th>装载器</th><th>需要 Java</th><th>&nbsp;</th></tr>
+      </table>
+    </fieldset>
+
+    <fieldset class="xp-fieldset">
+      <legend>在线版本（可安装）</legend>
+      <div class="filter-bar">
+        只看
+        <select id="remote-filter" onchange="renderRemote()">
+          <option value="all">全部</option>
+          <option value="release">正式版</option>
+          <option value="snapshot">快照（测试版）</option>
+          <option value="old">旧版</option>
+        </select>
+        版本号 <input id="remote-search" size="12" onkeyup="renderRemote()" />
+        <span id="remote-count" class="gray"></span>
+      </div>
+      <div class="scroll-area">
+        <table class="xp-table" id="remote-table">
+          <tr><th>版本</th><th>类型</th><th>发布时间</th><th>&nbsp;</th></tr>
+        </table>
+      </div>
+    </fieldset>
+
+    <fieldset class="xp-fieldset">
+      <legend>账户</legend>
+      <div class="row">
+        离线账户名 <input id="account-name" size="18" value="Steve" />
+        <button class="xp" onclick="addAccount()">新建离线账户</button>
+      </div>
+      <table class="xp-table" id="accounts-table">
+        <tr><th>名称</th><th>类型</th><th>UUID</th><th>&nbsp;</th></tr>
+      </table>
+    </fieldset>
+
+    <fieldset class="xp-fieldset">
+      <legend>模组（当前实例）</legend>
+      <table class="xp-table" id="mods-table">
+        <tr><th>名称</th><th>版本</th><th>装载器</th><th>文件</th><th>状态</th><th>&nbsp;</th></tr>
+      </table>
+    </fieldset>
+
+    <fieldset class="xp-fieldset">
+      <legend>Flash（Ruffle / 投影播放器）</legend>
+      <table class="xp-table">
+        <tr>
+          <td width="34%" valign="top"><b>Ruffle</b><div class="gray" id="flash-ruffle">—</div>
+            <button class="xp" onclick="getRuffle()">获取 / 更新 Ruffle</button></td>
+          <td width="33%" valign="top"><b>投影播放器</b><div class="gray" id="flash-projector">—</div>
+            <button class="xp" onclick="openProjector()">启动投影播放器</button></td>
+          <td width="33%" valign="top"><b>SWF 库</b><div class="gray" id="flash-count">—</div>
+            <div class="gray" id="flash-dir">—</div></td>
+        </tr>
+      </table>
+      <div class="row">
+        SWF 地址 <input id="flash-url" size="44" value="http://" />
+        <button class="xp" onclick="playUrl()">播放</button>
+        <button class="xp" onclick="projectorUrl()">用投影播放器打开</button>
+      </div>
+      <div id="flash-stage" class="stage">
+        <p class="gray">在上面填入 .swf 链接后点「播放」；Ruffle 会在本页内直接运行 SWF。</p>
+      </div>
+      <table class="xp-table" id="flash-table">
+        <tr><th>文件</th><th>大小</th><th>修改时间</th><th>&nbsp;</th></tr>
+      </table>
+    </fieldset>
+
+    <fieldset class="xp-fieldset">
+      <legend>日志（用户动作全记录）</legend>
+      <div class="row">
+        <button class="xp" onclick="clearLogView()">清空视图</button>
+        <span class="gray" id="log-count">—</span>
+      </div>
+      <pre class="console log" id="log-box"></pre>
+    </fieldset>
+
+    <fieldset class="xp-fieldset">
+      <legend>诊断结论</legend>
+      <pre class="console" id="diag-box">还没有诊断结果。</pre>
+    </fieldset>
+
+  </div>
+
+  <div class="page-footer">
+    <span id="status-main">完成</span>
+    <span class="gray" id="status-detail">http://127.0.0.1/legacy</span>
+    <span class="gray right">IE6 兼容页 · TiaMC-Web 1.0.0</span>
+  </div>
+</div>
+
+<script src="/flash/ruffle.js"></script>
+<script src="/legacy.js"></script>
+</body>
+</html>

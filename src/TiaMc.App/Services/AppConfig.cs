@@ -75,6 +75,9 @@ public sealed class AppConfig
     [JsonPropertyName("extraClasspath")] public string ExtraClasspath { get; set; } = "";
     [JsonPropertyName("environmentVariables")] public string EnvironmentVariables { get; set; } = "";
     [JsonPropertyName("javaAgentPath")] public string JavaAgentPath { get; set; } = "";
+
+    /// <summary>Standalone Flash projector (flashplayer_*.exe) used for real SWF content.</summary>
+    [JsonPropertyName("flashProjectorPath")] public string? FlashProjectorPath { get; set; }
     [JsonPropertyName("downloadSource")] public DownloadSource DownloadSource { get; set; } = DownloadSource.BmclApi;
     [JsonPropertyName("activeInstance")] public string? ActiveInstance { get; set; }
     [JsonPropertyName("autoCheckFiles")] public bool AutoCheckFiles { get; set; } = true;
@@ -117,6 +120,27 @@ public sealed class AppConfig
 
     private static string? _configDirectory;
 
+    /// <summary>
+    /// Forces the configuration folder (portable mode / --config &lt;dir&gt;). Must be called
+    /// before anything reads ConfigDirectory; the folder is created when possible.
+    /// </summary>
+    public static bool UseConfigDirectory(string directory)
+    {
+        if (string.IsNullOrWhiteSpace(directory)) return false;
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var probe = Path.Combine(directory, ".write-probe");
+            File.WriteAllText(probe, "ok");
+            File.Delete(probe);
+            _configDirectory = directory;
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
     /// <summary>Folder that holds config.json, accounts.json and the log files.</summary>
     public static string ConfigDirectory
     {

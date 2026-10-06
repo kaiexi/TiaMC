@@ -43,12 +43,19 @@ jobs:
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=false
 
+      - name: 发布 Web GUI 版（内置 IE6 窗口 + Flash）
+        run: >
+          dotnet publish src/TiaMc.Web/TiaMc.Web.csproj
+          -c Release -o dist-web
+          -r win-x64 --self-contained true
+
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
           name: TiaMC-win-x64
           path: |
             dist/TiaMC.exe
+            dist-web/**
             README.md
             LICENSE
             THIRD-PARTY-NOTICES.md

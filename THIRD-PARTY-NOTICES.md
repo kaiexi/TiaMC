@@ -20,6 +20,7 @@ TiaMC 的**源代码全部为独立实现**。本文件说明：本项目在学�
 | [PCL2](https://github.com/Meloong-Git/PCL) | Hex-Dragon（LTCat）及贡献者 | 自定义（见其仓库） | **仅交互与下载路线参考** |
 | [Mem Reduct](https://github.com/henrypp/memreduct) | henrypp 及贡献者 | GPL-3.0 | **仅 Windows 公开 API 用法参考**（自行实现） |
 | [authlib-injector](https://github.com/yushijinhun/authlib-injector) | yushijinhun 及贡献者 | 自定义（见其 COPYING.md） | **运行时下载的独立 jar**，不打包、不修改 |
+| [Ruffle](https://github.com/ruffle-rs/ruffle) | Ruffle 及贡献者 | MIT / Apache-2.0 | **运行时下载**的 Flash 模拟器（self-hosted WASM 包），供 Web GUI 版在浏览器内播放 SWF；不打包、不修改 |
 | [Eclipse Temurin / Adoptium](https://adoptium.net/) | Eclipse Foundation | GPLv2 + Classpath Exception | **运行时下载的 JRE**，不打包、不修改 |
 | [BMCLAPI](https://bmclapi2.bangbang93.com/) | bangbang93 及贡献者 | 服务条款 | **联网镜像服务**（不下发代码） |
 | [Modrinth API](https://docs.modrinth.com/) | Modrinth | API 使用条款 | **联网接口**（不下发代码） |
