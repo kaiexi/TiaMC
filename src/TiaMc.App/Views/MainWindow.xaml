@@ -767,6 +767,11 @@
                                 <Button Style="{StaticResource Tia.Button.Tool}" Content="获取在线版本清单"
                                         Command="{Binding RefreshManifestCommand}" />
                                 <Separator Style="{StaticResource Tia.Separator}" Margin="6,2" />
+                                <!-- 删除本地版本：就放在"已安装实例"列表这一行，选中即可删 -->
+                                <Button Style="{StaticResource Tia.Button.Tool}" Content="删除选中的本地版本"
+                                        Command="{Binding DeleteVersionCommand}"
+                                        ToolTip="删除选中实例的版本目录 versions\&lt;ID&gt;（存档与模组不会被删）" />
+                                <Separator Style="{StaticResource Tia.Separator}" Margin="6,2" />
                                 <Button Style="{StaticResource Tia.Button.Primary}" Content="下载并安装选中版本"
                                         Command="{Binding InstallVersionCommand}"
                                         CommandParameter="{Binding SelectedRemoteVersion}" />
@@ -784,11 +789,21 @@
                                   AlternatingRowBackground="{DynamicResource Tia.RowAlt}"
                                   SelectionChanged="VersionTable_SelectionChanged"
                                   SelectedItem="{Binding ActiveChoice, Mode=TwoWay}">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu Style="{StaticResource Tia.ContextMenu}">
+                                    <MenuItem Header="删除本地版本…" Command="{Binding DeleteVersionCommand}"
+                                              Style="{StaticResource Tia.MenuItem}" />
+                                    <Separator />
+                                    <MenuItem Header="校验文件完整性" Command="{Binding CheckFilesCommand}"
+                                              Style="{StaticResource Tia.MenuItem}" />
+                                    <MenuItem Header="补全缺失文件" Command="{Binding DownloadMissingCommand}"
+                                              Style="{StaticResource Tia.MenuItem}" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="版本 ID" Binding="{Binding Id}" Width="*" />
                                 <DataGridTextColumn Header="装载器" Binding="{Binding Loader}" Width="120" />
                             </DataGrid.Columns>
-                            <!-- second level menu: right click an installed instance -->
 
                         </DataGrid>
 
@@ -1594,10 +1609,6 @@
                             <TextBlock Style="{StaticResource Tia.MutedText}" Text="{Binding DetailJarPath}"
                                        TextTrimming="CharacterEllipsis" Margin="0,4,0,0" />
 
-                            <!-- 删除实例：就在实例信息正下方，免得找不到 -->
-                            <Button Style="{StaticResource Tia.Button}" Content="删除此实例…" Margin="0,8,0,0"
-                                    HorizontalAlignment="Left" Command="{Binding DeleteVersionCommand}"
-                                    ToolTip="删除该实例的版本目录 versions\&lt;ID&gt; 并清除它的专属设置；存档与模组不会被删" />
 
                             <Separator Style="{StaticResource Tia.Separator}" Margin="0,10" />
 
