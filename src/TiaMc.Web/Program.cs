@@ -376,6 +376,35 @@ internal static class Program
             };
         });
 
+        // ---- MC 控制台：客户端输出 + 启动方案 + 退出原因（"哪里有问题"看这里）----
+        server.MapJson("GET", "/api/gameconsole", request =>
+        {
+            var since = request.Query.TryGetValue("since", out var raw) && int.TryParse(raw, out var n) ? n : 0;
+            var total = _launcher.GameLogCount;
+            var slice = _launcher.GameLogSlice(since);
+            var plan = _launcher.LastPlan;
+            var exit = _launcher.LastExit;
+
+            return new JsonObject
+            {
+                ["total"] = total,
+                ["next"] = since + slice.Count,
+                ["lines"] = new JsonArray(slice.Select(l => (JsonNode)l).ToArray()),
+                ["running"] = _launcher.IsRunning,
+                ["pid"] = _launcher.GameProcessId,
+                ["exitCode"] = exit?.Code,
+                ["exitReason"] = exit?.Reason ?? "",
+                ["state"] = _launcher.State.ToString(),
+                ["java"] = plan?.JavaPath ?? "",
+                ["requiredJavaMajor"] = plan?.RequiredJavaMajor ?? 0,
+                ["natives"] = plan?.NativesDirectory ?? "",
+                ["gameDir"] = plan?.GameDirectory ?? "",
+                ["classpathCount"] = plan is null ? 0 : plan.Classpath.Split(';', StringSplitOptions.RemoveEmptyEntries).Length,
+                ["summary"] = plan?.Summary ?? "",
+                ["command"] = plan is null ? "" : GameProcess.ToCommandLine(plan)
+            };
+        });
+
         // ---- 启动 / 停止 ----
         server.MapJson("POST", "/api/launch", request =>
         {

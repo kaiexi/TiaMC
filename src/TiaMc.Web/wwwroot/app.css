@@ -145,6 +145,7 @@ pre.console .warn { color: #FFFF80; }
 pre.console .err { color: #FF9090; }
 pre.console .action { color: #80FF80; }
 pre.console .ok { color: #A0FFA0; }
+pre.console .game { color: #9FE8FF; }
 
 /* Flash 舞台 */
 .stage {

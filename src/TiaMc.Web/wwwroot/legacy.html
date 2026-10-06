@@ -120,6 +120,18 @@
     </fieldset>
 
     <fieldset class="xp-fieldset">
+      <legend>MC 控制台（客户端输出）</legend>
+      <div class="row">
+        <input type="button" class="xp primary" value="启动游戏" onclick="launch()">
+        <input type="button" class="xp danger" value="结束游戏" onclick="stopGame()">
+        <input type="button" class="xp" value="清空控制台" onclick="clearConsole()">
+        <input type="button" class="xp" value="问题诊断" onclick="gameDiagnose()">
+        <span class="gray" id="gc-status">未启动</span>
+      </div>
+      <pre class="console" id="game-box">点「启动游戏」后，Minecraft 客户端的输出会实时显示在这里。</pre>
+      <pre class="console" id="game-diag">还没有诊断结果。游戏异常退出时点「问题诊断」。</pre>
+    </fieldset>
+    <fieldset class="xp-fieldset">
       <legend>日志（用户动作全记录）</legend>
       <div class="row">
         <input type="button" class="xp" value="清空视图" onclick="clearLogView()">

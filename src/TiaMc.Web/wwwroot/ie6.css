@@ -260,3 +260,11 @@ input.text, select { border: 1px solid #808080; padding: 1px 2px; }
 }
 
 #status.ok { color: #008000; }
+
+/* 日志行配色（IE6 档）*/
+.log-info { color: #00ff00; }
+.log-game { color: #9fe8ff; }
+.log-warn { color: #ffff80; }
+.log-err { color: #ff9090; }
+.log-ok { color: #a0ffa0; }
+.log-action { color: #80ff80; }

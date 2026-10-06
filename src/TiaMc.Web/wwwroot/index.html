@@ -36,6 +36,7 @@
     <button class="ie-tab" data-tab="mods">模组</button>
     <button class="ie-tab" data-tab="settings">设置</button>
     <button class="ie-tab" data-tab="logs">日志</button>
+    <button class="ie-tab" data-tab="console">MC 控制台</button>
     <button class="ie-tab" data-tab="flash">Flash</button>
   </div>
 
@@ -146,12 +147,38 @@
       </fieldset>
     </div>
 
+    <!-- MC 控制台（客户端自己的输出 + 启动方案 + 退出原因） -->
+    <div class="page" id="page-console">
+      <fieldset class="xp-fieldset"><legend>MC 控制台（Minecraft 客户端输出）</legend>
+        <div class="row">
+          <button class="xp primary" data-act="launch">启动游戏</button>
+          <button class="xp danger" data-act="stop">结束游戏</button>
+          <button class="xp" data-act="clear-console">清空控制台</button>
+          <button class="xp" data-act="game-diagnose">问题诊断</button>
+          <label><input type="checkbox" id="console-follow" checked /> 自动滚动</label>
+          <span class="gray" id="console-status">未启动</span>
+        </div>
+        <table class="xp-table cards">
+          <tr>
+            <td><b>状态</b><div class="big" id="gc-state">—</div><small class="gray" id="gc-exit">—</small></td>
+            <td><b>Java</b><div class="small mono" id="gc-java">—</div></td>
+            <td><b>本地库目录</b><div class="small mono" id="gc-natives">—</div></td>
+            <td><b>类路径</b><div class="big" id="gc-cp">—</div><small class="gray">个 jar</small></td>
+          </tr>
+        </table>
+        <pre class="console" id="game-box">点「启动游戏」后，Minecraft 客户端的输出会实时显示在这里。</pre>
+      </fieldset>
+      <fieldset class="xp-fieldset"><legend>启动方案 / 问题诊断</legend>
+        <pre class="console" id="game-diag">还没有诊断结果。游戏异常退出时点「问题诊断」，或它会自动给出结论。</pre>
+      </fieldset>
+    </div>
+
     <!-- 日志 -->
     <div class="page" id="page-logs">
       <fieldset class="xp-fieldset"><legend>日志（用户动作全记录）</legend>
         <div class="row">
           级别 <select id="log-level">
-            <option>全部</option><option>INFO</option><option>WARN</option><option>ERR</option><option>动作</option>
+            <option>全部</option><option>INFO</option><option>GAME</option><option>WARN</option><option>ERR</option><option>动作</option><option>OK</option>
           </select>
           <button class="xp" data-act="clear-log-view">清空视图</button>
           <label><input type="checkbox" id="log-follow" checked /> 自动滚动</label>

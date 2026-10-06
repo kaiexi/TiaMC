@@ -67,6 +67,32 @@ public sealed class LaunchService
         }
     }
 
+    /// <summary>客户端控制台行数（Web GUI 的「MC 控制台」用它做增量拉取）。</summary>
+    public int GameLogCount
+    {
+        get
+        {
+            lock (_gameLog) return _gameLog.Count;
+        }
+    }
+
+    /// <summary>取客户端控制台的一段（从 index 开始的增量）。</summary>
+    public List<string> GameLogSlice(int index, int take = 2000)
+    {
+        lock (_gameLog)
+        {
+            if (index < 0) index = 0;
+            if (index >= _gameLog.Count) return [];
+            return _gameLog.Skip(index).Take(take).ToList();
+        }
+    }
+
+    /// <summary>最近一次启动用的方案（Java、内存、natives 目录等），用于"哪里有问题"的判断依据。</summary>
+    public LaunchPlan? LastPlan => _lastPlan;
+
+    /// <summary>最近一次退出的退出码与原因（没有启动过时为 null）。</summary>
+    public (int Code, string Reason)? LastExit { get; private set; }
+
     /// <summary>
     /// Analyses the last launch log plus the newest crash report of a game
     /// directory (HMCL style). Falls back to the active instance when no launch
@@ -529,6 +555,7 @@ public sealed class LaunchService
 
         _process.Exited += (_, e) =>
         {
+            LastExit = (e.ExitCode, e.Reason.ToString());
             SetState(LauncherState.Idle, $"{plan.VersionId} 已退出 (code={e.ExitCode}, {e.Reason})");
             GameExited?.Invoke(e.ExitCode, e.Reason);
 
