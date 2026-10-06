@@ -12,7 +12,7 @@ namespace TiaMc.Web;
 /// core: HttpListener would need an admin URL ACL even for 127.0.0.1).
 /// Only what the web GUI needs: GET/POST, JSON bodies, files, no keep-alive tricks.
 /// </summary>
-internal sealed class WebServer(int preferredPort)
+internal sealed class WebServer(int preferredPort, string bindHost = "127.0.0.1")
 {
     public sealed class Request
     {
@@ -103,7 +103,10 @@ internal sealed class WebServer(int preferredPort)
         {
             try
             {
-                var listener = new TcpListener(IPAddress.Loopback, port);
+                var address = bindHost is "0.0.0.0" or "any" or "*"
+                    ? IPAddress.Any
+                    : IPAddress.TryParse(bindHost, out var parsed) ? parsed : IPAddress.Loopback;
+                var listener = new TcpListener(address, port);
                 listener.Start();
                 _listener = listener;
                 Port = ((IPEndPoint)listener.LocalEndpoint).Port;

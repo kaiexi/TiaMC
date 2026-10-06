@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=5">
 <title>TIA-MC 启动器（IE6 兼容页）</title>
-<link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/ie6.css">
 </head>
 <body>
 <div id="page">
@@ -16,11 +16,11 @@
   </div>
 
   <div class="toolbar">
-    <button class="xp" onclick="refreshAll()">刷新</button>
-    <button class="xp" onclick="getManifest()">获取版本清单</button>
-    <button class="xp primary" onclick="launch()">启动游戏</button>
-    <button class="xp danger" onclick="stopGame()">结束游戏</button>
-    <button class="xp" onclick="diagnose()">诊断上次启动</button>
+    <input type="button" class="xp" value="刷新" onclick="refreshAll()">
+    <input type="button" class="xp" value="获取版本清单" onclick="getManifest()">
+    <input type="button" class="xp primary" value="启动游戏" onclick="launch()">
+    <input type="button" class="xp danger" value="结束游戏" onclick="stopGame()">
+    <input type="button" class="xp" value="诊断上次启动" onclick="diagnose()">
   </div>
 
   <div class="content">
@@ -69,7 +69,7 @@
       <legend>账户</legend>
       <div class="row">
         离线账户名 <input id="account-name" size="18" value="Steve" />
-        <button class="xp" onclick="addAccount()">新建离线账户</button>
+        <input type="button" class="xp" value="新建离线账户" onclick="addAccount()">
       </div>
       <table class="xp-table" id="accounts-table">
         <tr><th>名称</th><th>类型</th><th>UUID</th><th>&nbsp;</th></tr>
@@ -84,21 +84,41 @@
     </fieldset>
 
     <fieldset class="xp-fieldset">
+      <legend>真 IE6 引擎（可插拔内核）</legend>
+      <table class="xp-table">
+        <tr>
+          <td width="50%" valign="top">
+            <b>引擎状态</b><div id="ie6-engine" class="gray">检测中…</div>
+            <input type="button" class="xp" value="打开引擎目录（放引擎）" onclick="openEngineDir()">
+            <input type="button" class="xp primary" value="用真 IE6 引擎打开页面" onclick="launchRealIe6()">
+            <input type="button" class="xp" value="用 WSL 里的真 IE6 打开（Wine）" onclick="launchWslIe6()">
+            <input type="button" class="xp" value="查看 WSL 准备命令" onclick="showWslCommands()">
+          </td>
+          <td width="50%" valign="top">
+            <b>本进程与宿主引擎</b>
+            <div id="ie6-host" class="gray">—</div>
+            <div id="ie6-note" class="gray">—</div>
+            <div id="ie6-channels" style="margin-top:6px">—</div>
+          </td>
+        </tr>
+      </table>
+    </fieldset>
+    <fieldset class="xp-fieldset">
       <legend>Flash（Ruffle / 投影播放器）</legend>
       <table class="xp-table">
         <tr>
           <td width="34%" valign="top"><b>Ruffle</b><div class="gray" id="flash-ruffle">—</div>
-            <button class="xp" onclick="getRuffle()">获取 / 更新 Ruffle</button></td>
+            <input type="button" class="xp" value="获取 / 更新 Ruffle" onclick="getRuffle()"></td>
           <td width="33%" valign="top"><b>投影播放器</b><div class="gray" id="flash-projector">—</div>
-            <button class="xp" onclick="openProjector()">启动投影播放器</button></td>
+            <input type="button" class="xp" value="启动投影播放器" onclick="openProjector()"></td>
           <td width="33%" valign="top"><b>SWF 库</b><div class="gray" id="flash-count">—</div>
             <div class="gray" id="flash-dir">—</div></td>
         </tr>
       </table>
       <div class="row">
         SWF 地址 <input id="flash-url" size="44" value="http://" />
-        <button class="xp" onclick="playUrl()">播放</button>
-        <button class="xp" onclick="projectorUrl()">用投影播放器打开</button>
+        <input type="button" class="xp" value="播放" onclick="playUrl()">
+        <input type="button" class="xp" value="用投影播放器打开" onclick="projectorUrl()">
       </div>
       <div id="flash-stage" class="stage">
         <p class="gray">在上面填入 .swf 链接后点「播放」；Ruffle 会在本页内直接运行 SWF。</p>
@@ -111,7 +131,7 @@
     <fieldset class="xp-fieldset">
       <legend>日志（用户动作全记录）</legend>
       <div class="row">
-        <button class="xp" onclick="clearLogView()">清空视图</button>
+        <input type="button" class="xp" value="清空视图" onclick="clearLogView()">
         <span class="gray" id="log-count">—</span>
       </div>
       <pre class="console log" id="log-box"></pre>

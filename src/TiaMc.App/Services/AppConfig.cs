@@ -78,6 +78,9 @@ public sealed class AppConfig
 
     /// <summary>Standalone Flash projector (flashplayer_*.exe) used for real SWF content.</summary>
     [JsonPropertyName("flashProjectorPath")] public string? FlashProjectorPath { get; set; }
+
+    /// <summary>外部真 IE6 引擎目录（含 iexplore.exe + mshtml.dll）；留空时自动扫描 ie6\ 目录。</summary>
+    [JsonPropertyName("ie6EnginePath")] public string? Ie6EnginePath { get; set; }
     [JsonPropertyName("downloadSource")] public DownloadSource DownloadSource { get; set; } = DownloadSource.BmclApi;
     [JsonPropertyName("activeInstance")] public string? ActiveInstance { get; set; }
     [JsonPropertyName("autoCheckFiles")] public bool AutoCheckFiles { get; set; } = true;

@@ -299,10 +299,66 @@ function projectorUrl() {
   });
 }
 
+function loadIe6() {
+  api("/api/ie6", function (d) {
+    setText("ie6-engine", d.engineFound
+      ? ("已检测到引擎：版本 " + esc(d.engineVersion) + "（" + esc(d.enginePath) + "）")
+      : ("未检测到真 IE6 引擎目录。把含 iexplore.exe + mshtml.dll 的目录放到 " + esc(d.engineDirectory)));
+    setText("ie6-host", "进程 " + esc(d.processBits) + " 位；宿主引擎 " + esc(d.hostedEngineDll) +
+      "（版本 " + esc(d.hostedEngineVersion) + "，真 IE6=" + esc(d.hostedIsIe6) + "）");
+    setText("ie6-note", d.wsl
+      ? ("WSL: " + (d.wsl.wslPresent ? "已安装" : "未安装") +
+         "；发行版 " + (d.wsl.defaultDistro || "无") +
+         "；wine " + (d.wsl.wineReady ? "已装" : "未装"))
+      : "");
+  });
+}
+
+function loadBrowsers() {
+  api("/api/browsers", function (d) {
+    var html = "<b>浏览器通道</b>（点按钮用对应浏览器打开本页）：<br>";
+    var list = d.channels || [];
+    for (var i = 0; i < list.length; i++) {
+      html += "<input type=\"button\" class=\"xp\" value=\"" + esc(list[i].name) + "\" onclick=\"openWith('" +
+        esc(list[i].id) + "')"> <span class=\"" + "gray" + "\">" + esc(list[i].engine) + "</span><br>";
+    }
+    html += "<div class=\"gray\" style=\"margin-top:4px\">" + esc(d.note || "") + "</div>";
+    setText("ie6-channels", html);
+  });
+}
+
+function openWith(id) {
+  post("/api/browsers/launch", { id: id, url: location.href }, function (d) {
+    status(d.ok ? "完成" : "失败", d.message || "");
+  });
+}
+
+function openEngineDir() {
+  post("/api/ie6/open-directory", {}, function (d) { status(d.ok ? "完成" : "失败", d.message || ""); });
+}
+
+function launchRealIe6() {
+  post("/api/ie6/launch", { url: location.href }, function (d) { status(d.ok ? "完成" : "失败", d.message || ""); });
+}
+
+function launchWslIe6() {
+  post("/api/ie6/wsl/launch", { url: location.href }, function (d) { status(d.ok ? "完成" : "失败", d.message || ""); });
+}
+
+function showWslCommands() {
+  api("/api/ie6/wsl", function (d) {
+    var text = "WSL 准备命令（在管理员 PowerShell 里执行）：\n\n" + (d.prepareCommands || []).join("\n");
+    setText("ie6-note", esc(text).replace(/\n/g, "<br>"));
+    status("已显示 WSL 准备命令", "");
+  });
+}
+
 /* ------------------------------------------------------- 启动 */
 
 function boot() {
   refreshAll();
+  loadIe6();
+  loadBrowsers();
   pollLogs();
   setInterval(pollLogs, 2000);
   setInterval(function () { if (!document.hidden) refreshAll(); }, 8000);

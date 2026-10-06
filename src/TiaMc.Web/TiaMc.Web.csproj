@@ -29,7 +29,8 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- 默认 x64；-r win-x86 可发布 32 位版（使用 SysWOW64 里的 32 位 MSHTML 引擎） -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>false</PublishSingleFile>
     <PublishTrimmed>false</PublishTrimmed>

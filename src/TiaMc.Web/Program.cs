@@ -30,6 +30,8 @@ internal static class Program
 {
     private static LaunchService _launcher = null!;
     private static FlashService _flash = null!;
+    private static Ie6EngineService _ie6 = null!;
+    private static BrowserChannelService _browsers = null!;
     private static string _wwwroot = "";
     private static readonly DateTime Started = DateTime.Now;
 
@@ -41,6 +43,9 @@ internal static class Program
         var useSystemBrowser = args.Contains("--browser=default") || args.Contains("--edge");
         var noIe6 = args.Contains("--no-ie6");
         var quirks = args.Contains("--ie6-quirks");
+        var ie11Mode = args.Contains("--ie11-mode");
+        var hostIndex = Array.IndexOf(args, "--host");
+        var bindHost = hostIndex >= 0 && hostIndex + 1 < args.Length ? args[hostIndex + 1] : "127.0.0.1";
         var portable = args.Contains("--portable");
         var configIndex = Array.IndexOf(args, "--config");
         var configDir = configIndex >= 0 && configIndex + 1 < args.Length ? args[configIndex + 1] : "";
@@ -73,6 +78,8 @@ internal static class Program
 
             _wwwroot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
             _flash = new FlashService();
+            _ie6 = new Ie6EngineService();
+            _browsers = new BrowserChannelService();
 
             LogService.Info("TiaMC-Web 启动中（浏览器 GUI 版）", "Web");
             var config = AppConfig.Load();
@@ -83,10 +90,19 @@ internal static class Program
             _launcher.DetectJava();
             LogService.Info($"Java 运行时: {_launcher.JavaRuntimes.Count} 个", "Web");
 
-            var server = new WebServer(port);
+            var server = new WebServer(port, bindHost);
             Register(server);
             var actualPort = server.Start();
             LogService.Ok($"Web GUI 已就绪: http://127.0.0.1:{actualPort}/", "Web");
+            LogService.Info($"IE6 兼容页: http://127.0.0.1:{actualPort}/legacy", "Web");
+            if (bindHost != "127.0.0.1")
+            {
+                foreach (var address in System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName())
+                             .Where(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork))
+                {
+                    LogService.Ok($"真 IE6 机器可访问: http://{address}:{actualPort}/legacy（IE6 专用页面）", "Web");
+                }
+            }
 
             if (!noBrowser)
             {
@@ -97,7 +113,7 @@ internal static class Program
                 else
                 {
                     // 内置 IE6 打开兼容页；系统浏览器打开现代页
-                    OpenEmbeddedIe6($"http://127.0.0.1:{actualPort}/legacy", quirks ? 5000 : 11001);
+                    OpenEmbeddedIe6($"http://127.0.0.1:{actualPort}/legacy", ie11Mode ? 11001 : 5000);
                 }
             }
 
@@ -438,6 +454,55 @@ internal static class Program
             };
         });
 
+        // ---- 真 IE6 引擎槽 ----
+        server.MapJson("GET", "/api/ie6", _ => _ie6.Status());
+        server.MapJson("POST", "/api/ie6/launch", request =>
+        {
+            var url = request.Field("url");
+            if (url.Length == 0) url = $"http://127.0.0.1:{(server.Port)}/legacy";
+            var result = _ie6.Launch(url);
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message, ["engine"] = result.Engine };
+        });
+        server.MapJson("GET", "/api/ie6/wsl", _ =>
+        {
+            var state = _ie6.DetectWsl();
+            var commands = new JsonArray();
+            foreach (var command in _ie6.PrepareWslCommands(state.DefaultDistro)) commands.Add(command);
+            return new JsonObject
+            {
+                ["wslPresent"] = state.WslPresent,
+                ["distros"] = new JsonArray(state.Distros.Select(d => (JsonNode)d).ToArray()),
+                ["defaultDistro"] = state.DefaultDistro,
+                ["wineReady"] = state.WineReady,
+                ["prepareCommands"] = commands
+            };
+        });
+
+        server.MapJson("POST", "/api/ie6/wsl/launch", request =>
+        {
+            var url = request.Field("url");
+            if (url.Length == 0) url = $"http://127.0.0.1:{server.Port}/legacy";
+            var result = _ie6.LaunchViaWsl(url, request.Field("distro"));
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message };
+        });
+
+        server.MapJson("POST", "/api/ie6/open-directory", _ =>
+        {
+            var result = _ie6.OpenEngineDirectory();
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message };
+        });
+
+        // ---- 浏览器通道（世界之窗等 IE 外壳）----
+        server.MapJson("GET", "/api/browsers", _ => _browsers.Status());
+        server.MapJson("POST", "/api/browsers/launch", request =>
+        {
+            var id = request.Field("id");
+            var url = request.Field("url");
+            if (url.Length == 0) url = $"http://127.0.0.1:{server.Port}/legacy";
+            var result = _browsers.Launch(id, url);
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message, ["channel"] = result.Channel };
+        });
+
         // ---- Flash ----
         server.MapJson("GET", "/api/flash", _ => _flash.Status());
 
@@ -511,7 +576,8 @@ internal static class Program
         ["selectedAccount"] = _launcher.Accounts.Selected.Name,
         ["java"] = _launcher.JavaRuntimes.Count,
         ["remoteVersions"] = _launcher.RemoteManifest?.Versions.Count ?? 0,
-        ["flash"] = _flash.Status()
+        ["flash"] = _flash.Status(),
+        ["browserChannels"] = _browsers.Status()["channels"]
     };
 
     private static JsonObject Settings() => new()

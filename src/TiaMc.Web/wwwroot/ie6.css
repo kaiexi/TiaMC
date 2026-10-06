@@ -1,0 +1,177 @@
+@charset "utf-8";
+/* =========================================================================
+   ie6.css —— 面向真实 IE6（MSHTML 6.0）的样式表
+   参考做法（见 docs/IE6-COMPAT.md 与所列参考项目）：
+     * 布局只用 table / float / 定宽，不用 flex、grid、min-height、calc
+     * 圆角、渐变、阴影用 IE 专有 filter（DXImageTransform）实现，现代浏览器忽略也无妨
+     * 浮动元素加 display:inline 规避 IE6 双倍外边距 bug
+     * 需要 hasLayout 的地方加 zoom:1
+     * 悬停只写在 a:hover 上（IE6 只支持链接悬停）
+     * PNG 透明用 AlphaImageLoader 滤镜兜底
+   ========================================================================= */
+
+* { margin: 0; padding: 0; }
+
+body {
+  background: #ffffff;
+  color: #000000;
+  font-family: SimSun, "宋体", Tahoma, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+a, a:link { color: #0000cc; text-decoration: underline; }
+a:visited { color: #800080; }
+a:hover { color: #ff0000; }
+
+h1, h2, h3 { font-size: 14px; font-weight: bold; }
+.gray { color: #666666; }
+.mono { font-family: Fixedsys, "Courier New", monospace; font-size: 12px; }
+
+/* ---------------------------------------------------------------- 骨架 */
+#page {
+  width: 1200px;
+  margin: 10px auto 20px auto;
+  border: 1px solid #9aa7b4;
+  background: #ffffff;
+  zoom: 1;
+}
+
+/* 页头：IE6 用渐变滤镜，现代浏览器用普通底色 */
+.site-header {
+  padding: 8px 10px;
+  background: #005a8c;
+  color: #ffffff;
+  border-bottom: 3px solid #e8a33d;
+  zoom: 1;
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, startColorStr='#FF1E7FB8', endColorStr='#FF005A8C');
+}
+.site-logo {
+  display: inline;
+  background: #ffffff;
+  color: #005a8c;
+  font-weight: bold;
+  font-size: 15px;
+  padding: 1px 6px;
+  margin-right: 8px;
+}
+.site-title { font-weight: bold; }
+.site-header .gray { color: #cfe4f2; }
+
+.toolbar {
+  padding: 8px 10px;
+  background: #f1efe2;
+  border-bottom: 1px solid #c8c4b4;
+  zoom: 1;
+}
+.toolbar form, .toolbar span { display: inline; }
+
+.content { padding: 10px; }
+
+.page-footer {
+  padding: 4px 10px;
+  background: #f1efe2;
+  border-top: 1px solid #c8c4b4;
+  zoom: 1;
+}
+.page-footer .right { float: right; display: inline; }
+
+/* ---------------------------------------------------------------- 控件 */
+/* IE6 对 <button> 支持很差，统一用 <input type="button" class="xp"> */
+input.xp {
+  font-family: SimSun, "宋体", Tahoma, sans-serif;
+  font-size: 12px;
+  color: #000000;
+  background: #ece9d8;
+  border: 1px solid #003c74;
+  padding: 2px 10px;
+  cursor: pointer;
+  overflow: visible;            /* IE6 下按钮内边距被吞掉的修正 */
+}
+input.xp.primary { background: #ffd98a; }
+input.xp.danger  { background: #f3b7b7; }
+
+input.text, input[type=text], select, textarea {
+  font-family: SimSun, "宋体", Tahoma, sans-serif;
+  font-size: 12px;
+  border: 1px solid #7f9db9;
+  padding: 1px 2px;
+  background: #ffffff;
+}
+
+/* ---------------------------------------------------------------- 表格 */
+table.xp-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+table.xp-table td, table.xp-table th {
+  border: 1px solid #aca899;
+  padding: 2px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+table.xp-table th { background: #ece9d8; font-weight: bold; }
+table.xp-table tr.alt td { background: #f7f7f2; }
+table.xp-table tr.snapshot td { background: #fff3d6; color: #8a5b00; }
+table.xp-table tr.selected td { background: #dce9f7; }
+table.xp-table td.big { font-size: 18px; font-weight: bold; text-align: center; }
+table.xp-table.cards td { text-align: center; }
+
+table.form-table { border-collapse: collapse; }
+table.form-table td { padding: 2px 8px 2px 0; vertical-align: top; }
+
+.scroll-area {
+  width: 100%;
+  height: 380px;
+  overflow: auto;               /* IE6 支持，滚动条为系统样式 */
+  border: 1px solid #aca899;
+}
+
+/* ---------------------------------------------------------------- 分组框 */
+fieldset.xp-fieldset {
+  border: 1px solid #aca899;
+  padding: 8px 10px 12px 10px;
+  margin: 8px 0 12px 0;
+  zoom: 1;
+}
+fieldset.xp-fieldset legend { font-weight: bold; color: #003c74; padding: 0 4px; }
+
+/* ---------------------------------------------------------------- 控制台 */
+pre.console {
+  background: #000080;
+  color: #f0f0f0;
+  border: 1px solid #aca899;
+  padding: 6px 8px;
+  height: 220px;
+  overflow: auto;
+  font-family: Fixedsys, "Courier New", monospace;
+  font-size: 12px;
+  white-space: pre;
+}
+pre.console.log { height: 260px; }
+pre.console .warn { color: #ffff80; }
+pre.console .err { color: #ff9090; }
+pre.console .action { color: #80ff80; }
+
+/* ---------------------------------------------------------------- Flash */
+.stage {
+  height: 300px;
+  border: 2px inset #aca899;
+  background: #000000;
+  color: #cfcfcf;
+  padding: 4px;
+  text-align: center;
+  zoom: 1;
+}
+.stage object, .stage embed, .stage iframe { width: 100%; height: 300px; border: 0; }
+
+/* 清除浮动（IE6 用 zoom:1 + :after） */
+.clearfix { zoom: 1; }
+.clearfix:after { content: "."; display: block; height: 0; clear: both; visibility: hidden; }
+
+/* PNG 透明兜底：<img class="pngfix" src="..." style="width:..;height:.."> */
+.pngfix {
+  behavior: url(#default#VML);
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='', sizingMethod='scale');
+}
