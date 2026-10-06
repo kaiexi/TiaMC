@@ -3338,8 +3338,16 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         if (string.Equals(Config.ActiveInstance, version.Id, StringComparison.OrdinalIgnoreCase))
         {
             Config.ActiveInstance = "";
-            Config.Save();
         }
+
+        // 把实例的专属设置（JVM 参数、内存、模组目录覆盖等）也一起清掉，
+        // 否则下次装同名版本会莫名其妙继承旧设置。
+        if (Config.Instances.Remove(version.Id))
+        {
+            LogService.Info($"已清除实例 {version.Id} 的专属设置", "版本");
+        }
+
+        Config.Save();
 
         SelectedVersion = null;
         _launcher.ReloadInstallation();
