@@ -421,6 +421,9 @@
                               Style="{StaticResource Tia.TreeView}"
                               Loaded="ProjectTree_Loaded"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.CanContentScroll="True"
+                              PreviewMouseWheel="ProjectTree_PreviewMouseWheel"
                               SelectedItemChanged="ProjectTree_SelectedItemChanged">
                         <TreeView.ItemContainerStyle>
                             <Style TargetType="TreeViewItem" BasedOn="{StaticResource Tia.TreeViewItem}">

@@ -158,6 +158,42 @@ public partial class MainWindow : Window
     /// before the first layout pass, so this runs from the Loaded event and is
     /// scheduled at Loaded priority to let the root container generate first.
     /// </summary>
+    /// <summary>
+    /// 项目树滚轮滚动：TreeView 内部的 ScrollViewer 有时会先被外层容器吃掉滚轮事件，
+    /// 这里直接找到树的 ScrollViewer 自己滚，保证"能上下翻动"。
+    /// </summary>
+    private void ProjectTree_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.TreeView tree) return;
+
+        var viewer = FindDescendantScrollViewer(tree);
+        if (viewer is null) return;
+
+        // 已经到顶/到底就让事件继续冒泡（方便外层容器接管）
+        var target = viewer.VerticalOffset - e.Delta / 3.0;
+        if (target < 0) target = 0;
+        if (target > viewer.ScrollableHeight) target = viewer.ScrollableHeight;
+        if (Math.Abs(target - viewer.VerticalOffset) < 0.5) return;
+
+        viewer.ScrollToVerticalOffset(target);
+        e.Handled = true;
+    }
+
+    private static System.Windows.Controls.ScrollViewer? FindDescendantScrollViewer(System.Windows.DependencyObject root)
+    {
+        if (root is System.Windows.Controls.ScrollViewer found) return found;
+
+        var count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < count; i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            var result = FindDescendantScrollViewer(child);
+            if (result is not null) return result;
+        }
+
+        return null;
+    }
+
     private void ProjectTree_Loaded(object sender, RoutedEventArgs e)
     {
         Dispatcher.BeginInvoke(new Action(ExpandAllNodes), System.Windows.Threading.DispatcherPriority.Loaded);
