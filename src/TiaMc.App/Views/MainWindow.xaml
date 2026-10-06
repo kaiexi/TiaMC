@@ -305,6 +305,12 @@
                         </StackPanel>
                     </Button>
 
+                    <Button Style="{StaticResource Tia.Button.Tool}" Command="{Binding DeleteVersionCommand}"
+                            ToolTip="删除选中的本地版本（versions 目录；存档与模组不会被删）">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="删除版本" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                     <!-- 正版（微软）登录：放在功能区，任何页面都能一眼看到 -->
                     <Border Background="{DynamicResource Tia.Border}" Width="1" Margin="7,4" />
                     <Button Style="{StaticResource Tia.Button.Tool}" Command="{Binding AddMicrosoftAccountCommand}"
@@ -436,6 +442,9 @@
                                 <MenuItem Header="校验文件完整性" Command="{Binding CheckFilesCommand}"
                                           Style="{StaticResource Tia.MenuItem}" />
                                 <MenuItem Header="补全缺失文件" Command="{Binding DownloadMissingCommand}"
+                                          Style="{StaticResource Tia.MenuItem}" />
+                                <Separator />
+                                <MenuItem Header="删除本地版本…" Command="{Binding DeleteVersionCommand}"
                                           Style="{StaticResource Tia.MenuItem}" />
                                 <Separator />
                                 <MenuItem Header="打开工作区" Style="{StaticResource Tia.MenuItem}">

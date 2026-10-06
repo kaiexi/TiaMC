@@ -1,3 +1,4 @@
+using TiaMc.Core.Utils;
 using System.Text.Json;
 using TiaMc.Core.Json;
 using TiaMc.Core.Launch;
@@ -79,6 +80,51 @@ public sealed class VersionRepository
     }
 
     /// <summary>Loads one version and resolves its inheritance chain.</summary>
+    /// <summary>
+    /// 删除一个本地版本：整个 versions/&lt;id&gt; 目录（含该版本的 jar、json、natives）。
+    /// 共享目录（saves / mods / resourcepacks / assets / libraries）不动。
+    /// </summary>
+    public (bool Ok, string Message, long Bytes) Delete(string versionId)
+    {
+        if (string.IsNullOrWhiteSpace(versionId)) return (false, "版本 ID 为空", 0);
+
+        var directory = Path.Combine(_paths.VersionsDir, versionId);
+
+        // 只允许删除 versions 目录下的直接子目录，避免奇怪的 ID 把别的东西删了
+        var full = Path.GetFullPath(directory);
+        var root = Path.GetFullPath(_paths.VersionsDir);
+        if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase) ||
+            full.Length <= root.Length + 1)
+        {
+            return (false, "拒绝删除（路径不在版本目录内）: " + full, 0);
+        }
+
+        if (!Directory.Exists(full)) return (false, "版本目录不存在: " + full, 0);
+
+        long bytes = 0;
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(full, "*", SearchOption.AllDirectories))
+            {
+                try { bytes += new FileInfo(file).Length; } catch (Exception) { }
+            }
+        }
+        catch (Exception)
+        {
+            // 统计失败不影响删除
+        }
+
+        try
+        {
+            Directory.Delete(full, recursive: true);
+        }
+        catch (Exception e)
+        {
+            return (false, $"删除失败（文件可能正被游戏或其它程序占用）：{e.Message}", 0);
+        }
+
+        return (true, $"已删除版本 {versionId}，释放 {TextUtil.FormatBytes(bytes)}", bytes);
+    }
     public InstalledVersion? Load(string versionId)
     {
         var chain = new List<string>();

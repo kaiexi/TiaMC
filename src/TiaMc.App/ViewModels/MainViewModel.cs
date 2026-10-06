@@ -142,6 +142,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         }
         OpenModpackFolderCommand = new RelayCommand(OpenModpackFolder);
         DeleteModpackCommand = new RelayCommand(DeleteSelectedModpack);
+        // 删除本地版本（删除 versions/<id> 整个目录，共享的存档/模组不动）
+        DeleteVersionCommand = new RelayCommand(DeleteSelectedVersion,
+            () => SelectedVersion is not null && !_launcher.IsRunning);
         CopyModpackCommandCommand = new RelayCommand(() =>
         {
             if (ModpackServerCommand.Length > 0) System.Windows.Clipboard.SetText(ModpackServerCommand);
@@ -282,6 +285,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             Raise(nameof(SelectedModLinks));
             (ToggleModCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (DeleteModCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        (DeleteVersionCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (OpenModPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
     }
@@ -3254,6 +3258,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public AsyncRelayCommand DeployModpackCommand { get; }
     public RelayCommand OpenModpackFolderCommand { get; }
     public RelayCommand DeleteModpackCommand { get; }
+
+    /// <summary>删除选中的本地版本。</summary>
+    public RelayCommand DeleteVersionCommand { get; }
     public RelayCommand CopyModpackCommandCommand { get; }
 
     private void OpenModpackFolder()
@@ -3272,6 +3279,70 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         {
             LogService.Error("打开目录失败: " + e.Message, "Packs");
         }
+    }
+
+    /// <summary>删除本地版本：确认后删除 versions/&lt;id&gt;（jar、json、natives）。</summary>
+    private void DeleteSelectedVersion()
+    {
+        var version = SelectedVersion;
+        if (version is null)
+        {
+            LogService.Warn("请先在项目树里选中一个本地版本", "版本");
+            return;
+        }
+
+        if (_launcher.IsRunning)
+        {
+            LogService.Warn("游戏正在运行，先结束游戏再删除版本", "版本");
+            return;
+        }
+
+        var directory = System.IO.Path.Combine(_launcher.Paths.VersionsDir, version.Id);
+        long size = 0;
+        try
+        {
+            if (System.IO.Directory.Exists(directory))
+            {
+                size = new System.IO.DirectoryInfo(directory)
+                    .EnumerateFiles("*", System.IO.SearchOption.AllDirectories)
+                    .Sum(f => { try { return f.Length; } catch (Exception) { return 0L; } });
+            }
+        }
+        catch (Exception)
+        {
+            // 体积统计失败不影响删除
+        }
+
+        var answer = System.Windows.MessageBox.Show(
+            System.Windows.Application.Current.MainWindow,
+            $"确定要删除本地版本 {version.Id} 吗？\n\n" +
+            $"会删除：{directory}\n（约 {TiaMc.Core.Utils.TextUtil.FormatBytes(size)}，含 jar / json / natives）\n\n" +
+            "不会删除：存档、模组、资源包（这些在共享目录里）\n\n此操作不可撤销。",
+            "删除本地版本", System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (answer != System.Windows.MessageBoxResult.Yes) return;
+
+        var (ok, message, _) = _launcher.Repository.Delete(version.Id);
+        if (!ok)
+        {
+            LogService.Error(message, "版本");
+            return;
+        }
+
+        LogService.Ok(message, "版本");
+
+        if (string.Equals(Config.ActiveInstance, version.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            Config.ActiveInstance = "";
+            Config.Save();
+        }
+
+        SelectedVersion = null;
+        _launcher.ReloadInstallation();
+        RefreshInstalled();
+        BuildPlan();
+        LogService.Info($"删除后剩余 {_launcher.Installed.Count} 个本地版本", "版本");
     }
 
     private void DeleteSelectedModpack()
