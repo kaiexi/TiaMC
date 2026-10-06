@@ -28,19 +28,38 @@ function xmlhttp() {
   return null;
 }
 
+/* IE5 quirks 文档模式下**没有 JSON 对象**（实测 "JSON"未定义），
+   所以这里自己把对象拼成表单编码 a=1&b=2；服务端两种都收。 */
+function formEncode(body) {
+  if (!body) return '';
+  var parts = [];
+  for (var key in body) {
+    if (!body.hasOwnProperty(key)) continue;
+    if (body[key] === null || body[key] === undefined) continue;
+    parts[parts.length] = encodeURIComponent(key) + '=' + encodeURIComponent(String(body[key]));
+  }
+  return parts.join('&');
+}
+
 function req(method, path, body, done) {
   var xhr = xmlhttp();
   if (!xhr) { status('浏览器不支持 XMLHttpRequest', path); return; }
   xhr.open(method, path, true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
+  var payload = null;
+  if (body) {
+    payload = formEncode(body);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  }
   xhr.onreadystatechange = function () {
     if (xhr.readyState !== 4) return;
     var data;
-    try { data = eval('(' + xhr.responseText + ')'); }
-    catch (e) { data = { ok: false, message: xhr.responseText }; }
+    var text = xhr.responseText || '';
+    try { data = eval('(' + text + ')'); }
+    catch (e) { data = { ok: false, message: text }; }
     if (done) done(data);
   };
-  xhr.send(body ? JSON.stringify(body) : null);
+  try { xhr.send(payload); }
+  catch (e2) { status('请求发送失败', String(e2.message || e2)); }
 }
 
 function api(path, done) { req('GET', path, null, done); }
@@ -206,6 +225,14 @@ function clearLogView() {
 
 /* ------------------------------------------------------- 动作 */
 
+function repairFiles() {
+  status('正在校验并补齐文件…', '');
+  post('/api/instance/repair', { id: state.instance || '' }, function (d) {
+    status(d.ok ? '补齐完成' : '补齐未完成', d.message || '');
+    refreshAll();
+  });
+}
+
 function launch() { launchInstance(state.instance); }
 
 function launchInstance(id) {
@@ -213,6 +240,19 @@ function launchInstance(id) {
   post('/api/launch', { instance: id }, function (d) {
     setText('plan-box', esc((d.message || '') + '\n\nJava: ' + (d.java || '') + '\n\n' + (d.command || '')));
     status(d.ok ? '游戏已启动' : '启动失败', d.message || '');
+  });
+}
+
+function shutdownAll() {
+  status('正在结束游戏并关闭界面…', '');
+  post('/api/stop', {}, function () {
+    post('/api/shutdown', {}, function (d) {
+      status('界面已关闭', d.message || '');
+      try {
+        window.open('', '_self'); window.close();
+      } catch (e) { }
+      setText('status-main', '界面已关闭，可以直接关掉这个窗口');
+    });
   });
 }
 
@@ -448,6 +488,10 @@ function boot() {
   pollLogs();
   setInterval(pollLogs, 2000);
   setInterval(function () { if (!document.hidden) refreshAll(); }, 8000);
+
+  // 自证：脚本完整执行到了这里（否则启动器日志里只会看到脚本错误）
+  var ping = new Image();
+  ping.src = '/api/clientready?charset=' + encodeURIComponent(document.charset || 'unknown');
 }
 
 /* IE6 只有 attachEvent；现代浏览器走 addEventListener —— 这里优先 IE6 的写法 */

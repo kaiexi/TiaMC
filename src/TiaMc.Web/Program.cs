@@ -256,6 +256,22 @@ internal static class Program
         server.Map("GET", "/ie6.css", _ => WebServer.File(Path.Combine(_wwwroot, "ie6.css"), "text/css; charset=utf-8"));
         server.Map("GET", "/favicon.ico", _ => WebServer.File(Path.Combine(_wwwroot, "favicon.ico"), "image/x-icon"));
 
+        // 页面脚本完整执行的回执
+        server.Map("GET", "/api/clientready", request =>
+        {
+            var charset = request.Query.TryGetValue("charset", out var cs) ? cs : "?";
+            LogService.Ok("IE6 档脚本已完整执行（页面可用），文档编码: " + charset, "IE6 客户端");
+            return WebServer.Text("ok", "text/plain; charset=utf-8");
+        });
+
+        // 浏览器端脚本错误上报（IE6 档页面里的 window.onerror 会打这里）
+        server.Map("GET", "/api/clienterror", request =>
+        {
+            var message = request.Query.TryGetValue("msg", out var raw) ? raw : "(空)";
+            LogService.Error("浏览器端脚本错误: " + message, "IE6 客户端");
+            return WebServer.Text("ok", "text/plain; charset=utf-8");
+        });
+
         // ---- 状态与日志 ----
         server.MapJson("GET", "/api/state", _ => State());
         server.MapJson("GET", "/api/logs", request =>
@@ -331,6 +347,35 @@ internal static class Program
             return new JsonObject { ["ok"] = ok, ["message"] = ok ? $"{id} 已安装" : $"{id} 安装失败", ["instances"] = _launcher.Installed.Count };
         });
 
+        // 校验并补齐已安装实例的文件（库 / natives / 资源），页面上「校验并补齐」按钮用它
+        server.MapJson("POST", "/api/instance/repair", request =>
+        {
+            var id = request.Field("id");
+            if (id.Length == 0) id = _launcher.Config.ActiveInstance ?? "";
+            var version = _launcher.Find(id);
+            if (version is null) return new JsonObject { ["ok"] = false, ["message"] = "实例不存在: " + id };
+
+            var check = _launcher.CheckFiles(version);
+            var summary = check.Summary;
+            if (check.IsComplete)
+            {
+                return new JsonObject { ["ok"] = true, ["message"] = $"{id} 文件完整，无需补齐（{summary}）", ["missing"] = 0 };
+            }
+
+            LogService.Info($"{id} 缺失 {check.Missing.Count} 个文件（{TextUtil.FormatBytes(check.MissingBytes)}），开始补齐…", "Repair");
+            var progress = new Progress<DownloadProgress>(p => LogService.Info(p.Summary, "Repair"));
+            var ok = _launcher.DownloadAllAsync(version, progress, CancellationToken.None).GetAwaiter().GetResult();
+            var after = _launcher.CheckFiles(version);
+
+            return new JsonObject
+            {
+                ["ok"] = ok && after.IsComplete,
+                ["message"] = $"{(ok ? "补齐完成" : "补齐未完成")}：之前缺失 {check.Missing.Count} 个，现在 {(after.IsComplete ? "完整" : "还缺 " + after.Missing.Count + " 个")}",
+                ["missing"] = after.Missing.Count,
+                ["detail"] = summary + " → " + after.Summary
+            };
+        });
+
         // ---- 启动 / 停止 ----
         server.MapJson("POST", "/api/launch", request =>
         {
@@ -356,6 +401,35 @@ internal static class Program
         {
             _launcher.Stop();
             return new JsonObject { ["ok"] = true, ["message"] = "已请求结束游戏" };
+        });
+
+        // 一键关闭：先结束游戏，再关掉整个 Web GUI（服务 + 内嵌窗口 + 进程）
+        server.MapJson("POST", "/api/shutdown", request =>
+        {
+            var gameWasRunning = _launcher.IsRunning;
+            try
+            {
+                if (gameWasRunning) _launcher.Stop();
+            }
+            catch (Exception e)
+            {
+                LogService.Warn("结束游戏时出错: " + e.Message, "Web");
+            }
+
+            LogService.Ok(gameWasRunning ? "关闭客户端与界面（游戏已结束）" : "关闭界面", "Web");
+
+            // 让响应先发出去，再退出进程
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(600).ConfigureAwait(false);
+                Environment.Exit(0);
+            });
+
+            return new JsonObject
+            {
+                ["ok"] = true,
+                ["message"] = gameWasRunning ? "已结束游戏并关闭界面" : "已关闭界面"
+            };
         });
 
         server.MapJson("POST", "/api/diagnose", _ =>

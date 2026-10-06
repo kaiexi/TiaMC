@@ -361,6 +361,21 @@ document.addEventListener('click', async (event) => {
       break;
     }
 
+    case 'shutdown': {
+      busy('正在结束游戏并关闭界面…');
+      await post('/api/stop', {});
+      const bye = await post('/api/shutdown', {});
+      status('已关闭', bye.message || '');
+      document.body.innerHTML = '<div style="padding:24px;font-size:14px">界面已关闭，游戏也已结束。可以直接关掉这个窗口。</div>';
+      break;
+    }
+    case 'repair': {
+      busy('正在校验并补齐文件…');
+      const fixed = await post('/api/instance/repair', { id: state.instance });
+      status(fixed.ok ? '补齐完成' : '补齐未完成', fixed.message || '');
+      await loadState();
+      break;
+    }
     case 'check': {
       busy('正在校验文件…');
       const result = await post('/api/launch', { instance: state.instance, checkOnly: true });

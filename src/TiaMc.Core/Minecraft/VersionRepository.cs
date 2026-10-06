@@ -246,7 +246,14 @@ public sealed class VersionRepository
         return order.Select(k => byKey[k]).ToList();
     }
 
-    /// <summary>"group:artifact" of a maven coordinate, dropping classifier and extension.</summary>
+    /// <summary>
+    /// "group:artifact[:classifier]" of a maven coordinate, dropping only the version and extension.
+    ///
+    /// 关键：**必须保留 classifier**。现代版本 JSON（1.19+）里本地库是
+    /// `org.lwjgl:lwjgl:3.3.3:natives-windows` 这种带 classifier 的条目，
+    /// 如果按 "group:artifact" 去重，它们会被当成与主 jar 重复而整批丢弃，
+    /// 结果就是 natives 永远不下、永远不解压，游戏启动时找不到 LWJGL 本地库直接秒退。
+    /// </summary>
     public static string? GroupArtifact(string mavenName)
     {
         var name = mavenName;
@@ -255,7 +262,14 @@ public sealed class VersionRepository
 
         var parts = name.Split(':');
         if (parts.Length < 3) return null;
-        return parts[0] + ":" + parts[1];
+
+        var key = parts[0] + ":" + parts[1];
+        if (parts.Length >= 4 && parts[3].Length > 0)
+        {
+            key += ":" + parts[3];
+        }
+
+        return key;
     }
 
     /// <summary>Version part of a maven coordinate (empty when malformed).</summary>

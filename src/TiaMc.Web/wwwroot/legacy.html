@@ -20,7 +20,9 @@
     <input type="button" class="xp" value="获取版本清单" onclick="getManifest()">
     <input type="button" class="xp primary" value="启动游戏" onclick="launch()">
     <input type="button" class="xp danger" value="结束游戏" onclick="stopGame()">
+    <input type="button" class="xp danger" value="关闭游戏与界面" onclick="shutdownAll()">
     <input type="button" class="xp" value="诊断上次启动" onclick="diagnose()">
+    <input type="button" class="xp" value="校验并补齐文件" onclick="repairFiles()">
   </div>
 
   <div class="navbar">
@@ -163,6 +165,18 @@
   </div>
 </div>
 
+<script type="text/javascript">
+/* 把浏览器端的脚本错误回传给启动器日志：IE6 档出问题时能直接看到消息与行号，
+   而不是只弹一个"脚本错误"对话框。 */
+window.onerror = function (msg, url, line) {
+  try {
+    var text = msg + ' @' + (url || '?') + ':' + (line || 0);
+    var probe = new Image();
+    probe.src = '/api/clienterror?msg=' + encodeURIComponent(text);
+  } catch (e) { }
+  return true;   /* 不再弹对话框 */
+};
+</script>
 <script src="/legacy.js"></script>
 </body>
 </html>

@@ -36,7 +36,7 @@ $rules = @(
     @{ Name = 'fetch()';                   Pattern = '(?<![\w.])fetch\s*\('; Ext = '.js' },
     @{ Name = 'addEventListener 无 IE6 回退'; Pattern = 'addEventListener'; Ext = '.js'; Absent = 'attachEvent' },
     @{ Name = '模板字符串';                  Pattern = '`'; Ext = '.js' },
-    @{ Name = 'JSON.parse 直接依赖';         Pattern = 'JSON\.parse'; Ext = '.js' },
+    @{ Name = 'JSON 对象（IE5 quirks 下不存在）'; Pattern = '\bJSON\b'; Ext = '.js' },
     # ---- 以下是 Trident 4.0（IE4）档才检查的项：这些在 IE6 里没问题，但 IE4 没有 ----
     @{ Name = 'document.getElementById（IE5+）'; Pattern = 'getElementById'; Ext = '.js,.html'; OnlyIe4 = $true },
     @{ Name = 'attachEvent（IE5+）';             Pattern = 'attachEvent'; Ext = '.js,.html'; OnlyIe4 = $true },

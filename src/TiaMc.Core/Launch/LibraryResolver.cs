@@ -59,6 +59,21 @@ public static class LibraryResolver
                 natives.Add((path.Replace('/', Path.DirectorySeparatorChar), artifact, lib.Extract));
                 artifactPath = null;
             }
+            else if (isNativeOnly && !string.IsNullOrWhiteSpace(path))
+            {
+                // 精简过的版本 JSON 里，`:natives-windows` 这类条目常常只有名字、没有 downloads 段。
+                // 这里按 Maven 坐标合成下载项（路径 + 官方/镜像地址），否则本地库永远下不到，
+                // 游戏启动时会因为找不到 LWJGL 本地库直接秒退。
+                var synthesized = new DownloadJson
+                {
+                    Path = path,
+                    Url = DefaultUrl(lib.Name, lib.Url),
+                    Size = 0,
+                    Sha1 = null
+                };
+                natives.Add((path.Replace('/', Path.DirectorySeparatorChar), synthesized, lib.Extract));
+                artifactPath = null;
+            }
 
             if (artifactPath is null && natives.Count == 0) continue;
 

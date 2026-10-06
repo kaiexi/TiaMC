@@ -24,6 +24,13 @@ internal sealed class WebServer(int preferredPort, string bindHost = "127.0.0.1"
         public string Field(string name)
         {
             if (Body.Length == 0) return "";
+
+            // 表单编码（a=1&b=2）：IE5 quirks 模式没有 JSON 对象，页面只能发这个
+            if (!Body.TrimStart().StartsWith('{'))
+            {
+                return FormField(name);
+            }
+
             try
             {
                 using var document = JsonDocument.Parse(Body);
@@ -34,12 +41,31 @@ internal sealed class WebServer(int preferredPort, string bindHost = "127.0.0.1"
             }
             catch (Exception)
             {
-                return "";
+                return FormField(name);
             }
+        }
+
+        private string FormField(string name)
+        {
+            foreach (var pair in Body.Split('&', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var eq = pair.IndexOf('=');
+                var key = eq > 0 ? pair[..eq] : pair;
+                if (!key.Equals(name, StringComparison.OrdinalIgnoreCase)) continue;
+                var value = eq > 0 ? pair[(eq + 1)..] : "";
+                return Uri.UnescapeDataString(value.Replace('+', ' '));
+            }
+
+            return "";
         }
 
         public bool Has(string name)
         {
+            if (Body.Length > 0 && !Body.TrimStart().StartsWith('{'))
+            {
+                return FormField(name).Length > 0;
+            }
+
             try
             {
                 using var document = JsonDocument.Parse(Body);

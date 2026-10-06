@@ -70,7 +70,44 @@ public static class IntegrityChecker
         var libraryCount = 0;
         foreach (var lib in resolved)
         {
-            if (lib.ArtifactPath is null) continue;
+            // 现代版本 JSON（1.19+）没有 "natives" 段，本地库是以
+            // `org.lwjgl:lwjgl:3.3.3:natives-windows` 这种分类库条目出现的，
+            // 它们的 ArtifactPath 为 null 但 Natives 里有实际文件。
+            // 以前这里直接 continue 掉，导致这些 jar 永远不下载、natives 目录永远为空，
+            // 游戏一启动就因为找不到 LWJGL 本地库而秒退。
+            if (lib.ArtifactPath is null)
+            {
+                foreach (var (relative, nativeDownload, _) in lib.Natives)
+                {
+                    libraryCount++;
+                    var nativeTarget = Path.Combine(paths.LibrariesDir, relative);
+                    if (File.Exists(nativeTarget))
+                    {
+                        present++;
+                        continue;
+                    }
+
+                    var nativeUrl = nativeDownload.Url;
+                    if (string.IsNullOrWhiteSpace(nativeUrl)) nativeUrl = LibraryResolver.DefaultUrl(lib.MavenName, null);
+                    if (string.IsNullOrWhiteSpace(nativeUrl))
+                    {
+                        log?.Invoke($"[check] 无法确定本地库下载地址: {lib.MavenName}");
+                        continue;
+                    }
+
+                    missing.Add(new MissingFile
+                    {
+                        Kind = "natives",
+                        Path = nativeTarget,
+                        Url = nativeUrl!,
+                        Size = nativeDownload.Size,
+                        Sha1 = nativeDownload.Sha1
+                    });
+                }
+
+                continue;
+            }
+
             libraryCount++;
 
             var target = Path.Combine(paths.LibrariesDir, lib.ArtifactPath);
