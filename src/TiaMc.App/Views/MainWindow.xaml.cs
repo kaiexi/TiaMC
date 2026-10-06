@@ -89,6 +89,9 @@ public partial class MainWindow : Window
         if (index == 6) vm.RefreshSkinPreviewOnShow();
     }
 
+    /// <summary>清理旧日志（保留当前会话）。</summary>
+    private void ClearLogFiles_Click(object sender, RoutedEventArgs e) => ViewModel?.ClearLogFiles();
+
     private void ClearLogs_Click(object sender, RoutedEventArgs e)
     {
         Services.LogService.Entries.Clear();

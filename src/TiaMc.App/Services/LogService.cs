@@ -47,6 +47,35 @@ public sealed class LogEntry
 public static class LogService
 {
     private const int MaxEntries = 4000;
+
+    private static long _maxSessionFileBytes = 8L * 1024 * 1024;
+
+    /// <summary>可在设置里改：单个日志文件上限（字节）。默认 8 MB。</summary>
+    public static long MaxSessionFileBytes
+    {
+        get { lock (FileGate) return _maxSessionFileBytes; }
+        set { lock (FileGate) _maxSessionFileBytes = Math.Max(256 * 1024, value); }
+    }
+
+    private static long _maxTotalBytes = 64L * 1024 * 1024;
+
+    /// <summary>可在设置里改：日志目录总量上限（字节）。默认 64 MB。</summary>
+    public static long LogMaxTotalBytes
+    {
+        get { lock (FileGate) return _maxTotalBytes; }
+        set { lock (FileGate) _maxTotalBytes = Math.Max(1 * 1024 * 1024, value); }
+    }
+
+    /// <summary>可在设置里改：保留的日志份数。默认 20。</summary>
+    public static int KeepFiles { get; set; } = 20;
+
+    /// <summary>把设置里的 MB / 份数应用到日志服务。</summary>
+    public static void ApplyLimits(int maxFileMb, int keepFiles, int maxTotalMb)
+    {
+        MaxSessionFileBytes = Math.Max(1, maxFileMb) * 1024L * 1024L;
+        LogMaxTotalBytes = Math.Max(1, maxTotalMb) * 1024L * 1024L;
+        KeepFiles = Math.Clamp(keepFiles, 1, 200);
+    }
     private static readonly object Gate = new();
 
     public static ObservableCollection<LogEntry> Entries { get; } = [];
@@ -66,7 +95,21 @@ public static class LogService
         {
             try
             {
-                _writer?.WriteLine($"{entry.TimeText} [{entry.LevelText}] {entry.Source}: {entry.Message}");
+                if (!_sessionFileCapped && _sessionFileBytes < MaxSessionFileBytes)
+                {
+                    var line = $"{entry.TimeText} [{entry.LevelText}] {entry.Source}: {entry.Message}";
+                    _writer?.WriteLine(line);
+                    _sessionFileBytes += line.Length + Environment.NewLine.Length;
+                }
+                else if (!_sessionFileCapped)
+                {
+                    // 单文件上限：模组服能在几分钟里刷出几十 MB 日志，以前会无限写大。
+                    _sessionFileCapped = true;
+                    _writer?.WriteLine(
+                        $"{DateTime.Now:HH:mm:ss.fff} [WARN] TiaMC: 日志文件已达 {MaxSessionFileBytes / 1024 / 1024} MB 上限，" +
+                        "后续内容不再写入文件（界面里仍然可见，可用「导出日志」保存完整内容）。");
+                    _writer?.Flush();
+                }
             }
             catch (Exception)
             {
@@ -102,6 +145,8 @@ public static class LogService
     private static readonly object FileGate = new();
     private static StreamWriter? _writer;
     private static string _sessionFile = "";
+    private static long _sessionFileBytes;
+    private static bool _sessionFileCapped;
 
     /// <summary>Current session log file (empty until InitializeLogFile runs).</summary>
     public static string FilePath
@@ -135,6 +180,8 @@ public static class LogService
 
                 var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
                 _sessionFile = Path.Combine(root, $"tiamc-{stamp}.log");
+        _sessionFileBytes = 0;
+        _sessionFileCapped = false;
                 // BOM so Notepad and other editors detect UTF-8 (Chinese text).
                 _writer = new StreamWriter(new FileStream(_sessionFile, FileMode.Create, FileAccess.Write,
                     FileShare.ReadWrite), new UTF8Encoding(true))
@@ -164,12 +211,23 @@ public static class LogService
     {
         try
         {
-            var files = new DirectoryInfo(directory).GetFiles("tiamc-*.log")
+            var all = new DirectoryInfo(directory).GetFiles("tiamc-*.log")
                 .OrderByDescending(f => f.LastWriteTimeUtc)
-                .Skip(keep)
                 .ToList();
 
-            foreach (var file in files)
+            // 1) 份数上限
+            var doomed = all.Skip(keep).ToList();
+
+            // 2) 目录总量上限（在份数上限之外再兜一层，避免"每份都很大"时目录撑爆）
+            long total = 0;
+            var limit = LogMaxTotalBytes;
+            foreach (var file in all)
+            {
+                total += file.Length;
+                if (total > limit && !doomed.Contains(file)) doomed.Add(file);
+            }
+
+            foreach (var file in doomed)
             {
                 try
                 {

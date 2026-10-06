@@ -2,6 +2,7 @@ using System.IO;
 using TiaMc.Core.Accounts;
 using TiaMc.Core.Integrity;
 using TiaMc.Core.Java;
+using TiaMc.Core.Utils;
 using TiaMc.Core.Launch;
 using TiaMc.Core.Minecraft;
 using TiaMc.Core.Net;
@@ -470,6 +471,20 @@ public sealed class LaunchService
         LogService.Info(options.Isolated
             ? $"版本隔离: 游戏目录 = {plan.GameDirectory}（独立的 config/saves/mods/资源包）"
             : $"共享游戏目录: {plan.GameDirectory}", "Isolation");
+        // 内存自检：32 位 Java 大堆 / 超过物理内存 / 堆太小 —— 这些都会让游戏起不来或卡死
+        var advice = MemoryAdvisor.Check(options.MaxMemoryMb, options.MinMemoryMb, java, SystemInfo.TotalPhysicalMemoryMb);
+        foreach (var warning in advice.Warnings) LogService.Warn(warning, "Memory");
+        foreach (var note in advice.Notes) LogService.Info(note, "Memory");
+
+        if (advice.MaxMemoryMb != options.MaxMemoryMb || advice.MinMemoryMb != options.MinMemoryMb)
+        {
+            options.MaxMemoryMb = advice.MaxMemoryMb;
+            options.MinMemoryMb = advice.MinMemoryMb;
+            Config.MaxMemoryMb = advice.MaxMemoryMb;
+            Config.MinMemoryMb = advice.MinMemoryMb;
+            Config.Save();
+        }
+
         LogService.Info($"实例参数: -Xms{options.MinMemoryMb}m -Xmx{options.MaxMemoryMb}m, " +
                         $"GC={options.GcMode}, 窗口={options.WindowWidth}x{options.WindowHeight}" +
                         $"{(options.Fullscreen ? " 全屏" : "")}（可被实例覆盖）", "Isolation");

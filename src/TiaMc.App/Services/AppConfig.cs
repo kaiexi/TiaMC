@@ -80,6 +80,15 @@ public sealed class AppConfig
     [JsonPropertyName("autoCheckFiles")] public bool AutoCheckFiles { get; set; } = true;
     [JsonPropertyName("autoDownloadMissing")] public bool AutoDownloadMissing { get; set; }
     [JsonPropertyName("closeConsoleOnExit")] public bool CloseConsoleOnExit { get; set; }
+
+    /// <summary>单个会话日志文件的 MB 上限（超过后只保留界面显示，不再写文件）。</summary>
+    [JsonPropertyName("logMaxFileMb")] public int LogMaxFileMb { get; set; } = 8;
+
+    /// <summary>保留多少个会话日志文件（从最旧的开始删）。</summary>
+    [JsonPropertyName("logKeepFiles")] public int LogKeepFiles { get; set; } = 20;
+
+    /// <summary>日志目录总占用上限（MB）。</summary>
+    [JsonPropertyName("logMaxTotalMb")] public int LogMaxTotalMb { get; set; } = 64;
     /// <summary>Mods folder override; empty means "resolve per instance".</summary>
     [JsonPropertyName("modsPath")] public string ModsPath { get; set; } = "";
     /// <summary>Isolate each version into its own game directory (独立的 config/saves/mods).</summary>

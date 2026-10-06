@@ -1729,6 +1729,30 @@
                             <CheckBox Content="使用 BMCLAPI 镜像" Margin="0,10,0,0" IsChecked="{Binding UseBmclApi, Mode=TwoWay}" />
                             <CheckBox Content="启动前校验文件" Margin="0,6,0,0" IsChecked="{Binding AutoCheckFiles, Mode=TwoWay}" />
                             <CheckBox Content="自动补全缺失文件" Margin="0,6,0,0" IsChecked="{Binding AutoDownloadMissing, Mode=TwoWay}" />
+                            <!-- 日志上限：以前每开一次写一个新文件，长时间挂机 + 模组服刷屏会把目录撑大 -->
+                            <TextBlock Text="日志" Style="{StaticResource Tia.SectionHeader}" Margin="0,14,0,4" />
+                            <TextBlock Text="{Binding LogUsageText}" Style="{StaticResource Tia.MutedText}" TextWrapping="Wrap" />
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="56" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="56" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="单文件上限(MB)" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="1" Margin="6,0,10,0" Text="{Binding LogMaxFileMb, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Grid.Column="2" Text="保留份数" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="3" Margin="6,0,10,0" Text="{Binding LogKeepFiles, UpdateSourceTrigger=LostFocus}" />
+                                <TextBlock Grid.Column="4" Text="目录上限(MB)" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="5" Margin="6,0,0,0" Text="{Binding LogMaxTotalMb, UpdateSourceTrigger=LostFocus}" />
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button Style="{StaticResource Tia.Button}" Content="打开日志目录" Click="OpenLogFolder_Click" />
+                                <Button Style="{StaticResource Tia.Button}" Content="清理旧日志" Margin="8,0,0,0" Click="ClearLogFiles_Click" />
+                            </StackPanel>
+
 
                             <Separator Style="{StaticResource Tia.Separator}" Margin="0,10" />
 

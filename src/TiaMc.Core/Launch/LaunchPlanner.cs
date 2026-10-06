@@ -142,9 +142,16 @@ public static class LaunchPlanner
 
         // 4. base jvm arguments (memory, gc, user args)
         var jvm = new List<string>();
-        // -Xms is intentionally not passed: only the maximum heap is set, so the
-        // JVM grows on demand instead of reserving memory up front.
-        if (options.MaxMemoryMb > 0) jvm.Add($"-Xmx{options.MaxMemoryMb}m");
+
+        // 内存：以前只传 -Xmx，界面上却能设置"最小内存"（设了没用，日志还写着传了 -Xms）。
+        // 现在两件都做对：-Xms 真的传（预分配，减少运行中扩堆造成的卡顿），并且保证 Xms ≤ Xmx
+        // —— Xms 大于 Xmx 会让 JVM 直接启动失败（"Initial heap size set to a larger value than the maximum heap size"）。
+        var maxMemory = options.MaxMemoryMb;
+        var minMemory = options.MinMemoryMb;
+
+        if (maxMemory > 0 && minMemory > maxMemory) minMemory = maxMemory;
+        if (minMemory > 0) jvm.Add($"-Xms{minMemory}m");
+        if (maxMemory > 0) jvm.Add($"-Xmx{maxMemory}m");
 
         switch (options.GcMode)
         {

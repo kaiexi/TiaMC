@@ -93,6 +93,10 @@ public partial class App : Application
 
             // Every line also goes to <config>\logs\tiamc-<时间>.log so problems can
             // be reported afterwards (the file is flushed per line).
+            // 日志上限来自配置（先应用，再打开日志文件）
+            var logConfig = Services.AppConfig.Load();
+            Services.LogService.ApplyLimits(logConfig.LogMaxFileMb, logConfig.LogKeepFiles, logConfig.LogMaxTotalMb);
+
             Services.LogService.InitializeLogFile(
                 System.IO.Path.Combine(Services.AppConfig.ConfigDirectory, "logs"));
 

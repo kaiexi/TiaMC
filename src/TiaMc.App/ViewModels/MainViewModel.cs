@@ -3511,6 +3511,97 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             string.Equals(j.Path, Current.JavaPath ?? Config.JavaPath, StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>单个日志文件上限（MB）——可直接在界面上改。</summary>
+    public int LogMaxFileMb
+    {
+        get => Config.LogMaxFileMb;
+        set
+        {
+            var clamped = Math.Clamp(value, 1, 1024);
+            if (Config.LogMaxFileMb == clamped) return;
+            Config.LogMaxFileMb = clamped;
+            Config.Save();
+            Services.LogService.ApplyLimits(Config.LogMaxFileMb, Config.LogKeepFiles, Config.LogMaxTotalMb);
+            Raise();
+        }
+    }
+
+    /// <summary>保留日志份数。</summary>
+    public int LogKeepFiles
+    {
+        get => Config.LogKeepFiles;
+        set
+        {
+            var clamped = Math.Clamp(value, 1, 200);
+            if (Config.LogKeepFiles == clamped) return;
+            Config.LogKeepFiles = clamped;
+            Config.Save();
+            Services.LogService.ApplyLimits(Config.LogMaxFileMb, Config.LogKeepFiles, Config.LogMaxTotalMb);
+            Raise();
+        }
+    }
+
+    /// <summary>日志目录总占用上限（MB）。</summary>
+    public int LogMaxTotalMb
+    {
+        get => Config.LogMaxTotalMb;
+        set
+        {
+            var clamped = Math.Clamp(value, 1, 4096);
+            if (Config.LogMaxTotalMb == clamped) return;
+            Config.LogMaxTotalMb = clamped;
+            Config.Save();
+            Services.LogService.ApplyLimits(Config.LogMaxFileMb, Config.LogKeepFiles, Config.LogMaxTotalMb);
+            Raise();
+        }
+    }
+
+    /// <summary>当前日志目录占用，显示在设置里。</summary>
+    public string LogUsageText
+    {
+        get
+        {
+            try
+            {
+                var dir = new System.IO.DirectoryInfo(Services.LogService.LogDirectory);
+                if (!dir.Exists) return "（还没有日志）";
+                var files = dir.GetFiles("tiamc-*.log");
+                var total = files.Sum(f => f.Length);
+                return $"{files.Length} 个文件 · {total / 1024.0 / 1024.0:0.0} MB · 目录 {dir.FullName}";
+            }
+            catch (Exception e)
+            {
+                return "读取失败: " + e.Message;
+            }
+        }
+    }
+
+    /// <summary>清空日志目录里除当前会话外的所有日志。</summary>
+    public void ClearLogFiles()
+    {
+        try
+        {
+            var dir = new System.IO.DirectoryInfo(Services.LogService.LogDirectory);
+            if (!dir.Exists) return;
+
+            var current = Services.LogService.FilePath;
+            var removed = 0;
+            foreach (var file in dir.GetFiles("tiamc-*.log"))
+            {
+                if (current.Length > 0 && string.Equals(file.FullName, current, StringComparison.OrdinalIgnoreCase)) continue;
+                try { file.Delete(); removed++; } catch (Exception) { }
+            }
+
+            Services.LogService.Info($"已清理 {removed} 个旧日志文件", "日志");
+        }
+        catch (Exception e)
+        {
+            Services.LogService.Warn("清理日志失败: " + e.Message, "日志");
+        }
+
+        Raise(nameof(LogUsageText));
+    }
+
     public bool AutoCheckFiles
     {
         get => Config.AutoCheckFiles;
