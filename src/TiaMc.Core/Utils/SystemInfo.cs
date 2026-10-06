@@ -74,7 +74,10 @@ public static class SystemInfo
             var total = TotalPhysicalMemoryMb;
             if (total <= 0) return 4096;
 
-            var target = Math.Min(total - 2048, (int)(total * 0.75));
+            // 参考主流启动器的默认值：大约一半内存，并**封顶 8 GB**。
+            // 以前是 min(内存-2G, 75%)，32 GB 的机器会给到 23.5 GB —— 堆越大 GC 停顿越长
+            // （几秒级的全堆回收），游戏反而更卡；需要更大的用户在实例设置里自己调即可。
+            var target = Math.Min(total / 2, 8192);
             if (target < 1024) target = Math.Max(1024, total / 2);
             return Math.Max(1024, target / 512 * 512);
         }

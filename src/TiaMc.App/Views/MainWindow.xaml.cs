@@ -72,8 +72,21 @@ public partial class MainWindow : Window
 
     private void SwitchTab_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: string tag } || !int.TryParse(tag, out var index)) return;
-        if (ViewModel is { } vm) vm.WorkspaceTab = index;
+        // 菜单项和按钮都用同一个处理器（皮肤页的入口按钮就是 Button）
+        var tag = sender switch
+        {
+            MenuItem { Tag: string menuTag } => menuTag,
+            System.Windows.Controls.Button { Tag: string buttonTag } => buttonTag,
+            _ => null
+        };
+
+        if (tag is null || !int.TryParse(tag, out var index)) return;
+        if (ViewModel is not { } vm) return;
+
+        vm.WorkspaceTab = index;
+
+        // 切到「皮肤」页时重新取一次预览：在线渲染图 / 本地贴图可能在启动时还没准备好
+        if (index == 6) vm.RefreshSkinPreviewOnShow();
     }
 
     private void ClearLogs_Click(object sender, RoutedEventArgs e)
@@ -95,13 +108,22 @@ public partial class MainWindow : Window
     }
 
     /// <summary>3D 皮肤预览：复位视角。</summary>
-    private void ResetSkin3D_Click(object sender, RoutedEventArgs e) => Skin3D?.Reset();
+    /// <summary>本地 3D 预览控件（皮肤页里叫 Skin3DTab）。</summary>
+    private TiaMc.App.Controls.SkinPreview3D? Skin3DControl =>
+        (FindName("Skin3DTab") as TiaMc.App.Controls.SkinPreview3D)
+        ?? (FindName("Skin3D") as TiaMc.App.Controls.SkinPreview3D);
+
+    private void ResetSkin3D_Click(object sender, RoutedEventArgs e) => Skin3DControl?.Reset();
+
+    /// <summary>独立「皮肤」页里的本地 3D：复位视角。</summary>
+    private void ResetSkin3DTab_Click(object sender, RoutedEventArgs e) => Skin3DControl?.Reset();
 
     /// <summary>3D 皮肤预览：自动旋转开关。</summary>
     private void Skin3DSpin_Changed(object sender, RoutedEventArgs e)
     {
-        if (Skin3D is null) return;
-        Skin3D.AutoSpin = sender is System.Windows.Controls.CheckBox { IsChecked: true };
+        var control = Skin3DControl;
+        if (control is null) return;
+        control.AutoSpin = sender is System.Windows.Controls.CheckBox { IsChecked: true };
     }
 
     private void ExpandAll_Click(object sender, RoutedEventArgs e) => SetExpansion(true);

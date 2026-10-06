@@ -1267,6 +1267,13 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public ICommand PreviewSkin3DCommand { get; }
 
+    /// <summary>皮肤页被打开时调用：重新取一次在线渲染图和本地 3D 贴图。</summary>
+    public void RefreshSkinPreviewOnShow()
+    {
+        _ = PreviewSkin3DAsync();
+        _ = RefreshSkin3DRenderAsync();
+    }
+
     /// <summary>刷新 3D 预览：留空用账户皮肤；填了就用皮肤站/链接。</summary>
     private async Task PreviewSkin3DAsync()
     {
@@ -4235,6 +4242,18 @@ public sealed class MainViewModel : ObservableObject, IDisposable
                     if (Config.AutoDownloadMissing)
                     {
                         await DownloadMissingAsync();
+
+                        // 学 Axolotl / XMCL：补全之后必须**再校验一次**，仍然缺文件就中止启动。
+                        // 以前补完直接启动，缺的资源要到游戏里才炸（NoSuchFileException: assets/objects/…），
+                        // 用户只看到"游戏崩溃"，根本不知道是文件没下全。
+                        if (_lastCheck is { IsComplete: false })
+                        {
+                            LogService.Warn($"补全后仍缺少 {_lastCheck.Missing.Count} 个文件（{_lastCheck.Summary}），已中止启动，"
+                                            + "避免游戏内崩溃。可再点「补全文件」重试；确实要强行启动请在设置里关闭「启动前校验文件」。",
+                                "Launch");
+                            WorkspaceTab = 1;
+                            return;
+                        }
                     }
                     else
                     {
