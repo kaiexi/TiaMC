@@ -204,68 +204,12 @@ function loadFlash() {
   });
 }
 
-function logClass(line) {
-  if (line.indexOf('[GAME]') >= 0) return 'log-game';
-  if (line.indexOf('[WARN]') >= 0) return 'log-warn';
-  if (line.indexOf('[ERR]') >= 0) return 'log-err';
-  if (line.indexOf('[\u52a8\u4f5c]') >= 0) return 'log-action';
-  if (line.indexOf('[OK]') >= 0) return 'log-ok';
-  return 'log-info';
-}
-
-var consoleCursor = 0;
-
-function pollGameConsole() {
-  api('/api/gameconsole?since=' + consoleCursor, function (d) {
-    consoleCursor = d.next || 0;
-    var lines = d.lines || [];
-    var box = $('game-box');
-    if (box && lines.length) {
-      var html = '';
-      for (var i = 0; i < lines.length; i++) {
-        var cls = 'log-game';
-        if (lines[i].indexOf('Exception') >= 0 || lines[i].indexOf('ERROR') >= 0) cls = 'log-err';
-        else if (lines[i].indexOf('WARN') >= 0) cls = 'log-warn';
-        html += '<span class="' + cls + '">' + esc(lines[i]) + '</span>\n';
-      }
-      box.innerHTML += html;
-      box.scrollTop = box.scrollHeight;
-    }
-    setText('gc-status', d.running ? ('运行中 PID ' + (d.pid || '')) :
-      (d.exitCode === null || d.exitCode === undefined ? '未启动' :
-        ('已退出 code=' + d.exitCode + (d.exitCode === 0 ? '（正常）' : ' ← 有问题，点「问题诊断」'))));
-  });
-}
-
-function clearConsole() {
-  consoleCursor = 0;
-  $('game-box').innerHTML = '';
-  setText('game-diag', '还没有诊断结果。');
-  status('控制台视图已清空', '');
-}
-
-function gameDiagnose() {
-  status('正在分析启动日志与崩溃报告…', '');
-  api('/api/diagnose', function (d) {
-    var text = '严重程度: ' + (d.severity || '未知') + '\n' + (d.summary || '') + '\n';
-    if (d.hints && d.hints.length) {
-      text += '\n处理建议:\n';
-      for (var i = 0; i < d.hints.length; i++) text += '  · ' + d.hints[i] + '\n';
-    }
-    if (d.keywords && d.keywords.length) text += '\n命中关键字: ' + d.keywords.join(', ') + '\n';
-    setText('game-diag', esc(text).replace(/\n/g, '<br>'));
-    status('诊断完成', '结论见下方「问题诊断」框');
-  });
-}
-
 function pollLogs() {
   api('/api/logs?since=' + state.logCursor, function (d) {
     state.logCursor = d.next || 0;
     var lines = d.lines || [];
     var html = '';
-    for (var i = 0; i < lines.length; i++) {
-      html += '<span class="' + logClass(lines[i]) + '">' + esc(lines[i]) + '</span>\n';
-    }
+    for (var i = 0; i < lines.length; i++) html += esc(lines[i]) + '\n';
     var box = $('log-box');
     if (lines.length) {
       box.innerHTML += html;
@@ -543,8 +487,6 @@ function boot() {
   refreshAll();
   pollLogs();
   setInterval(pollLogs, 2000);
-  pollGameConsole();
-  setInterval(pollGameConsole, 1500);
   setInterval(function () { if (!document.hidden) refreshAll(); }, 8000);
 
   // 自证：脚本完整执行到了这里（否则启动器日志里只会看到脚本错误）

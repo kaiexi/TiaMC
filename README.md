@@ -25,51 +25,6 @@
 
 ---
 
-## Web GUI 版（内置 IE6 窗口 + Flash）
-
-除了桌面版（WPF），仓库里还有一个 **`TiaMC.Web`**：**同一套启动内核**（`TiaMc.Core` + `LaunchService`），
-但界面是**浏览器里的网页**，并且**软件内置一个 IE6 外观的浏览器窗口，启动就自动打开它**。
-
-![内置 IE6 窗口](docs/images/web-ie6-legacy.png)
-
-### 怎么跑
-```powershell
-dotnet run --project src\TiaMc.Web            # 默认打开内置 IE6 窗口（http://127.0.0.1:32123/legacy）
-dotnet run --project src\TiaMc.Web -- --browser=default   # 改用系统默认浏览器打开现代版页面 /
-dotnet run --project src\TiaMc.Web -- --ie6-quirks        # 内置窗口用 IE5 quirks 文档模式（真·IE6 排版）
-dotnet run --project src\TiaMc.Web -- --config D:\TiaMC\config   # 指定配置目录；--port 指定端口
-```
-
-### 内置 IE6 是怎么做的
-Windows 上 2001 年的 IE6 早已随系统更新消失，但**它当年的引擎 MSHTML/Trident 仍在系统里**：
-WinForms 的 `WebBrowser` 控件就是这个引擎的封装，所以内置浏览器**不需要额外安装 IE6**。
-
-| 组成 | 做法 |
-|------|------|
-| 渲染引擎 | 系统自带 MSHTML/Trident（`WebBrowser` 控件），零外部依赖、零 NuGet |
-| 文档模式 | `HKCU\...\FeatureControl\FEATURE_BROWSER_EMULATION`：默认 `11001`（IE11 模式，页面 JS 能跑）；`--ie6-quirks` 时为 `5000`（IE5 quirks = IE6 当年排版） |
-| 外观 | 窗口自己画：蓝色渐变标题栏 + 最小化/最大化/关闭、IE6 菜单栏（文件/编辑/查看/收藏/工具/帮助）、工具栏（后退/前进/停止/刷新/主页 + 地址栏 + 转到）、底部状态栏（含 Internet 区域） |
-| 页面 | 内置窗口加载 **`/legacy`**（ES3 + `XMLHttpRequest` + 表格布局，`X-UA-Compatible: IE=5`）；现代浏览器访问 `/` 得到 ES5+CSS3 的现代页面 |
-| 字体 | XP 时代字体：Tahoma / Microsoft Sans Serif / MS Sans Serif / 宋体，控制台用 Fixedsys |
-
-### Flash 支持（两条路）
-Flash Player 插件已于 2020-12-31 EOL，现代浏览器不再加载它，所以：
-
-1. **Ruffle（推荐，网页内直接播）**：开源 Flash 模拟器（MIT/Apache-2.0，WASM）。在 Flash 卡片点「获取 / 更新 Ruffle」，
-   启动器会从 Ruffle 官方发布下载 self-hosted 包解压到 `<配置目录>\flash\ruffle`，页面里加载 `ruffle.js` 后
-   `<object>/<embed>` 的 SWF 就在浏览器/内置 IE6 窗口内播放——**不需要任何插件**。实测：Ruffle v0.6.0 就绪，SWF 库内 `ruffle-test.swf` 可播。
-2. **Flash 投影播放器（真 Flash 运行时）**：若本机已有 `flashplayer_*.exe`，启动器会自动检测（也会扫描常见安装目录），
-   在「设置 → Flash 投影播放器路径」可手动指定。「用投影播放器打开」会把本地 SWF 或 SWF 链接交给它播放。
-
-SWF 库位于 `<配置目录>\flash\swf`：网页上可以拖入 `.swf`、选择文件上传（会校验 `FWS/CWS/ZWS` 头）或直接填链接。
-
-### Web API（浏览器界面就是调这些）
-`/api/state`、`/api/versions`、`/api/manifest/refresh`、`/api/instance/install`、`/api/launch`、`/api/stop`、
-`/api/diagnose`、`/api/java`、`/api/java/provision`、`/api/accounts`、`/api/accounts/offline`、`/api/accounts/select`、
-`/api/mods`、`/api/mods/toggle`、`/api/settings`、`/api/logs?since=N`、`/api/flash`、`/api/flash/ruffle`、
-`/api/flash/upload`、`/api/flash/open`、`/api/flash/projector`；静态资源为 `/`、`/legacy`、`/app.css`、`/app.js`、`/legacy.js`、`/flash/ruffle.js`、`/flash/swf/<名字>`。
-
-> 说明：Web 版是**本机回环**服务（`127.0.0.1`），不对外监听；界面与桌面版共用同一份配置、账户、模组与日志。
 ## 界面预览
 
 > 以下截图来自独立演示环境（`C:\Users\Public\TiaMC-Demo`、实例 `1.20.1-demo`、模组 `Example Mod A/B`），

@@ -101,7 +101,7 @@ public partial class App : Application
             {
                 try
                 {
-                    webFirst = Services.AppConfig.Load().WebUiFirst;   // 默认 true：启动即进 Web 界面
+                    webFirst = Services.AppConfig.Load().WebUiFirst;   // 默认 false：启动是桌面界面；--web 或配置里打开才进 Web
                 }
                 catch (Exception)
                 {

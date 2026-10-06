@@ -90,7 +90,7 @@ public sealed class AppConfig
     [JsonPropertyName("miniblinkPath")] public string? MiniblinkPath { get; set; }
 
     /// <summary>启动时直接进入 Web 界面（Web 版作为启动器）。</summary>
-    [JsonPropertyName("webUiFirst")] public bool WebUiFirst { get; set; } = true;
+    [JsonPropertyName("webUiFirst")] public bool WebUiFirst { get; set; }
 
     /// <summary>客户机用户名。</summary>
     [JsonPropertyName("vmGuestUser")] public string? VmGuestUser { get; set; }

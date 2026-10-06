@@ -65,75 +65,8 @@ const loaders = {
   mods: loadMods,
   settings: loadSettings,
   logs: loadLogs,
-  console: loadGameConsole,
   flash: loadFlash
 };
-
-/* --------------------------------------------------- MC 控制台（客户端输出） */
-
-let consoleTimer = null;
-let consoleCursor = 0;
-
-async function loadGameConsole() {
-  await pollGameConsole(0);
-  if (!consoleTimer) consoleTimer = setInterval(() => pollGameConsole(consoleCursor), 1000);
-}
-
-async function pollGameConsole(since) {
-  const data = await api('/api/gameconsole?since=' + since);
-  const box = $('game-box');
-  if (since === 0) box.innerHTML = '';
-  consoleCursor = data.next || 0;
-
-  (data.lines || []).forEach((line) => {
-    const span = document.createElement('span');
-    let cls = 'game';
-    if (/\[.*(ERROR|SEVERE)\/\]/.test(line) || line.includes('Exception')) cls = 'err';
-    else if (line.includes('WARN')) cls = 'warn';
-    span.className = cls;
-    span.textContent = line + '\n';
-    box.appendChild(span);
-  });
-
-  $('gc-state').textContent = data.running ? '运行中' : (data.exitCode === undefined || data.exitCode === null ? '未启动' : '已退出');
-  $('gc-exit').textContent = data.running
-    ? ('PID ' + (data.pid ?? ''))
-    : (data.exitCode === undefined || data.exitCode === null ? '—'
-      : ('退出码 ' + data.exitCode + (data.exitCode === 0 ? '（正常）' : ' ← 有问题，点「问题诊断」')));
-  $('gc-java').textContent = data.java || '—';
-  $('gc-natives').textContent = data.natives || '—';
-  $('gc-cp').textContent = data.classpathCount || 0;
-  $('console-status').textContent = data.running ? '客户端运行中' : (data.state || '');
-  if ($('console-follow').checked) box.scrollTop = box.scrollHeight;
-
-  // 异常退出（非 0）时自动给出诊断结论
-  if (!data.running && data.exitCode !== undefined && data.exitCode !== null && data.exitCode !== 0) {
-    await showGameDiagnosis();
-  }
-}
-
-async function showGameDiagnosis() {
-  try {
-    const data = await api('/api/diagnose');
-    let text = '严重程度: ' + (data.severity || '未知') + '\n' + (data.summary || '') + '\n';
-    if (data.hints && data.hints.length) {
-      text += '\n可能的处理建议:\n';
-      data.hints.forEach((h) => { text += '  · ' + h + '\n'; });
-    }
-    if (data.keywords && data.keywords.length) {
-      text += '\n命中的关键字: ' + data.keywords.join(', ') + '\n';
-    }
-    if (data.suspects && data.suspects.length) {
-      text += '\n可疑模组: ' + data.suspects.join(', ') + '\n';
-    }
-    const plan = await api('/api/gameconsole?since=0');
-    if (plan.summary) text += '\n启动方案: ' + plan.summary + '\n';
-    if (plan.command) text += '\n命令行:\n' + plan.command + '\n';
-    $('game-diag').textContent = text;
-  } catch (e) {
-    $('game-diag').textContent = '诊断失败: ' + e.message;
-  }
-}
 
 /* ---------------------------------------------------------------- 概览 */
 
@@ -276,12 +209,8 @@ async function loadSettings() {
 
 /* ---------------------------------------------------------------- 日志 */
 
-let logTimer = null;
-
 async function loadLogs() {
   await pollLogs(true);
-  // 日志页打开后每 1.5 秒拉一次增量：客户端输出（[GAME]）能实时滚出来
-  if (!logTimer) logTimer = setInterval(() => pollLogs(false), 1500);
 }
 
 async function pollLogs(force) {
@@ -297,7 +226,6 @@ async function pollLogs(force) {
     else if (line.includes('[ERR]')) cls = 'err';
     else if (line.includes('[动作]')) cls = 'action';
     else if (line.includes('[OK]')) cls = 'ok';
-    else if (line.includes('[GAME]')) cls = 'game';
     span.className = cls;
     span.textContent = line + '\n';
     box.appendChild(span);
@@ -455,19 +383,6 @@ document.addEventListener('click', async (event) => {
       break;
     }
 
-    case 'clear-console': {
-      consoleCursor = 0;
-      $('game-box').innerHTML = '';
-      $('game-diag').textContent = '还没有诊断结果。';
-      status('控制台视图已清空', '');
-      break;
-    }
-    case 'game-diagnose': {
-      busy('正在分析启动日志与崩溃报告…');
-      await showGameDiagnosis();
-      status('诊断完成', '结论见「启动方案 / 问题诊断」');
-      break;
-    }
     case 'launch': {
       busy('正在启动游戏…');
       const result = await post('/api/launch', { instance: state.instance });
