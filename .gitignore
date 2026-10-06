@@ -16,12 +16,9 @@ logs/
 minecraft/
 *.tiamc-download
 
-# 测试 / 基准 / 截图目录
-# 截图会带上本机路径与个人模组列表，因此不入库（tools\capture-window.ps1 可自行生成）
+# 测试 / 基准过程的临时目录（文档截图在 docs/images，由演示环境生成、不含个人信息）
 artifacts/
 preview/
-# （截图目录名也一并忽略：会带出本机路径）
-docs/images/
 
 # 压缩包 / 日志 / 崩溃报告
 *.zip

@@ -25,6 +25,21 @@
 
 ---
 
+## 界面预览
+
+> 以下截图来自独立演示环境（`C:\Users\Public\TiaMC-Demo`、实例 `1.20.1-demo`、模组 `Example Mod A/B`），
+> **不含本机路径、真实模组名或账户信息**；全部截图与说明见 [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md)，采集脚本 `tools/capture-demo-shots.ps1`。
+
+| | |
+|---|---|
+| ![主界面](docs/images/shell.png) | ![版本页](docs/images/versions.png) |
+| **主界面**：功能区 + 项目树 + 工作页签 + 属性组态 + 输出窗口 | **版本页**：正式版 / 快照 / 旧版 分渠道筛选与配色徽章 |
+| ![账户与皮肤](docs/images/accounts-skin.png) | ![模组页](docs/images/mods.png) |
+| **账户与皮肤**：账户选择与管理集成一行，皮肤实时预览可选前/后/左/右/头部 | **模组页**：模组自带图标 + 装载器角标 + 中文界面 |
+| ![整合包页](docs/images/packs.png) | ![资源下载](docs/images/resources.png) |
+| **整合包页**：客户端 / 服务端分包（服务端橙色高亮） | **资源下载**：模组/整合包/资源包/光影，中文搜索 + 图标 |
+| ![日志页](docs/images/logs.png) | ![认证服务端](docs/images/yggdrasil.png) |
+| **日志页**：动作记录、崩溃诊断、快速导出（含 MC 日志） | **认证服务端**：内置 Yggdrasil，单终端 + 一键开关 |
 ## 隐私说明（本仓库不包含真实使用信息）
 
 为了让仓库可以直接公开，以下内容**已从源码、文档、工具脚本与截图中移除或替换为中性示例**：
@@ -35,7 +50,7 @@
 | 真实实例名 | `1.20.1-forge-<具体加载器版本>` → `1.20.1-forge` |
 | 真实模组文件名 | `example-mod-a.jar` / `example-mod-b.jar` / `example-lib.jar`（原文件名已替换） |
 | 测试账号 / 玩家名 | 只用 Minecraft 默认名 `Steve` 与 `ExamplePlayer`，不含真实账号 |
-| 界面截图 | **不再随仓库提供**（截图会带出本机路径与个人模组列表）；`tools\capture-window.ps1` 可自行生成 |
+| 界面截图 | 随仓库提供的截图**全部由独立演示环境生成**（`C:\Users\Public\TiaMC-Demo`、`1.20.1-demo`、`Example Mod A/B`），不含本机路径与个人模组列表；采集脚本 `tools\capture-demo-shots.ps1` |
 | 账户凭据 | 仓库内无任何令牌/密码；程序导出日志时也会对 `accessToken`/`refreshToken`/`clientToken`/`password`/`uuid` 脱敏 |
 | 崩溃日志样本 | 崩溃分析规则用**合成日志**验证（`artifacts\diag-test` 不入库） |
 
