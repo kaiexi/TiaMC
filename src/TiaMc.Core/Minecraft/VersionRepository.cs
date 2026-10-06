@@ -255,7 +255,13 @@ public sealed class VersionRepository
 
         var parts = name.Split(':');
         if (parts.Length < 3) return null;
-        return parts[0] + ":" + parts[1];
+
+        // 必须保留 classifier：现代版本 JSON 里本地库是
+        // org.lwjgl:lwjgl:3.3.3:natives-windows 这种条目，按 group:artifact 去重会把它们整批丢掉，
+        // 结果 natives 永远下不到、游戏启动时报 Failed to locate library: lwjgl.dll。
+        var key = parts[0] + ":" + parts[1];
+        if (parts.Length >= 4 && parts[3].Length > 0) key += ":" + parts[3];
+        return key;
     }
 
     /// <summary>Version part of a maven coordinate (empty when malformed).</summary>

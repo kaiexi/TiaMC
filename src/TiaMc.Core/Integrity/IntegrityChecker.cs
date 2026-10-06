@@ -70,7 +70,42 @@ public static class IntegrityChecker
         var libraryCount = 0;
         foreach (var lib in resolved)
         {
-            if (lib.ArtifactPath is null) continue;
+            // 本地库（`:natives-windows` 这类）的 ArtifactPath 为 null，但 Natives 里有真实文件。
+            // 以前这里直接 continue，导致这些 jar 既不算缺失也不下载，natives 目录永远为空——
+            // 表现就是 UnsatisfiedLinkError: Failed to locate library: lwjgl.dll。
+            if (lib.ArtifactPath is null)
+            {
+                foreach (var (relative, nativeDownload, _) in lib.Natives)
+                {
+                    libraryCount++;
+                    var nativeTarget = Path.Combine(paths.LibrariesDir, relative);
+                    if (File.Exists(nativeTarget))
+                    {
+                        present++;
+                        continue;
+                    }
+
+                    var nativeUrl = nativeDownload.Url;
+                    if (string.IsNullOrWhiteSpace(nativeUrl)) nativeUrl = LibraryResolver.DefaultUrl(lib.MavenName, null);
+                    if (string.IsNullOrWhiteSpace(nativeUrl))
+                    {
+                        log?.Invoke($"[check] 无法确定本地库下载地址: {lib.MavenName}");
+                        continue;
+                    }
+
+                    missing.Add(new MissingFile
+                    {
+                        Kind = "natives",
+                        Path = nativeTarget,
+                        Url = nativeUrl!,
+                        Size = nativeDownload.Size,
+                        Sha1 = nativeDownload.Sha1
+                    });
+                }
+
+                continue;
+            }
+
             libraryCount++;
 
             var target = Path.Combine(paths.LibrariesDir, lib.ArtifactPath);

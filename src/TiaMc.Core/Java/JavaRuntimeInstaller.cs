@@ -96,8 +96,34 @@ public static class JavaRuntimeInstaller
             var existing = InstalledJavaPath(runtimeRoot, major);
             if (existing.Length > 0)
             {
-                Say($"[java] 已存在 Java {major}: {existing}");
-                return new Result(true, $"已有 Java {major}", existing, major);
+                // 已装过：再校验一次主版本，避免旧版本残留被误用
+                var probe = JavaDetector.Probe(existing);
+                if (probe is not null && probe.MajorVersion >= major)
+                {
+                    return new Result(true, $"Java {probe.MajorVersion} 已存在", existing, probe.MajorVersion);
+                }
+
+                Say($"[java] 已有的 {existing} 版本不符合要求（需要 {major}+），将继续安装");
+            }
+
+            // 首选：Mojang 官方给这个版本配的运行时（与官方启动器一致，版本对应最准）
+            Say($"[java] 尝试安装官方运行时 {MojangJavaRuntime.ComponentFor(major)}（Java {major}）…");
+            var official = await MojangJavaRuntime.InstallAsync(null, major, runtimeRoot, Say, progress, token)
+                .ConfigureAwait(false);
+            if (official.Ok && official.JavaPath.Length > 0)
+            {
+                var probed = JavaDetector.Probe(official.JavaPath);
+                if (probed is not null && probed.MajorVersion >= major)
+                {
+                    Say($"[java] 官方运行时可用：{probed.ShortDisplay}");
+                    return new Result(true, $"官方 {probed.ShortDisplay} 已安装", official.JavaPath, probed.MajorVersion);
+                }
+
+                Say($"[java] 官方运行时探测不通过（{(probed is null ? "无法执行" : "Java " + probed.MajorVersion)}），改用 Adoptium");
+            }
+            else if (!official.Ok)
+            {
+                Say($"[java] 官方运行时不可用（{official.Message}），改用 Adoptium");
             }
 
             var candidate = await FindCandidateAsync(major, Say, token).ConfigureAwait(false);

@@ -170,7 +170,9 @@ public sealed class LaunchService
         var runtimeDir = Path.Combine(Paths.Root, "runtime");
         if (Directory.Exists(runtimeDir)) extra.Add(runtimeDir);
 
-        JavaRuntimes = JavaDetector.Detect(extra, message => LogService.Info(message, "Java"), probe: false);
+        // 真探测（含 -version）：只靠路径猜主版本会在"自动补齐的 Java"上出错，
+            // 这与 Axolotl 的"发现即校验"一致；探测结果由 JavaDetector 内部按签名缓存。
+            JavaRuntimes = JavaDetector.Detect(extra, message => LogService.Info(message, "Java"), probe: true);
         foreach (var java in JavaRuntimes)
         {
             LogService.Info($"检测到 {java.ShortDisplay}", "Java");
@@ -236,20 +238,71 @@ public sealed class LaunchService
     {
         var required = version.Json.JavaVersion?.MajorVersion ?? 8;
 
-        if (!string.IsNullOrWhiteSpace(Config.JavaPath) && File.Exists(Config.JavaPath))
+        // 1) 先按版本要求过滤（含 <MC>\runtime 下自动补齐的 Java）。
+        //    不给"低于要求的 Java"任何被选中的机会——这正是 UnsupportedClassVersionError 的来源。
+        var matching = JavaDetector.Filter(JavaRuntimes, required).ToList();
+        if (matching.Count == 0)
         {
-            var match = JavaRuntimes.FirstOrDefault(j =>
-                string.Equals(j.Path, Config.JavaPath, StringComparison.OrdinalIgnoreCase));
-            return match ?? new JavaInfo
-            {
-                Path = Config.JavaPath!,
-                MajorVersion = required,
-                FullVersion = "manual",
-                Source = "config"
-            };
+            matching = JavaDetector.Filter(ProbeManagedRuntimes(), required).ToList();
         }
 
-        return JavaDetector.Filter(JavaRuntimes, required).FirstOrDefault() ?? JavaRuntimes.FirstOrDefault();
+        // 2) 设置里手动指定的 java.exe：只有满足该版本要求时才优先使用
+        if (!string.IsNullOrWhiteSpace(Config.JavaPath) && File.Exists(Config.JavaPath))
+        {
+            var manual = JavaRuntimes.FirstOrDefault(j =>
+                             string.Equals(j.Path, Config.JavaPath, StringComparison.OrdinalIgnoreCase))
+                         ?? JavaDetector.Probe(Config.JavaPath!);
+
+            if (manual is not null && manual.MajorVersion >= required)
+            {
+                return manual;
+            }
+
+            if (manual is not null)
+            {
+                LogService.Warn(
+                    $"设置里指定的 Java {manual.MajorVersion} 低于 {version.Id} 需要的 Java {required}，" +
+                    $"改用 {matching.FirstOrDefault()?.ShortDisplay ?? "（没有可用的，请点「自动补齐 Java」）"}", "Java");
+            }
+        }
+
+        // 3) 精确匹配优先，其次取满足要求里最低的（省内存）
+        return matching.FirstOrDefault(j => j.MajorVersion == required)
+               ?? matching.OrderBy(j => j.MajorVersion).FirstOrDefault()
+               ?? JavaRuntimes.OrderByDescending(j => j.MajorVersion).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// 探测 &lt;MC&gt;\runtime 下自动补齐的运行时（检测流程为速度会跳过 probe，导致主版本识别不出来）。
+    /// 对应 Axolotl 的"发现即校验 + 缓存"思路。
+    /// </summary>
+    private List<JavaInfo> ProbeManagedRuntimes()
+    {
+        var found = new List<JavaInfo>();
+        var runtimeDir = Path.Combine(Paths.Root, "runtime");
+        if (!Directory.Exists(runtimeDir)) return found;
+
+        foreach (var dir in Directory.GetDirectories(runtimeDir))
+        {
+            var exe = Path.Combine(dir, "bin", "java.exe");
+            if (!File.Exists(exe)) continue;
+
+            var known = JavaRuntimes.FirstOrDefault(j => string.Equals(j.Path, exe, StringComparison.OrdinalIgnoreCase));
+            if (known is not null)
+            {
+                found.Add(known);
+                continue;
+            }
+
+            var probed = JavaDetector.Probe(exe);
+            if (probed is null) continue;
+
+            JavaRuntimes.Add(probed);
+            LogService.Info($"探测到自动补齐的运行时: {probed.ShortDisplay}", "Java");
+            found.Add(probed);
+        }
+
+        return found;
     }
 
     public CheckResult CheckFiles(InstalledVersion version)
