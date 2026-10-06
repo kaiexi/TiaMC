@@ -3,7 +3,7 @@
    专门给内置 IE6 窗口（系统 MSHTML/Trident，可运行在 IE5 quirks 模式）使用。
    ========================================================================= */
 
-var state = { remote: [], instance: '', logCursor: 0, settings: null };
+var state = { remote: [], instance: '', logCursor: 0, settings: null, ruffleTried: false };
 
 function $(id) { return document.getElementById(id); }
 function setText(id, value) { var e = $(id); if (e) e.innerHTML = value; }
@@ -197,10 +197,12 @@ function pollLogs() {
       box.scrollTop = box.scrollHeight;
     }
     setText('log-count', '共 ' + (d.total || 0) + ' 条，已显示 ' + state.logCursor);
+    updateSiteInfo(d.total || 0);
   });
 }
 
-function clearLogView() { $('log-box').innerHTML = ''; state.logCursor = 0; }
+function clearLogView() {
+  updateSiteInfo(0); $('log-box').innerHTML = ''; state.logCursor = 0; }
 
 /* ------------------------------------------------------- 动作 */
 
@@ -282,15 +284,32 @@ function playUrl() {
   playSwf(url, true);
 }
 
+function loadRuffleOnce() {
+  // Ruffle 是现代 JS + WASM，IE6/IE5-quirks 解析不了它，
+  // 所以绝不能在页面加载时就引入（那会让 IE 弹"脚本错误"）。
+  // 只有用户真的要点播放时才尝试加载，并且失败要能说清楚。
+  if (state.ruffleTried) return;
+  state.ruffleTried = true;
+  try {
+    var s = document.createElement('script');
+    s.src = '/flash/ruffle.js';
+    s.onerror = function () { status('Ruffle 加载失败', 'IE6 内核无法运行 Ruffle，请改用投影播放器'); };
+    document.body.appendChild(s);
+  } catch (e) {
+    status('Ruffle 无法注入', '请改用投影播放器（原版 Flash 播放器）');
+  }
+}
+
 function playSwf(name, isUrl) {
   var url = isUrl ? name : '/flash/swf/' + encodeURIComponent(name);
+  loadRuffleOnce();
   $('flash-stage').innerHTML =
     '<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="100%" height="340">' +
     '<param name="movie" value="' + esc(url) + '">' +
     '<param name="quality" value="high">' +
     '<embed src="' + esc(url) + '" type="application/x-shockwave-flash" width="100%" height="340" quality="high">' +
     '</object>';
-  status('Flash 已提交播放（Ruffle 会接管）', url);
+  status('Flash 已提交播放', 'IE6 内核下请用投影播放器；Ruffle 需要较新的内核');
 }
 
 function projectorUrl() {
@@ -298,6 +317,21 @@ function projectorUrl() {
     status(d.ok ? '完成' : '失败', d.message || '');
   });
 }
+
+function updateSiteInfo(total) {
+  var el = $("site-hits");
+  if (el) el.innerHTML = "" + total;
+  var el2 = $("site-hits2");
+  if (el2) el2.innerHTML = "000" + total;
+  var up = $("site-updated");
+  if (up) {
+    var d = new Date();
+    up.innerHTML = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) +
+      " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+  }
+}
+
+function pad2(n) { return n < 10 ? ("0" + n) : ("" + n); }
 
 function loadIe6() {
   api("/api/ie6", function (d) {
@@ -323,8 +357,9 @@ function loadBrowsers() {
     var html = "<b>浏览器通道</b>（点按钮用对应浏览器打开本页）：<br>";
     var list = d.channels || [];
     for (var i = 0; i < list.length; i++) {
-      html += "<input type=\"button\" class=\"xp\" value=\"" + esc(list[i].name) + "\" onclick=\"openWith('" +
-        esc(list[i].id) + "')"> <span class=\"" + "gray" + "\">" + esc(list[i].engine) + "</span><br>";
+      html += "<input type=\"button\" class=\"xp\" value=\"" + esc(list[i].name) +
+        "\" onclick=\"openWith(&quot;" + esc(list[i].id) + "&quot;)\">" +
+        " <span class=\"gray\">" + esc(list[i].engine) + "</span><br>";
     }
     html += "<div class=\"gray\" style=\"margin-top:4px\">" + esc(d.note || "") + "</div>";
     setText("ie6-channels", html);
@@ -410,11 +445,6 @@ function captureVmScreen() {
 
 function boot() {
   refreshAll();
-  loadIe6();
-  loadBrowsers();
-  loadVmIe6();
-  if ($("vm-launch")) $("vm-launch").onclick = launchVmIe6;
-  if ($("vm-screen")) $("vm-screen").onclick = captureVmScreen;
   pollLogs();
   setInterval(pollLogs, 2000);
   setInterval(function () { if (!document.hidden) refreshAll(); }, 8000);

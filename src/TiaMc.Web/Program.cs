@@ -33,6 +33,7 @@ internal static class Program
     private static Ie6EngineService _ie6 = null!;
     private static BrowserChannelService _browsers = null!;
     private static VmIe6Service _vmIe6 = null!;
+    private static MiniblinkService _miniblink = null!;
     private static string _wwwroot = "";
     private static readonly DateTime Started = DateTime.Now;
 
@@ -44,6 +45,7 @@ internal static class Program
         var useSystemBrowser = args.Contains("--browser=default") || args.Contains("--edge");
         var noIe6 = args.Contains("--no-ie6");
         var quirks = args.Contains("--ie6-quirks");
+        var legacyFirst = args.Contains("--legacy");
         var ie11Mode = args.Contains("--ie11-mode");
         var hostIndex = Array.IndexOf(args, "--host");
         var bindHost = hostIndex >= 0 && hostIndex + 1 < args.Length ? args[hostIndex + 1] : "127.0.0.1";
@@ -61,6 +63,10 @@ internal static class Program
                         int.TryParse(args[exitAfterIndex + 1], out var seconds)
             ? seconds
             : 0;
+
+        // --mc <目录>：和桌面版用同一个 Minecraft 根目录（由桌面版启动 Web 时自动传入）
+        var mcIndex = Array.IndexOf(args, "--mc");
+        var mcRoot = mcIndex >= 0 && mcIndex + 1 < args.Length ? args[mcIndex + 1] : "";
 
         try
         {
@@ -82,9 +88,20 @@ internal static class Program
             _ie6 = new Ie6EngineService();
             _browsers = new BrowserChannelService();
             _vmIe6 = new VmIe6Service();
+            _miniblink = new MiniblinkService();
 
             LogService.Info("TiaMC-Web 启动中（浏览器 GUI 版）", "Web");
             var config = AppConfig.Load();
+
+            // 桌面版启动 Web 时会带上 --mc，保证两边看到同一个 Minecraft 目录
+            if (mcRoot.Length > 0)
+            {
+                config.MinecraftRoot = mcRoot;
+                config.PortableRoot = false;   // 桌面版已经决定了根目录，Web 版照用
+                config.Save();
+                LogService.Info($"Minecraft 根目录由 --mc 指定: {mcRoot}", "Web");
+            }
+
             _launcher = new LaunchService(config);
             _launcher.ReloadInstallation();
 
@@ -95,7 +112,20 @@ internal static class Program
             var server = new WebServer(port, bindHost);
             Register(server);
             var actualPort = server.Start();
+
+            // 把真实端口写进文件：桌面版/脚本据此找到 Web 界面，避免端口漂移导致"页面点不动"
+            try
+            {
+                File.WriteAllText(Path.Combine(AppConfig.ConfigDirectory, "web-port.txt"),
+                    actualPort.ToString() + Environment.NewLine + $"http://127.0.0.1:{actualPort}/" + Environment.NewLine);
+            }
+            catch (Exception portError)
+            {
+                LogService.Warn("写入 web-port.txt 失败: " + portError.Message, "Web");
+            }
+
             LogService.Ok($"Web GUI 已就绪: http://127.0.0.1:{actualPort}/", "Web");
+            LogService.Info("启动器 Web 界面 = 这个内嵌窗口 + 上面的本地地址（浏览器也能开）", "Web");
             LogService.Info($"IE6 兼容页: http://127.0.0.1:{actualPort}/legacy", "Web");
             if (bindHost != "127.0.0.1")
             {
@@ -115,7 +145,9 @@ internal static class Program
                 else
                 {
                     // 内置 IE6 打开兼容页；系统浏览器打开现代页
-                    OpenEmbeddedIe6($"http://127.0.0.1:{actualPort}/legacy", ie11Mode ? 11001 : 5000);
+                    OpenEmbeddedIe6(
+                        legacyFirst ? $"http://127.0.0.1:{actualPort}/legacy" : $"http://127.0.0.1:{actualPort}/",
+                        ie11Mode ? 11001 : 5000);
                 }
             }
 
@@ -191,10 +223,37 @@ internal static class Program
         server.Map("GET", "/", _ => WebServer.File(Path.Combine(_wwwroot, "index.html"), "text/html; charset=utf-8"));
         server.Map("GET", "/app.css", _ => WebServer.File(Path.Combine(_wwwroot, "app.css"), "text/css; charset=utf-8"));
         server.Map("GET", "/app.js", _ => WebServer.File(Path.Combine(_wwwroot, "app.js"), "application/javascript; charset=utf-8"));
+
+        // ---- Trident 4.0（IE4）档：服务端整页渲染，页面不需要任何 JavaScript ----
+        server.Map("GET", "/ie4", request =>
+        {
+            var message = request.Query.TryGetValue("msg", out var msg) ? msg : "";
+            return WebServer.Text(Ie4Actions.Render(Path.Combine(_wwwroot, "ie4.html"), _launcher, server.Port, message),
+                "text/html; charset=utf-8");
+        });
+        server.Map("GET", "/ie4.html", request =>
+        {
+            var message = request.Query.TryGetValue("msg", out var msg) ? msg : "";
+            return WebServer.Text(Ie4Actions.Render(Path.Combine(_wwwroot, "ie4.html"), _launcher, server.Port, message),
+                "text/html; charset=utf-8");
+        });
+        server.Map("GET", "/ie4.css", _ => WebServer.File(Path.Combine(_wwwroot, "ie4.css"), "text/css; charset=utf-8"));
+        server.Map("GET", "/ie4/do", request =>
+        {
+            var action = request.Query.TryGetValue("action", out var a) ? a : "refresh";
+            var note = Ie4Actions.Run(action, request, _launcher, server.Port);
+
+            // IE4 时代没有 302 之后的整页重载习惯，这里直接服务端渲染结果页（更接近当时的做法）
+            return WebServer.Text(
+                Ie4Actions.Render(Path.Combine(_wwwroot, "ie4.html"), _launcher, server.Port, note),
+                "text/html; charset=utf-8");
+        });
+
         // IE6 兼容页（ES3 + XMLHttpRequest，可在 IE5 quirks 模式下运行）
         server.Map("GET", "/legacy", _ => WebServer.File(Path.Combine(_wwwroot, "legacy.html"), "text/html; charset=utf-8"));
         server.Map("GET", "/legacy.html", _ => WebServer.File(Path.Combine(_wwwroot, "legacy.html"), "text/html; charset=utf-8"));
         server.Map("GET", "/legacy.js", _ => WebServer.File(Path.Combine(_wwwroot, "legacy.js"), "application/javascript; charset=utf-8"));
+        server.Map("GET", "/ie6.css", _ => WebServer.File(Path.Combine(_wwwroot, "ie6.css"), "text/css; charset=utf-8"));
         server.Map("GET", "/favicon.ico", _ => WebServer.File(Path.Combine(_wwwroot, "favicon.ico"), "image/x-icon"));
 
         // ---- 状态与日志 ----
@@ -442,6 +501,7 @@ internal static class Program
             if (request.Has("vmGuestUser")) config.VmGuestUser = request.Field("vmGuestUser");
             if (request.Has("vmGuestPassword")) config.VmGuestPassword = request.Field("vmGuestPassword");
             if (request.Has("vmIe6Path")) config.VmIe6Path = request.Field("vmIe6Path");
+            if (request.Has("miniblinkPath")) config.MiniblinkPath = request.Field("miniblinkPath");
             var rootChanged = false;
             if (request.Field("minecraftRoot").Length > 0 &&
                 !string.Equals(config.MinecraftRoot, request.Field("minecraftRoot"), StringComparison.OrdinalIgnoreCase))
@@ -512,6 +572,21 @@ internal static class Program
         {
             var result = _ie6.OpenEngineDirectory();
             return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message };
+        });
+
+        // ---- 开源浏览器内核 miniblink（Apache-2.0）----
+        server.MapJson("GET", "/api/miniblink", _ => _miniblink.Status());
+        server.MapJson("POST", "/api/miniblink/ensure", _ =>
+        {
+            var result = _miniblink.EnsureAsync().GetAwaiter().GetResult();
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message, ["detail"] = result.Detail };
+        });
+        server.MapJson("POST", "/api/miniblink/open", request =>
+        {
+            var url = request.Field("url");
+            if (url.Length == 0) url = $"http://127.0.0.1:{server.Port}/legacy";
+            var result = _miniblink.Open(url);
+            return new JsonObject { ["ok"] = result.Ok, ["message"] = result.Message, ["detail"] = result.Detail };
         });
 
         // ---- 原版 IE6：驱动 XP 虚拟机（不用 WSL）----
@@ -618,8 +693,9 @@ internal static class Program
         ["java"] = _launcher.JavaRuntimes.Count,
         ["remoteVersions"] = _launcher.RemoteManifest?.Versions.Count ?? 0,
         ["flash"] = _flash.Status(),
-        ["browserChannels"] = _browsers.Status()["channels"],
-        ["vmIe6"] = _vmIe6.Status()
+        ["browserChannels"] = JsonNode.Parse(_browsers.Status()["channels"]!.ToJsonString()),
+        ["vmIe6"] = _vmIe6.Status(),
+        ["miniblink"] = _miniblink.Status()
     };
 
     private static JsonObject Settings() => new()

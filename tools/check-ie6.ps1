@@ -2,10 +2,17 @@
 # 扫描 Web 版的 IE6 专用页面与样式，找出 IE6（MSHTML 6.0）不支持的写法。
 # 用法: powershell -File tools/check-ie6.ps1
 
+param([ValidateSet('ie6', 'ie4')][string]$Profile = 'ie6')
+
 $ErrorActionPreference = 'Continue'
 $root = Join-Path $PSScriptRoot '..\src\TiaMc.Web\wwwroot'
 
-$targets = @('legacy.html', 'ie6.css', 'legacy.js') | ForEach-Object { Join-Path $root $_ }
+# ie6：IE6 档页面；ie4：Trident 4.0（IE4）档页面（限制更多）
+$targets = if ($Profile -eq 'ie4') {
+    @('ie4.html', 'ie4.css') | ForEach-Object { Join-Path $root $_ }
+} else {
+    @('legacy.html', 'ie6.css', 'legacy.js') | ForEach-Object { Join-Path $root $_ }
+}
 
 # 每条规则: 名称 / 正则 / 适用的文件扩展名
 $rules = @(
@@ -29,13 +36,24 @@ $rules = @(
     @{ Name = 'fetch()';                   Pattern = '(?<![\w.])fetch\s*\('; Ext = '.js' },
     @{ Name = 'addEventListener 无 IE6 回退'; Pattern = 'addEventListener'; Ext = '.js'; Absent = 'attachEvent' },
     @{ Name = '模板字符串';                  Pattern = '`'; Ext = '.js' },
-    @{ Name = 'JSON.parse 直接依赖';         Pattern = 'JSON\.parse'; Ext = '.js' }
+    @{ Name = 'JSON.parse 直接依赖';         Pattern = 'JSON\.parse'; Ext = '.js' },
+    # ---- 以下是 Trident 4.0（IE4）档才检查的项：这些在 IE6 里没问题，但 IE4 没有 ----
+    @{ Name = 'document.getElementById（IE5+）'; Pattern = 'getElementById'; Ext = '.js,.html'; OnlyIe4 = $true },
+    @{ Name = 'attachEvent（IE5+）';             Pattern = 'attachEvent'; Ext = '.js,.html'; OnlyIe4 = $true },
+    @{ Name = 'XMLHttpRequest（IE5+）';          Pattern = 'XMLHttpRequest'; Ext = '.js,.html'; OnlyIe4 = $true },
+    @{ Name = 'createElement（IE4 不可靠）';      Pattern = 'createElement'; Ext = '.js,.html'; OnlyIe4 = $true },
+    @{ Name = 'CSS filter（IE5.5+）';            Pattern = 'filter\s*:'; Ext = '.css,.html'; OnlyIe4 = $true },
+    @{ Name = 'CSS zoom（IE5.5+）';              Pattern = 'zoom\s*:'; Ext = '.css,.html'; OnlyIe4 = $true },
+    @{ Name = 'border-collapse（IE5+）';         Pattern = 'border-collapse'; Ext = '.css,.html'; OnlyIe4 = $true },
+    @{ Name = 'overflow:auto/scroll（IE5+）';    Pattern = 'overflow\s*:\s*(auto|scroll)'; Ext = '.css,.html'; OnlyIe4 = $true },
+    @{ Name = '属性选择器 input[type=]（IE7+）'; Pattern = '\[\s*type\s*='; Ext = '.css'; OnlyIe4 = $true },
+    @{ Name = '@media / @import';               Pattern = '@(media|import)'; Ext = '.css,.html'; OnlyIe4 = $true }
 )
 
 $pass = 0
 $fail = 0
 
-Write-Host "IE6 兼容性检查：$root" -ForegroundColor Cyan
+Write-Host ("兼容性检查档位: {0}    目录: {1}" -f $Profile, $root) -ForegroundColor Cyan
 Write-Host ("=" * 78)
 
 foreach ($file in $targets) {
@@ -53,6 +71,7 @@ foreach ($file in $targets) {
 
     foreach ($rule in $rules) {
         if ($rule.Ext -notlike "*$ext*") { continue }
+        if ($rule.ContainsKey('OnlyIe4') -and $Profile -ne 'ie4') { continue }
         # 某些规则在"存在替代写法"时不算违规（例如 addEventListener 旁边有 attachEvent 回退）
         if ($rule.ContainsKey('Absent') -and $stripped -match [regex]::Escape($rule.Absent)) {
             Write-Host ("  [PASS] {0}（存在 {1} 回退）" -f $rule.Name, $rule.Absent) -ForegroundColor Green
@@ -77,7 +96,7 @@ Write-Host ""
 Write-Host ("=" * 78)
 Write-Host ("结果: PASS {0} 项 / FAIL {1} 项" -f $pass, $fail) -ForegroundColor $(if ($fail -eq 0) { 'Green' } else { 'Red' })
 if ($fail -eq 0) {
-    Write-Host "IE6 专用页面未发现不兼容写法（table/float 布局 + filter 渐变 + ES3 脚本）。" -ForegroundColor Green
+    Write-Host ("{0} 档未发现不兼容写法。" -f $Profile) -ForegroundColor Green
 } else {
     Write-Host "请修正上面标记的写法；IE6 里的表现无法保证。" -ForegroundColor Red
     exit 1

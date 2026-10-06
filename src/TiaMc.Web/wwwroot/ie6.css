@@ -1,177 +1,262 @@
-@charset "utf-8";
-/* =========================================================================
-   ie6.css —— 面向真实 IE6（MSHTML 6.0）的样式表
-   参考做法（见 docs/IE6-COMPAT.md 与所列参考项目）：
-     * 布局只用 table / float / 定宽，不用 flex、grid、min-height、calc
-     * 圆角、渐变、阴影用 IE 专有 filter（DXImageTransform）实现，现代浏览器忽略也无妨
-     * 浮动元素加 display:inline 规避 IE6 双倍外边距 bug
-     * 需要 hasLayout 的地方加 zoom:1
-     * 悬停只写在 a:hover 上（IE6 只支持链接悬停）
-     * PNG 透明用 AlphaImageLoader 滤镜兜底
-   ========================================================================= */
+/* ============================================================================
+   IE6 时代网页风格样式表（2002 年前后的中文网站味道）
+   —— 目标：在 IE6（MSHTML 6.0）里原样呈现，且看起来就是那个年代做的页面。
 
-* { margin: 0; padding: 0; }
+   时代特征（本文件逐条落实）：
+     * 深蓝标题条（#000080 / #000066）+ 白色加粗宋体，右侧"最后更新"文字
+     * 灰底 #d4d0c8 / 白底内容区，1px #808080 实线表格边框，cellspacing=0
+     * 12px 宋体（SimSun）正文，Tahoma 用于英文与数字（当年的"清晰小字"）
+     * 蓝色下划线链接、访问过的紫色链接、悬停红色（:hover 只用在 <a> 上）
+     * 斜面 3D 按钮：左上白、右下深灰（IE6 里 1px 边框就是这个效果）
+     * filter: progid:DXImageTransform.Microsoft.gradient 做标题条渐变（IE5.5+，IE6 支持）
+     * 88×31 友情链接徽章位、访问计数器、"最佳浏览 IE6.0 1024×768" 页脚
+     * 不使用：border-radius / box-shadow / rgba / flex / grid / CSS 变量 / min-height
+   ============================================================================ */
 
 body {
-  background: #ffffff;
+  margin: 0;
+  padding: 0;
+  background-color: #d4d0c8;
   color: #000000;
   font-family: SimSun, "宋体", Tahoma, sans-serif;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 18px;
 }
 
-a, a:link { color: #0000cc; text-decoration: underline; }
-a:visited { color: #800080; }
-a:hover { color: #ff0000; }
+a:link    { color: #0000cc; text-decoration: underline; }
+a:visited { color: #800080; text-decoration: underline; }
+a:hover   { color: #cc0000; text-decoration: underline; }
+a:active  { color: #ff0000; }
 
-h1, h2, h3 { font-size: 14px; font-weight: bold; }
-.gray { color: #666666; }
-.mono { font-family: Fixedsys, "Courier New", monospace; font-size: 12px; }
+img { border: 0; }
 
-/* ---------------------------------------------------------------- 骨架 */
+/* ---------------------------------------------------------------- 页面容器 */
 #page {
-  width: 1200px;
-  margin: 10px auto 20px auto;
-  border: 1px solid #9aa7b4;
-  background: #ffffff;
-  zoom: 1;
+  width: 1000px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #808080;
 }
 
-/* 页头：IE6 用渐变滤镜，现代浏览器用普通底色 */
+/* ------------------------------------------------- 顶部深蓝标题条（渐变） */
 .site-header {
-  padding: 8px 10px;
-  background: #005a8c;
+  height: 56px;
+  padding: 6px 10px;
+  background-color: #000080;
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, startColorstr=#000066, endColorstr=#2b4f9e);
   color: #ffffff;
-  border-bottom: 3px solid #e8a33d;
-  zoom: 1;
-  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, startColorStr='#FF1E7FB8', endColorStr='#FF005A8C');
+  font-family: Tahoma, SimSun, sans-serif;
+  border-bottom: 3px solid #ffcc00;
 }
+
 .site-logo {
-  display: inline;
-  background: #ffffff;
-  color: #005a8c;
+  font-size: 22px;
   font-weight: bold;
-  font-size: 15px;
-  padding: 1px 6px;
-  margin-right: 8px;
+  letter-spacing: 1px;
+  color: #ffcc00;
 }
-.site-title { font-weight: bold; }
-.site-header .gray { color: #cfe4f2; }
 
+.site-title {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.site-header .gray { color: #c8d4f0; font-size: 11px; }
+
+/* ------------------------------------------------------ 顶部导航（表格条） */
+.navbar {
+  background-color: #6699cc;
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, startColorstr=#6699cc, endColorstr=#336699);
+  border-bottom: 1px solid #003366;
+  padding: 3px 8px;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.navbar a:link, .navbar a:visited { color: #ffffff; text-decoration: none; }
+.navbar a:hover { color: #ffff00; text-decoration: underline; }
+
+/* ------------------------------------------------------------- 工具条按钮 */
 .toolbar {
-  padding: 8px 10px;
-  background: #f1efe2;
-  border-bottom: 1px solid #c8c4b4;
-  zoom: 1;
+  background-color: #ece9d8;
+  border-bottom: 1px solid #aca899;
+  padding: 5px 8px;
 }
-.toolbar form, .toolbar span { display: inline; }
 
-.content { padding: 10px; }
-
-.page-footer {
-  padding: 4px 10px;
-  background: #f1efe2;
-  border-top: 1px solid #c8c4b4;
-  zoom: 1;
-}
-.page-footer .right { float: right; display: inline; }
-
-/* ---------------------------------------------------------------- 控件 */
-/* IE6 对 <button> 支持很差，统一用 <input type="button" class="xp"> */
-input.xp {
-  font-family: SimSun, "宋体", Tahoma, sans-serif;
+.xp {
+  font-family: Tahoma, SimSun, sans-serif;
   font-size: 12px;
   color: #000000;
-  background: #ece9d8;
-  border: 1px solid #003c74;
+  background-color: #d4d0c8;
+  border-top: 1px solid #ffffff;
+  border-left: 1px solid #ffffff;
+  border-right: 1px solid #808080;
+  border-bottom: 1px solid #808080;
   padding: 2px 10px;
-  cursor: pointer;
-  overflow: visible;            /* IE6 下按钮内边距被吞掉的修正 */
+  margin-right: 4px;
+  cursor: hand;
 }
-input.xp.primary { background: #ffd98a; }
-input.xp.danger  { background: #f3b7b7; }
 
-input.text, input[type=text], select, textarea {
-  font-family: SimSun, "宋体", Tahoma, sans-serif;
+.xp:active {
+  border-top: 1px solid #808080;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+}
+
+.xp.primary { font-weight: bold; }
+.xp.danger  { color: #990000; }
+.xp[disabled] { color: #808080; }
+
+/* ------------------------------------------------------------ 内容与分栏 */
+.content {
+  padding: 8px;
+  background-color: #ffffff;
+}
+
+.columns { width: 100%; }
+.col-main { width: 74%; vertical-align: top; padding-right: 8px; }
+.col-side { width: 26%; vertical-align: top; }
+
+/* --------------------------------------------- 当年的"圆角框"其实就是表格 */
+.xp-fieldset {
+  border: 1px solid #808080;
+  background-color: #ffffff;
+  margin: 0 0 10px 0;
+  padding: 0 8px 8px 8px;
+}
+
+.xp-fieldset legend {
+  font-weight: bold;
+  color: #000080;
+  background-color: #ffffff;
+  padding: 0 4px;
   font-size: 12px;
-  border: 1px solid #7f9db9;
-  padding: 1px 2px;
-  background: #ffffff;
 }
 
-/* ---------------------------------------------------------------- 表格 */
-table.xp-table {
+/* 表格：IE6 里靠 border 属性 + cellspacing=0，这里只做配色 */
+.xp-table {
   width: 100%;
-  border-collapse: collapse;
-  background: #ffffff;
+  border: 1px solid #808080;
+  background-color: #ffffff;
+  font-size: 12px;
 }
-table.xp-table td, table.xp-table th {
-  border: 1px solid #aca899;
-  padding: 2px 6px;
-  text-align: left;
+
+.xp-table td, .xp-table th {
+  border: 1px solid #c0c0c0;
+  padding: 4px 6px;
   vertical-align: top;
 }
-table.xp-table th { background: #ece9d8; font-weight: bold; }
-table.xp-table tr.alt td { background: #f7f7f2; }
-table.xp-table tr.snapshot td { background: #fff3d6; color: #8a5b00; }
-table.xp-table tr.selected td { background: #dce9f7; }
-table.xp-table td.big { font-size: 18px; font-weight: bold; text-align: center; }
-table.xp-table.cards td { text-align: center; }
 
-table.form-table { border-collapse: collapse; }
-table.form-table td { padding: 2px 8px 2px 0; vertical-align: top; }
-
-.scroll-area {
-  width: 100%;
-  height: 380px;
-  overflow: auto;               /* IE6 支持，滚动条为系统样式 */
-  border: 1px solid #aca899;
+.xp-table th {
+  background-color: #c0c0c0;
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, startColorstr=#e8e8e8, endColorstr=#c0c0c0);
+  color: #000000;
+  font-weight: bold;
+  text-align: left;
 }
 
-/* ---------------------------------------------------------------- 分组框 */
-fieldset.xp-fieldset {
-  border: 1px solid #aca899;
-  padding: 8px 10px 12px 10px;
-  margin: 8px 0 12px 0;
-  zoom: 1;
-}
-fieldset.xp-fieldset legend { font-weight: bold; color: #003c74; padding: 0 4px; }
+.xp-table tr.alt td { background-color: #f2f2f2; }
 
-/* ---------------------------------------------------------------- 控制台 */
+/* 概览四格（当年叫"数据卡片"，其实就是 4 个 td） */
+.cards td { text-align: center; width: 25%; background-color: #f7f7f7; }
+.cards .big {
+  font-family: Tahoma, sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  color: #000080;
+}
+
+/* 控制台 / 命令行输出：黑底绿字，当年的"黑客风" */
 pre.console {
-  background: #000080;
-  color: #f0f0f0;
-  border: 1px solid #aca899;
-  padding: 6px 8px;
-  height: 220px;
-  overflow: auto;
-  font-family: Fixedsys, "Courier New", monospace;
+  background-color: #000000;
+  color: #00ff00;
+  font-family: "Courier New", Courier, monospace;
   font-size: 12px;
-  white-space: pre;
+  line-height: 16px;
+  border: 2px inset #c0c0c0;
+  padding: 6px;
+  height: 180px;
+  overflow: auto;
+  margin: 0;
 }
-pre.console.log { height: 260px; }
-pre.console .warn { color: #ffff80; }
-pre.console .err { color: #ff9090; }
-pre.console .action { color: #80ff80; }
 
-/* ---------------------------------------------------------------- Flash */
-.stage {
-  height: 300px;
-  border: 2px inset #aca899;
-  background: #000000;
-  color: #cfcfcf;
-  padding: 4px;
-  text-align: center;
+.gray  { color: #666666; }
+.small { font-size: 11px; }
+.big   { font-size: 20px; font-weight: bold; color: #000080; }
+.hit   { color: #cc0000; font-weight: bold; }
+
+/* ------------------------------------------------- 侧栏（友情链接/计数器） */
+.side-box {
+  border: 1px solid #808080;
+  background-color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.side-box .side-title {
+  background-color: #000080;
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, startColorstr=#000066, endColorstr=#2b4f9e);
+  color: #ffffff;
+  font-weight: bold;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+
+.side-box .side-body { padding: 6px; }
+
+.counter {
+  font-family: Tahoma, sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #00ff00;
+  background-color: #000000;
+  border: 1px solid #808080;
+  padding: 2px 6px;
+  display: inline;
   zoom: 1;
 }
-.stage object, .stage embed, .stage iframe { width: 100%; height: 300px; border: 0; }
 
-/* 清除浮动（IE6 用 zoom:1 + :after） */
-.clearfix { zoom: 1; }
-.clearfix:after { content: "."; display: block; height: 0; clear: both; visibility: hidden; }
-
-/* PNG 透明兜底：<img class="pngfix" src="..." style="width:..;height:.."> */
-.pngfix {
-  behavior: url(#default#VML);
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='', sizingMethod='scale');
+/* 88×31 友情链接徽章（当年的标准尺寸） */
+.badge {
+  width: 88px;
+  height: 31px;
+  border: 1px solid #000080;
+  background-color: #d4d0c8;
+  color: #000080;
+  font-family: Tahoma, sans-serif;
+  font-size: 10px;
+  text-align: center;
+  display: inline;
+  zoom: 1;
+  margin: 2px;
 }
+
+/* ------------------------------------------------------------------- 页脚 */
+.site-footer {
+  border-top: 1px solid #aca899;
+  background-color: #ece9d8;
+  padding: 8px;
+  text-align: center;
+  font-size: 11px;
+  color: #333333;
+  line-height: 18px;
+}
+
+/* 表单控件保持当年的方头方脑 */
+input, select, textarea {
+  font-family: Tahoma, SimSun, sans-serif;
+  font-size: 12px;
+}
+
+input.text, select { border: 1px solid #808080; padding: 1px 2px; }
+
+/* 消息条（操作结果是"红色提示文字"，当年最常见的反馈方式） */
+#status {
+  color: #cc0000;
+  font-weight: bold;
+  padding-left: 6px;
+}
+
+#status.ok { color: #008000; }

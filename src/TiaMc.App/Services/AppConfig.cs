@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TiaMc.Core.Integrity;
@@ -84,6 +85,12 @@ public sealed class AppConfig
 
     /// <summary>XP 虚拟机 .vmx 路径（原版 IE6 通道）。</summary>
     [JsonPropertyName("vmPath")] public string? VmPath { get; set; }
+
+    /// <summary>miniblink（开源 Blink 内核，Apache-2.0）所在目录。</summary>
+    [JsonPropertyName("miniblinkPath")] public string? MiniblinkPath { get; set; }
+
+    /// <summary>启动时直接进入 Web 界面（Web 版作为启动器）。</summary>
+    [JsonPropertyName("webUiFirst")] public bool WebUiFirst { get; set; } = true;
 
     /// <summary>客户机用户名。</summary>
     [JsonPropertyName("vmGuestUser")] public string? VmGuestUser { get; set; }
@@ -231,13 +238,26 @@ public sealed class AppConfig
 
         // Portable mode is on by default: the game folder lives next to the
         // executable so a fresh copy of the launcher never touches %APPDATA%.
-        // The folder structure is created right away, because otherwise the path
-        // would not exist yet and the default detection would fall back to
-        // %APPDATA%\.minecraft.
+        // 但如果程序目录下那个便携根目录其实是空的（没有任何版本），而配置里已经指向了
+        // 一个真的有版本的目录，就不要把用户的目录覆盖成空的——否则界面会显示"实例 0 个"。
         if (config.PortableRoot)
         {
-            config.MinecraftRoot = MinecraftFinder.CreatePortableRoot(
-                message => LogService.Info(message, "Portable"));
+            var portable = MinecraftFinder.PortableRoot;
+            var portableHasVersions = Directory.Exists(Path.Combine(portable, "versions")) &&
+                                      Directory.EnumerateDirectories(Path.Combine(portable, "versions")).Any();
+            var configuredHasVersions = !string.IsNullOrWhiteSpace(config.MinecraftRoot) &&
+                                        Directory.Exists(Path.Combine(config.MinecraftRoot!, "versions")) &&
+                                        Directory.EnumerateDirectories(Path.Combine(config.MinecraftRoot!, "versions")).Any();
+
+            if (!portableHasVersions && configuredHasVersions)
+            {
+                LogService.Info($"便携根目录为空，沿用配置里的 Minecraft 目录: {config.MinecraftRoot}", "Portable");
+            }
+            else
+            {
+                config.MinecraftRoot = MinecraftFinder.CreatePortableRoot(
+                    message => LogService.Info(message, "Portable"));
+            }
         }
         else if (string.IsNullOrWhiteSpace(config.MinecraftRoot))
         {

@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!--
+  Trident 4.0（IE4，1997）档页面。
+  设计约束（全部按 IE4 的能力下限写）：
+    * 纯 <table> 布局，cellspacing/cellpadding 用属性而不是 CSS
+    * 不写 CSS filter / zoom / min-height / overflow:auto / border-collapse（IE4 都没有）
+    * 不用 document.getElementById（IE5+）、不用 attachEvent（IE5+）、不用 XMLHttpRequest（IE5+）
+    * 所有操作都是普通链接 / 表单 → 服务端整页刷新（IE4 时代的做法），因此本页**不需要任何 JavaScript**
+    * <meta http-equiv="X-UA-Compatible" content="IE=5"> —— IE4 没有文档模式，IE5(Quirks) 是最接近的下限
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=5">
+<title>TIA-MC 启动器（Trident 4.0 / IE4 档）</title>
+<link rel="stylesheet" type="text/css" href="/ie4.css">
+</head>
+<body bgcolor="#d4d0c8" text="#000000" link="#0000cc" vlink="#800080">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td bgcolor="#000080" height="24">
+      <font color="#ffffff" face="Tahoma, MS Sans Serif, SimSun" size="2">
+        &nbsp;<b>TIA-MC 启动器</b> &nbsp;·&nbsp; Trident 4.0（IE4）兼容档 &nbsp;·&nbsp; 无 JavaScript / 无 AJAX
+      </font>
+    </td>
+    <td bgcolor="#000080" align="right">
+      <font color="#ffffff" face="Tahoma, MS Sans Serif, SimSun" size="2">
+        <a href="/">现代界面</a>&nbsp;|&nbsp;<a href="/legacy">IE6 档</a>&nbsp;|&nbsp;<b>IE4 档</b>&nbsp;
+      </font>
+    </td>
+  </tr>
+</table>
+
+<table width="100%" border="0" cellspacing="4" cellpadding="4">
+  <tr>
+    <td width="50%" valign="top">
+      <table width="100%" border="1" cellspacing="0" cellpadding="3" bordercolor="#808080" bgcolor="#ffffff">
+        <tr><td bgcolor="#c0c0c0" colspan="2"><b>概览</b></td></tr>
+        <tr><td width="35%">实例</td><td>{{instances}}</td></tr>
+        <tr><td>账户</td><td>{{accounts}}</td></tr>
+        <tr><td>Java</td><td>{{java}}</td></tr>
+        <tr><td>内核 / 插件</td><td>{{kernel}}</td></tr>
+        <tr><td>服务地址</td><td>{{address}}</td></tr>
+      </table>
+      <br>
+      <table width="100%" border="1" cellspacing="0" cellpadding="3" bordercolor="#808080" bgcolor="#ffffff">
+        <tr><td bgcolor="#c0c0c0" colspan="2"><b>操作（提交后整页刷新）</b></td></tr>
+        <tr>
+          <td>
+            <a href="/ie4/do?action=refresh">刷新状态</a><br>
+            <a href="/ie4/do?action=manifest">获取版本清单</a><br>
+            <a href="/ie4/do?action=launch">启动游戏</a><br>
+            <a href="/ie4/do?action=stop">结束游戏</a><br>
+            <a href="/ie4/do?action=diagnose">诊断上次启动</a><br>
+            <a href="/ie4/do?action=java">检测 / 安装 Java</a>
+          </td>
+          <td valign="top">
+            <form method="get" action="/ie4/do">
+              <input type="hidden" name="action" value="select">
+              <font size="2">切换实例：</font><br>
+              <select name="instance">{{instanceoptions}}</select>
+              <input type="submit" value="切换">
+            </form>
+            <form method="get" action="/ie4/do">
+              <input type="hidden" name="action" value="search">
+              <font size="2">搜索 Modrinth：</font><br>
+              <input type="text" name="q" size="18" value="{{query}}">
+              <input type="submit" value="搜索">
+            </form>
+          </td>
+        </tr>
+      </table>
+    </td>
+
+    <td width="50%" valign="top">
+      <table width="100%" border="1" cellspacing="0" cellpadding="3" bordercolor="#808080" bgcolor="#ffffff">
+        <tr><td bgcolor="#c0c0c0"><b>状态 / 结果</b></td></tr>
+        <tr><td><font size="2">{{message}}</font></td></tr>
+      </table>
+      <br>
+      <table width="100%" border="1" cellspacing="0" cellpadding="3" bordercolor="#808080" bgcolor="#ffffff">
+        <tr><td bgcolor="#c0c0c0"><b>最近日志</b></td></tr>
+        <tr><td><pre style="font-family: Courier New, monospace; font-size: 8pt; margin: 0">{{logs}}</pre></td></tr>
+      </table>
+      <br>
+      <table width="100%" border="1" cellspacing="0" cellpadding="3" bordercolor="#808080" bgcolor="#ffffff">
+        <tr><td bgcolor="#c0c0c0"><b>为什么只能到 IE5 文档模式</b></td></tr>
+        <tr><td>
+          <font size="1">
+          微软文档规定 X-UA-Compatible 的取值从 <b>IE=5</b>（Quirks）起，没有 IE=4；
+          Trident 4.0（IE4，1997）的 mshtml.dll 4.72 只能运行在 Windows 95/98/NT4 上。
+          本页因此按 IE4 的能力下限编写（表格布局、无脚本、无 AJAX），
+          在 Quirks 模式下表现与 IE4 时代一致。
+          </font>
+        </td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr>
+    <td bgcolor="#c0c0c0">
+      <font size="1" face="Tahoma, MS Sans Serif, SimSun">
+        TIA-MC · Trident 4.0 档 · 本页不需要 JavaScript（IE4 也没有可靠的脚本环境）
+      </font>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

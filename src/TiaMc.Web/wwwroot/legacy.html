@@ -23,6 +23,15 @@
     <input type="button" class="xp" value="诊断上次启动" onclick="diagnose()">
   </div>
 
+  <div class="navbar">
+    <b>导航：</b>
+    <a href="#top">首页</a> |
+    <a href="#flash">Flash</a> |
+    <a href="#log">日志</a> |
+    <a href="#diag">诊断</a>
+    &nbsp;&nbsp;<span class="gray">最后更新：<span id="site-updated">—</span>&nbsp;|&nbsp;本会话操作 <span class="hit" id="site-hits">0</span> 次</span>
+  </div>
+
   <div class="content">
 
     <fieldset class="xp-fieldset">
@@ -84,43 +93,6 @@
     </fieldset>
 
     <fieldset class="xp-fieldset">
-      <legend>真 IE6 引擎（可插拔内核）</legend>
-      <table class="xp-table">
-        <tr>
-          <td width="50%" valign="top">
-            <b>引擎状态</b><div id="ie6-engine" class="gray">检测中…</div>
-            <input type="button" class="xp" value="打开引擎目录（放引擎）" onclick="openEngineDir()">
-            <input type="button" class="xp primary" value="用真 IE6 引擎打开页面" onclick="launchRealIe6()">
-            <input type="button" class="xp" value="用 WSL 里的真 IE6 打开（Wine）" onclick="launchWslIe6()">
-            <input type="button" class="xp" value="IE6 兼容启动（XP 兼容层 + DLL 重定向）" onclick="compatLaunch()">
-            <input type="button" class="xp" value="查看 WSL 准备命令" onclick="showWslCommands()">
-          </td>
-          <td width="50%" valign="top">
-            <b>本进程与宿主引擎</b>
-            <div id="ie6-host" class="gray">—</div>
-            <div id="ie6-note" class="gray">—</div>
-            <div id="ie6-channels" style="margin-top:6px">—</div>
-          </td>
-        </tr>
-      </table>
-    </fieldset>
-    <fieldset class="xp-fieldset">
-      <legend>原版 IE6（跑在 XP 虚拟机里，不用 WSL）</legend>
-      <table class="form-table">
-        <tr><td>虚拟机 (.vmx)</td><td><input id="vm-path" size="70"></td><td class="gray" id="vm-status">检测中…</td></tr>
-        <tr><td>客户机用户名</td><td><input id="vm-user" size="20"> &nbsp;密码 <input id="vm-pass" type="password" size="20"></td>
-            <td class="gray">XP 的登录账号；只存在本机 config.json</td></tr>
-        <tr><td>客户机 IE6 路径</td><td><input id="vm-ie" size="70" value="C:\Program Files\Internet Explorer\IEXPLORE.EXE"></td>
-            <td class="gray">XP 默认位置</td></tr>
-      </table>
-      <div class="row">
-        <input type="button" class="xp primary" value="用原版 IE6 打开本页" id="vm-launch">
-        <input type="button" class="xp" value="抓取客户机屏幕" id="vm-screen">
-        <span class="gray" id="vm-note">—</span>
-      </div>
-      <div><img id="vm-image" src="/vm-screen.png" style="max-width:100%;border:1px solid #aca899" alt="XP 客户机屏幕"></div>
-    </fieldset>
-    <fieldset class="xp-fieldset">
       <legend>Flash（Ruffle / 投影播放器）</legend>
       <table class="xp-table">
         <tr>
@@ -161,14 +133,36 @@
 
   </div>
 
-  <div class="page-footer">
+  <!-- 当年的"友情链接"与计数器（纯装饰，尺寸就是 88×31） -->
+  <table width="100%" border="0" cellspacing="0" cellpadding="6">
+    <tr>
+      <td width="60%" valign="top" bgcolor="#f2f2f2">
+        <b>友情链接</b><br>
+        <span class="badge">TIA-MC<br>Launcher</span>
+        <span class="badge">Minecraft<br>Web GUI</span>
+        <span class="badge">IE6<br>Compatible</span>
+        <span class="badge">Ruffle<br>Flash</span>
+        <span class="badge">Trident<br>4.0 / 6.0</span>
+      </td>
+      <td width="40%" valign="top" bgcolor="#f2f2f2">
+        <b>站点信息</b><br>
+        访问计数器：<span class="counter" id="site-hits2">0000</span><br>
+        <span class="gray">建站日期：2025 年 · 由 TIA-MC 启动器内置 HTTP 服务提供</span><br>
+        <span class="gray">推荐分辨率：1024 × 768 · 建议浏览器：Internet Explorer 6.0</span>
+      </td>
+    </tr>
+  </table>
+
+  <div class="site-footer">
     <span id="status-main">完成</span>
-    <span class="gray" id="status-detail">http://127.0.0.1/legacy</span>
-    <span class="gray right">IE6 兼容页 · TiaMC-Web 1.0.0</span>
+    <span class="gray" id="status-detail">http://127.0.0.1/legacy</span><br>
+    最佳浏览：<b>IE6.0</b> 1024×768 &nbsp;|&nbsp; 本站由 <b>TIA-MC 启动器</b> 驱动 &nbsp;|&nbsp;
+    内核：系统 Trident（文档模式 IE=5 Quirks）&nbsp;|&nbsp;
+    <a href="/ie4">Trident 4.0（IE4）档</a> · <a href="/">现代界面</a><br>
+    <span class="gray">Copyright &copy; 2002-2025 TIA-MC · Web MC 启动器（同一套内核 / 同一份配置）</span>
   </div>
 </div>
 
-<script src="/flash/ruffle.js"></script>
 <script src="/legacy.js"></script>
 </body>
 </html>

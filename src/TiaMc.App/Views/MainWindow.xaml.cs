@@ -94,6 +94,19 @@ public partial class MainWindow : Window
             "关于 TIA-MC", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
+    /// <summary>把 Web 版当作启动器拉起来（浏览器窗口 + 本地 HTTP 服务）。</summary>
+    private void OpenWebUi_Click(object sender, RoutedEventArgs e)
+    {
+        var (ok, message) = Services.WebShellLauncher.Start();
+        if (ok)
+        {
+            Services.LogService.Ok(message, "Web");
+            return;
+        }
+
+        MessageBox.Show(message, "TIA-MC Web 界面", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
     private void ExpandAll_Click(object sender, RoutedEventArgs e) => SetExpansion(true);
 
     private void CollapseAll_Click(object sender, RoutedEventArgs e) => SetExpansion(false);

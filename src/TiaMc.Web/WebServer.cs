@@ -131,9 +131,17 @@ internal sealed class WebServer(int preferredPort, string bindHost = "127.0.0.1"
             {
                 client = await _listener.AcceptTcpClientAsync().ConfigureAwait(false);
             }
-            catch (Exception)
+            catch (ObjectDisposedException)
             {
+                // 服务器被正常关闭
                 return;
+            }
+            catch (Exception e)
+            {
+                // 关键：接受连接失败绝不能结束整个循环，否则进程活着但页面"点不动"。
+                App.Services.LogService.Error($"接受连接失败（继续监听）: {e.Message}", "Web");
+                await Task.Delay(200).ConfigureAwait(false);
+                continue;
             }
 
             _ = Task.Run(() => HandleAsync(client));
@@ -213,7 +221,20 @@ internal sealed class WebServer(int preferredPort, string bindHost = "127.0.0.1"
                 }
 
                 var request = new Request { Method = method, Path = path, Query = query, Body = body };
-                var response = Route(request);
+
+                Response response;
+                try
+                {
+                    response = Route(request);
+                }
+                catch (Exception routeError)
+                {
+                    // 处理函数抛异常时也要回一个明确响应，否则页面表现为"点不动"
+                    App.Services.LogService.Error($"处理 {method} {path} 出错: {routeError.Message}", "Web");
+                    var payload = Encoding.UTF8.GetBytes(
+                        "{\"ok\":false,\"message\":\"" + routeError.Message.Replace("\"", "'").Replace("\\", "/") + "\"}");
+                    response = new Response(payload, "application/json; charset=utf-8", 500);
+                }
 
                 var head = $"HTTP/1.1 {response.Status} {StatusText(response.Status)}\r\n" +
                            $"Content-Type: {response.ContentType}\r\n" +

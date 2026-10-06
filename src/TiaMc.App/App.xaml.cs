@@ -91,6 +91,35 @@ public partial class App : Application
             // Caches (mod icons, metadata, Java list) live under <config>\cache.
             Services.AppConfig.ApplyCacheRoot();
 
+            // Web 界面优先：`--web` 参数或配置 webUiFirst=true 时，
+            // 直接启动 Web 版（启动器 = 浏览器窗口 + 本地 HTTP 服务）并退出本进程。
+            // 默认启动即进 Web 界面；`--desktop` 强制回到桌面界面，`--web` 强制进 Web。
+            var forceDesktop = e.Args.Any(a => a.Equals("--desktop", StringComparison.OrdinalIgnoreCase));
+            var forceWeb = e.Args.Any(a => a.Equals("--web", StringComparison.OrdinalIgnoreCase));
+            var webFirst = false;
+            if (!forceDesktop)
+            {
+                try
+                {
+                    webFirst = Services.AppConfig.Load().WebUiFirst;   // 默认 true：启动即进 Web 界面
+                }
+                catch (Exception)
+                {
+                    // 配置读不到就按默认（桌面界面）启动
+                }
+            }
+
+            if (forceWeb) webFirst = true;
+            if (forceDesktop) webFirst = false;
+
+            if (webFirst)
+            {
+                var (ok, message) = Services.WebShellLauncher.Start();
+                if (!ok) MessageBox.Show(message, "TIA-MC Web 界面", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Shutdown(ok ? 0 : 1);
+                return;
+            }
+
             // Every line also goes to <config>\logs\tiamc-<时间>.log so problems can
             // be reported afterwards (the file is flushed per line).
             Services.LogService.InitializeLogFile(
