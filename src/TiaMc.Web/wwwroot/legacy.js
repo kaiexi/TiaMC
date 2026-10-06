@@ -364,5 +364,7 @@ function boot() {
   setInterval(function () { if (!document.hidden) refreshAll(); }, 8000);
 }
 
-if (window.addEventListener) window.addEventListener('load', boot, false);
-else window.attachEvent('onload', boot);
+/* IE6 只有 attachEvent；现代浏览器走 addEventListener —— 这里优先 IE6 的写法 */
+if (window.attachEvent) window.attachEvent('onload', boot);
+else if (window.addEventListener) window.addEventListener('load', boot, false);
+else window.onload = boot;

@@ -1,4 +1,4 @@
-# IE6 兼容性静态检查
+﻿# IE6 兼容性静态检查
 # 扫描 Web 版的 IE6 专用页面与样式，找出 IE6（MSHTML 6.0）不支持的写法。
 # 用法: powershell -File tools/check-ie6.ps1
 
@@ -27,7 +27,7 @@ $rules = @(
     @{ Name = 'ES6 let';                   Pattern = '(?m)(^|[^\w.])let\s+[A-Za-z_$]'; Ext = '.js' },
     @{ Name = 'ES6 箭头函数';               Pattern = '=>'; Ext = '.js' },
     @{ Name = 'fetch()';                   Pattern = '(?<![\w.])fetch\s*\('; Ext = '.js' },
-    @{ Name = 'addEventListener';          Pattern = 'addEventListener'; Ext = '.js' },
+    @{ Name = 'addEventListener 无 IE6 回退'; Pattern = 'addEventListener'; Ext = '.js'; Absent = 'attachEvent' },
     @{ Name = '模板字符串';                  Pattern = '`'; Ext = '.js' },
     @{ Name = 'JSON.parse 直接依赖';         Pattern = 'JSON\.parse'; Ext = '.js' }
 )
@@ -43,12 +43,22 @@ foreach ($file in $targets) {
     $name = Split-Path $file -Leaf
     $ext = [System.IO.Path]::GetExtension($file)
     $text = [System.IO.File]::ReadAllText($file)
-    $lines = $text -split "`r?`n"
+    # 注释里的词不算违规：先剥掉 /* */ 与 // 与 <!-- --> 注释
+    $stripped = [regex]::Replace($text, '/\*[\s\S]*?\*/', '')
+    $stripped = [regex]::Replace($stripped, '<!--[\s\S]*?-->', '')
+    $stripped = [regex]::Replace($stripped, '(?m)//.*$', '')
+    $lines = ($stripped -split "`r?`n")
     Write-Host ""
     Write-Host "文件: $name  ($($lines.Count) 行, $([math]::Round((Get-Item $file).Length/1KB,1)) KB)" -ForegroundColor Yellow
 
     foreach ($rule in $rules) {
         if ($rule.Ext -notlike "*$ext*") { continue }
+        # 某些规则在"存在替代写法"时不算违规（例如 addEventListener 旁边有 attachEvent 回退）
+        if ($rule.ContainsKey('Absent') -and $stripped -match [regex]::Escape($rule.Absent)) {
+            Write-Host ("  [PASS] {0}（存在 {1} 回退）" -f $rule.Name, $rule.Absent) -ForegroundColor Green
+            $pass++
+            continue
+        }
         $hits = @()
         for ($i = 0; $i -lt $lines.Count; $i++) {
             if ($lines[$i] -match $rule.Pattern) { $hits += ($i + 1) }

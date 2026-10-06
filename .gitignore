@@ -30,3 +30,10 @@ crash-*.txt
 .idea/
 .vscode/
 *.swp
+
+# 外部浏览器引擎 / 第三方内核目录（含微软或泄露源码的二进制一律不入库）
+ie6/
+engine/
+winsdk/
+nt5src/
+ie6setup.exe
