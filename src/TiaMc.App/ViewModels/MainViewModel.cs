@@ -4018,6 +4018,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Config.SavedSkins.RemoveAll(s => string.Equals(s.Path, entry.Path, StringComparison.OrdinalIgnoreCase));
         Config.SavedSkins.Add(entry);
         Config.Save();
+        HookAuthDiagnostics();
         RefreshSkinLibrary();
         LogService.Ok($"已加入皮肤库: {entry.Name}（模型 {model}）", "皮肤");
     }
@@ -4036,6 +4037,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
         Skin3DInput = "";
         _ = PreviewSkin3DAsync();
+        HookAuthDiagnostics();
         RefreshSkinLibrary();
         LogService.Ok($"已应用皮肤 {skin.Name}（{skin.Model}）；点「让游戏里也穿这个皮肤」可推到游戏", "皮肤");
     }
@@ -4046,6 +4048,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         if (skin is null) return;
         Config.SavedSkins.Remove(skin);
         Config.Save();
+        HookAuthDiagnostics();
         RefreshSkinLibrary();
         LogService.Info($"已从皮肤库移除 {skin.Name}", "皮肤");
     }
@@ -4162,6 +4165,12 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             ServerCoreStatus = $"下载失败（{outcome.Failed} 个文件）";
             LogService.Error("服务端核心下载失败", "服务端");
         }
+    }
+
+    /// <summary>把正版登录每一步（设备码/换票/Xbox/XSTS/Minecraft/授权）写进日志，失败时能直接看出卡在哪一步。</summary>
+    public void HookAuthDiagnostics()
+    {
+        _launcher.MicrosoftAuth.Diagnostics = message => Ui.Post(() => LogService.Info("[登录] " + message, "Account"));
     }
 
     public bool IsBusy
@@ -4524,6 +4533,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         // First run (or an empty folder): look for a usable installation.
         await AutoDetectOnStartupAsync();
 
+        HookAuthDiagnostics();
         RefreshSkinLibrary();
         // 启动完成后自动拉一次皮肤预览（本地 3D + 在线多角度渲染）
         _ = PreviewSkin3DAsync();

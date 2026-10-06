@@ -31,6 +31,9 @@ public sealed class DeviceCodeInfo
     [JsonPropertyName("expires_in")] public int ExpiresInSeconds { get; set; } = 900;
     [JsonPropertyName("interval")] public int IntervalSeconds { get; set; } = 5;
     [JsonPropertyName("message")] public string? Message { get; set; }
+
+    /// <summary>这张设备码对应的令牌端点（必须与签发设备码的端点配对，否则换票必失败）。</summary>
+    [JsonIgnore] public string TokenEndpoint { get; set; } = "";
 }
 
 public sealed class MicrosoftAuthResult
@@ -92,6 +95,12 @@ public sealed class MicrosoftAuth
     // ------------------------------------------------------------ step 1: code
 
     /// <summary>Requests a device code; show <see cref="DeviceCodeInfo.UserCode"/> to the user.</summary>
+    /// <summary>每一步的诊断输出（设备码 / 换票 / Xbox / XSTS / Minecraft / 授权），界面把它写进日志。</summary>
+    public Action<string>? Diagnostics { get; set; }
+
+    private static string legacyOf(string endpoint)
+        => endpoint == LiveDeviceCodeEndpoint ? LiveTokenEndpoint : ConsumersTokenEndpoint;
+
     public async Task<DeviceCodeInfo> RequestDeviceCodeAsync(CancellationToken token = default)
     {
         // 顺序很关键：内置客户端 ID（00000000402b5328，官方启动器那个）在
@@ -108,7 +117,12 @@ public sealed class MicrosoftAuth
             try
             {
                 var info = await RequestDeviceCodeFromAsync(endpoint, token).ConfigureAwait(false);
-                if (info is not null) return info;
+                {
+                    // 换票必须用与设备码**同一个**端点，否则会出现 live.com 拿码 / consumers 换票的认证失败
+                    info.TokenEndpoint = legacyOf(endpoint);
+                    Diagnostics?.Invoke("设备码已获取（端点 " + endpoint + "）");
+                    return info;
+                }
             }
             catch (MicrosoftAuthException e)
             {
@@ -278,7 +292,8 @@ public sealed class MicrosoftAuth
             string body;
             try
             {
-                response = await _http.PostAsync(TokenEndpoint, content, token).ConfigureAwait(false);
+                var tokenEndpoint = string.IsNullOrWhiteSpace(info.TokenEndpoint) ? TokenEndpoint : info.TokenEndpoint;
+                response = await _http.PostAsync(tokenEndpoint, content, token).ConfigureAwait(false);
                 body = await response.Content.ReadAsStringAsync(token).ConfigureAwait(false);
             }
             catch (HttpRequestException)
