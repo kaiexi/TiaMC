@@ -77,8 +77,15 @@ public sealed class ModpackManager
                 };
 
                 pack.Path = directory;
-                // The folder decides the kind: a pack is where it was installed.
+                // 文件夹决定类型：整合包放在哪个目录就是哪种。
                 pack.Kind = kind == ModpackKind.Server ? "server" : "client";
+
+                // 名字优先取"包内清单里声明的名字"，而不是文件夹名
+                // （下载下来的包常是 <slug>-<版本>.mrpack 这种，直接当名字很难看、也对不上）。
+                var declared = ReadDeclaredName(directory);
+                if (declared.Length > 0) pack.DeclaredName = declared;
+                else if (string.IsNullOrWhiteSpace(pack.DeclaredName)) pack.DeclaredName = pack.Name;
+
                 pack.ModCount = CountMods(directory);
                 pack.SizeText = FormatSize(DirectorySize(directory));
 
@@ -102,6 +109,41 @@ public sealed class ModpackManager
             .OrderByDescending(p => p.IsServer)
             .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    /// <summary>
+    /// 读整合包内清单里声明的名字（Modrinth 的 modrinth.index.json、CurseForge 的 manifest.json、
+    /// MultiMC 的 mmc-pack.json）。读不到就返回空串，调用方退回文件夹名。
+    /// </summary>
+    public static string ReadDeclaredName(string directory)
+    {
+        foreach (var (file, property) in new[]
+                 {
+                     ("modrinth.index.json", "name"),
+                     ("manifest.json", "name"),
+                     ("mmc-pack.json", "name")
+                 })
+        {
+            var path = Path.Combine(directory, file);
+            if (!File.Exists(path)) continue;
+
+            try
+            {
+                using var document = JsonDocument.Parse(File.ReadAllText(path));
+                if (document.RootElement.TryGetProperty(property, out var name) &&
+                    name.ValueKind == JsonValueKind.String)
+                {
+                    var text = name.GetString();
+                    if (!string.IsNullOrWhiteSpace(text)) return text!.Trim();
+                }
+            }
+            catch (Exception)
+            {
+                // 清单坏了就继续找下一个
+            }
+        }
+
+        return "";
     }
 
     public static int CountMods(string directory)

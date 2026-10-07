@@ -77,6 +77,13 @@ public sealed class Modpack
 public sealed class InstalledModpack
 {
     [JsonPropertyName("name")] public string Name { get; set; } = "";
+
+    /// <summary>包内清单（modrinth.index.json / manifest.json / mmc-pack.json）声明的名字。</summary>
+    [JsonPropertyName("declaredName")] public string DeclaredName { get; set; } = "";
+
+    /// <summary>列表显示用名字：优先包内声明的名字，其次文件夹名。</summary>
+    [JsonIgnore]
+    public string DisplayName => !string.IsNullOrWhiteSpace(DeclaredName) ? DeclaredName : Name;
     [JsonPropertyName("version")] public string Version { get; set; } = "";
     [JsonPropertyName("kind")] public string Kind { get; set; } = "client";
     [JsonPropertyName("format")] public string Format { get; set; } = "Archive";
