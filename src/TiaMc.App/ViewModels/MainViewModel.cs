@@ -4079,7 +4079,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     // ------------------------------------------------------------ 加载器（Forge / NeoForge / Fabric / Quilt / OptiFine）
     /// <summary>可选的加载器种类（第一个是原版，不装加载器）。</summary>
     public ObservableCollection<string> LoaderKinds { get; } =
-        ["原版（不装加载器）", "Forge", "NeoForge", "Fabric", "Quilt", "OptiFine"];
+        ["原版（不装加载器）", "Forge", "NeoForge", "Fabric", "Quilt", "Legacy Fabric", "LiteLoader", "OptiFine"];
 
     private string _selectedLoaderKind = "Fabric";
     public string SelectedLoaderKind

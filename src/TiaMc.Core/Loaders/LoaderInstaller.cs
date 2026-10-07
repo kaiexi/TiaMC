@@ -36,6 +36,8 @@ public sealed class LoaderInstaller
         {
             LoaderKind.Fabric => await FabricAsync("fabric", gameVersion, loaderVersion, minecraftRoot, progress, token)
                 .ConfigureAwait(false),
+            LoaderKind.LegacyFabric => await FabricAsync("legacyfabric", gameVersion, loaderVersion, minecraftRoot, progress, token)
+                .ConfigureAwait(false),
             LoaderKind.Quilt => await FabricAsync("quilt", gameVersion, loaderVersion, minecraftRoot, progress, token)
                 .ConfigureAwait(false),
             LoaderKind.Forge => await InstallerJarAsync(kind, gameVersion, loaderVersion, minecraftRoot, javaPath,
@@ -53,9 +55,12 @@ public sealed class LoaderInstaller
     private async Task<InstallResult> FabricAsync(string loader, string gameVersion, string loaderVersion,
         string minecraftRoot, IProgress<string>? progress, CancellationToken token)
     {
-        var url = loader == "quilt"
-            ? $"https://meta.quiltmc.org/v3/versions/loader/{gameVersion}/{loaderVersion}/profile/json"
-            : $"https://meta.fabricmc.net/v2/versions/loader/{gameVersion}/{loaderVersion}/profile/json";
+        var url = loader switch
+        {
+            "quilt" => $"https://meta.quiltmc.org/v3/versions/loader/{gameVersion}/{loaderVersion}/profile/json",
+            "legacyfabric" => $"https://meta.legacyfabric.net/v2/versions/loader/{gameVersion}/{loaderVersion}/profile/json",
+            _ => $"https://meta.fabricmc.net/v2/versions/loader/{gameVersion}/{loaderVersion}/profile/json"
+        };
 
         progress?.Report($"获取 {loader} 配置: {url}");
 

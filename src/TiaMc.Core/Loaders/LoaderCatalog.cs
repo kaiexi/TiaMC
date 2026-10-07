@@ -12,6 +12,8 @@ public enum LoaderKind
     NeoForge,
     Fabric,
     Quilt,
+    LegacyFabric,
+    LiteLoader,
     OptiFine
 }
 
@@ -50,6 +52,8 @@ public sealed class LoaderCatalog
         LoaderKind.NeoForge => "neoforge",
         LoaderKind.Fabric => "fabric",
         LoaderKind.Quilt => "quilt",
+        LoaderKind.LegacyFabric => "legacyfabric",
+        LoaderKind.LiteLoader => "liteloader",
         LoaderKind.OptiFine => "optifine",
         _ => "vanilla"
     };
@@ -63,6 +67,8 @@ public sealed class LoaderCatalog
             return kind switch
             {
                 LoaderKind.Fabric => await FabricAsync(gameVersion, token).ConfigureAwait(false),
+                LoaderKind.LegacyFabric => await LegacyFabricAsync(gameVersion, token).ConfigureAwait(false),
+                LoaderKind.LiteLoader => await LiteLoaderAsync(gameVersion, token).ConfigureAwait(false),
                 LoaderKind.Quilt => await QuiltAsync(gameVersion, token).ConfigureAwait(false),
                 LoaderKind.NeoForge => await NeoForgeAsync(gameVersion, token).ConfigureAwait(false),
                 LoaderKind.Forge => await ForgeAsync(gameVersion, token).ConfigureAwait(false),
@@ -82,6 +88,8 @@ public sealed class LoaderCatalog
         var s when s.Contains("neoforge") => LoaderKind.NeoForge,
         var s when s.Contains("forge") => LoaderKind.Forge,
         var s when s.Contains("quilt") => LoaderKind.Quilt,
+        var s when s.Contains("legacy") && s.Contains("fabric") => LoaderKind.LegacyFabric,
+        var s when s.Contains("liteloader") => LoaderKind.LiteLoader,
         var s when s.Contains("optifine") => LoaderKind.OptiFine,
         var s when s.Contains("fabric") => LoaderKind.Fabric,
         _ => LoaderKind.Vanilla
@@ -143,6 +151,27 @@ public sealed class LoaderCatalog
         }
 
         result.Reverse();   // 新的在前
+
+        // 学 Axolotl：1.20.1 这类老版本在 net/neoforged/forge（legacy 仓库）里
+        if (result.Count == 0)
+        {
+            var legacy = await GetJsonAsync(
+                "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge", token)
+                .ConfigureAwait(false);
+            if (legacy is not null && legacy.Value.TryGetProperty("versions", out var legacyVersions))
+            {
+                foreach (var item in legacyVersions.EnumerateArray())
+                {
+                    var version = item.GetString() ?? "";
+                    if (version.StartsWith(gameVersion + "-", StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Add(new LoaderVersion("neoforge", version, gameVersion, false, "legacy"));
+                    }
+                }
+                result.Reverse();
+            }
+        }
+
         return result;
     }
 
@@ -204,24 +233,98 @@ public sealed class LoaderCatalog
 
     private async Task<List<LoaderVersion>> OptiFineAsync(string gameVersion, CancellationToken token)
     {
-        // OptiFine 没有官方 API：从下载页里抓 "OptiFine_<游戏版本>_HD_U_<x>_<mc>.jar" 这类文件名。
-        var html = await GetTextAsync("https://optifine.net/downloads", token).ConfigureAwait(false);
+        // 学 Axolotl：不用抓 optifine.net 的 HTML，改用 BMCLAPI 的 JSON 版本表
+        // （https://bmclapi2.bangbang93.com/optifine/versionList，实测 498 条，国内可达）。
+        var list = await GetJsonAsync("https://bmclapi2.bangbang93.com/optifine/versionList", token)
+            .ConfigureAwait(false);
         var result = new List<LoaderVersion>();
-        if (html is null) return result;
+        if (list is null) return result;
 
-        var pattern = $@"OptiFine_{Regex.Escape(gameVersion)}_([A-Za-z0-9_\.]+)\.jar";
-        foreach (Match match in Regex.Matches(html, pattern))
+        foreach (var item in list.Value.EnumerateArray())
         {
-            var version = match.Groups[1].Value.TrimEnd('.');
+            var mc = item.TryGetProperty("mcversion", out var m) ? m.GetString() ?? "" : "";
+            if (!string.Equals(mc, gameVersion, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var fileName = item.TryGetProperty("filename", out var fn) ? fn.GetString() ?? "" : "";
+            var type = item.TryGetProperty("type", out var ty) ? ty.GetString() ?? "" : "";
+            var patch = item.TryGetProperty("patch", out var pa) ? pa.GetString() ?? "" : "";
+            var version = fileName.Length > 0
+                ? Path.GetFileNameWithoutExtension(fileName)
+                    .Replace($"OptiFine_{gameVersion}_", "")
+                    .Replace("_preview", "")
+                    .Replace("preview_", "")
+                : $"{type}_{patch}";
+            var isPreview = fileName.Contains("preview", StringComparison.OrdinalIgnoreCase);
+            if (version.Length == 0) continue;
             if (result.All(r => r.Version != version))
             {
-                result.Add(new LoaderVersion("optifine", version, gameVersion, false, "需要图形界面安装"));
+                result.Add(new LoaderVersion("optifine", version, gameVersion, !isPreview,
+                    isPreview ? "预览版" : "需要图形界面安装"));
             }
         }
 
         return result;
     }
 
+    private async Task<List<LoaderVersion>> LegacyFabricAsync(string gameVersion, CancellationToken token)
+    {
+        var jar = await GetJsonAsync("https://meta.legacyfabric.net/v2/versions/loader/" +
+                                    Uri.EscapeDataString(gameVersion), token).ConfigureAwait(false);
+        var result = new List<LoaderVersion>();
+        if (jar is null) return result;
+
+        foreach (var item in jar.Value.EnumerateArray())
+        {
+            if (!item.TryGetProperty("loader", out var loader)) continue;
+            var version = loader.TryGetProperty("version", out var v) ? v.GetString() ?? "" : "";
+            var stable = loader.TryGetProperty("stable", out var st) && st.ValueKind == JsonValueKind.True;
+            if (version.Length > 0) result.Add(new LoaderVersion("legacyfabric", version, gameVersion, stable));
+        }
+
+        return result;
+    }
+
+    private async Task<List<LoaderVersion>> LiteLoaderAsync(string gameVersion, CancellationToken token)
+    {
+        var jar = await GetJsonAsync("https://dl.liteloader.com/versions/versions.json", token).ConfigureAwait(false);
+        var result = new List<LoaderVersion>();
+        if (jar is null || !jar.Value.TryGetProperty("versions", out var versions)) return result;
+
+        foreach (var game in versions.EnumerateObject())
+        {
+            if (!string.Equals(game.Name, gameVersion, StringComparison.OrdinalIgnoreCase)) continue;
+            // 结构不固定：在 <游戏版本> 节点下递归找 "version" 字段
+            void Walk(JsonElement node)
+            {
+                if (node.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var property in node.EnumerateObject())
+                    {
+                        if (property.NameEquals("version") && property.Value.ValueKind == JsonValueKind.String)
+                        {
+                            var version = property.Value.GetString() ?? "";
+                            if (version.Length > 0 && result.All(r => r.Version != version))
+                            {
+                                result.Add(new LoaderVersion("liteloader", version, gameVersion, false));
+                            }
+                        }
+                        else
+                        {
+                            Walk(property.Value);
+                        }
+                    }
+                }
+                else if (node.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in node.EnumerateArray()) Walk(item);
+                }
+            }
+
+            Walk(game.Value);
+        }
+
+        return result;
+    }
     private async Task<JsonElement?> GetJsonAsync(string url, CancellationToken token)
     {
         var text = await GetTextAsync(url, token).ConfigureAwait(false);
