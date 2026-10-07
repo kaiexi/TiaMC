@@ -50,7 +50,7 @@ public static class AppInfo
     /// 启动器版本号。以前一直写死 1.0.0，导致用户拿着旧版本问"为什么没有某个功能"时
     /// 无法确认自己在跑哪一版——现在和发布版本（Release tag）保持一致。
     /// </summary>
-    public const string Version = "1.0.33";
+    public const string Version = "1.0.34";
 
     /// <summary>标题栏用：版本号紧跟在产品名后面，例如「TIA-MC 工程启动器 v1.0.9」。</summary>
     public static string TitleWithVersion => $"{LauncherTitle} v{Version}";

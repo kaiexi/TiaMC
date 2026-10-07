@@ -1788,6 +1788,8 @@
                                     <TextBlock DockPanel.Dock="Top" Text="{Binding ServerInstanceSummary}" Style="{StaticResource Tia.MutedText}" Margin="0,0,0,4" />
                                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
                                         <Button Style="{StaticResource Tia.Button.Tool}" Content="刷新实例列表" Command="{Binding RefreshServerInstancesCommand}" />
+            <Button Style="{StaticResource Tia.Button.Primary}" Content="启动选中实例" Command="{Binding StartServerInstanceCommand}" Margin="8,0,0,0" ToolTip="用核心 jar 启动（按版本自动选 Java），输出实时进「输出窗口」" />
+            <Button Style="{StaticResource Tia.Button.Tool}" Content="停止" Command="{Binding StopServerInstanceCommand}" Margin="8,0,0,0" ToolTip="先发 stop 让服务端保存世界，超时才强制结束" />
                                         <Button Style="{StaticResource Tia.Button.Tool}" Content="打开实例目录" Command="{Binding OpenServerInstanceCommand}" Margin="8,0,0,0" />
                                         <Button Style="{StaticResource Tia.Button.Tool}" Content="删除实例" Command="{Binding DeleteServerInstanceCommand}" Margin="8,0,0,0" />
                                         <TextBlock Style="{StaticResource Tia.MutedText}" VerticalAlignment="Center" Margin="12,0,0,0" Text="启动/停止服务端请用上面的按钮（服务端输出在下方「输出窗口」）" />

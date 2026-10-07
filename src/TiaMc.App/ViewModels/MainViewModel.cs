@@ -153,6 +153,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         RefreshServerInstancesCommand = new RelayCommand(RefreshServerInstances);
         OpenServerInstanceCommand = new RelayCommand(OpenServerInstance);
         DeleteServerInstanceCommand = new RelayCommand(DeleteServerInstance);
+        StartServerInstanceCommand = new AsyncRelayCommand(StartServerInstanceAsync);
+        StopServerInstanceCommand = new RelayCommand(StopServerInstance);
         // 删除本地版本（删除 versions/<id> 整个目录，共享的存档/模组不动）
         DeleteVersionCommand = new RelayCommand(DeleteSelectedVersion,
             () => SelectedVersion is not null && !_launcher.IsRunning);
@@ -4104,6 +4106,48 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public RelayCommand RefreshServerInstancesCommand { get; private set; } = null!;
     public RelayCommand OpenServerInstanceCommand { get; private set; } = null!;
     public RelayCommand DeleteServerInstanceCommand { get; private set; } = null!;
+    public AsyncRelayCommand StartServerInstanceCommand { get; private set; } = null!;
+    public RelayCommand StopServerInstanceCommand { get; private set; } = null!;
+
+    private readonly TiaMc.Core.Servers.ServerRunner _serverRunner = new();
+
+    /// <summary>启动选中的服务端实例：核心 + 按版本挑的 Java，输出进「输出窗口」。</summary>
+    private async Task StartServerInstanceAsync()
+    {
+        var item = SelectedServerInstance;
+        if (item is null) { ServerCoreStatus = "先选中一个服务端实例"; return; }
+        if (item.CoreJar.Length == 0) { ServerCoreStatus = "这个实例里没找到核心 jar（整合包实例请用整合包页的启动服务端）"; return; }
+        if (_serverRunner.IsRunning) { ServerCoreStatus = "已经有一个服务端在运行"; return; }
+        if (!item.HasEula) { ServerCoreStatus = "这个实例还没同意 eula（eula.txt 里要是 eula=true）"; return; }
+
+        var guess = System.Text.RegularExpressions.Regex.Match(item.Name, @"\d+\.\d+(\.\d+)?");
+        var version = guess.Success ? guess.Value : "1.21.4";
+        var java = ResolveJavaForServer(version);
+
+        ServerCoreStatus = $"正在启动 {item.Name}（Java {version} 需要 {TiaMc.Core.Servers.ServerInstanceCreator.RecommendedJava(version)}+）…";
+        var ok = _serverRunner.Start(item.Path, item.CoreJar, java, Math.Max(1024, Config.MaxMemoryMb),
+            line => LogService.Game(line),
+            code => Ui.Post(() =>
+            {
+                ServerCoreStatus = $"{item.Name} 已退出（退出码 {code}）";
+                LogService.Info($"服务端已退出，退出码 {code}", "服务端");
+                RefreshServerInstances();
+            }));
+
+        ServerCoreStatus = ok ? $"服务端已启动：{item.Name}（{item.CoreJar}）—— 输出在下方「输出窗口」" : "启动失败（看日志）";
+        LogService.Info(ServerCoreStatus, "服务端");
+        await Task.CompletedTask;
+    }
+
+    /// <summary>优雅停止：先发 stop 让服务端保存世界，超时才强杀。</summary>
+    private void StopServerInstance()
+    {
+        if (!_serverRunner.IsRunning) { ServerCoreStatus = "当前没有正在运行的服务端"; return; }
+        ServerCoreStatus = "正在停止服务端（会先保存世界）…";
+        _serverRunner.Stop(60, message => LogService.Warn(message, "服务端"));
+        ServerCoreStatus = "服务端已停止";
+        RefreshServerInstances();
+    }
 
     /// <summary>本机已有的服务端实例（server-cores / serverpacks 两个目录都扫）。</summary>
     public ObservableCollection<TiaMc.Core.Servers.ServerInstanceScanner.ServerInstance> ServerInstances { get; } = [];
