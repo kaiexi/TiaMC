@@ -2341,7 +2341,12 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var java = _launcher.JavaRuntimes.FirstOrDefault()?.Path ?? "java";
+        // 服务端按版本要求挑 Java：以前取第一个（常是 Java 17），Paper/新版整合包需要 21 → UnsupportedClassVersionError
+        var neededJava = TiaMc.Core.Servers.ServerInstanceCreator.RecommendedJava(pack.GameVersion);
+        var javaInfo = _launcher.JavaRuntimes.Where(j => j.MajorVersion >= neededJava)
+            .OrderBy(j => j.MajorVersion).FirstOrDefault();
+        var java = javaInfo?.Path ?? _launcher.JavaRuntimes.FirstOrDefault()?.Path ?? "java";
+        LogService.Info($"服务端需要 Java {neededJava}+，选用 {(javaInfo is null ? "PATH 里的 java" : "Java " + javaInfo.MajorVersion)}: {java}", "Packs");
         var progress = new Progress<string>(line => LogService.Info("  " + line, "Packs"));
 
         ModpackManager.AcceptEula(pack.Path);
