@@ -86,6 +86,9 @@
     <SolidColorBrush x:Key="Tia.SelectionText" Color="{StaticResource C.SelectionText}"/>
     <SolidColorBrush x:Key="Tia.Hover" Color="{StaticResource C.Hover}"/>
     <SolidColorBrush x:Key="Tia.RibbonBg" Color="{StaticResource C.RibbonBg}"/>
+    <!-- 菜单条专用前景/背景：博途皮肤下把标题项刷成深底白字，下拉弹层仍用深色文字 -->
+    <SolidColorBrush x:Key="Tia.MenuBg" Color="{StaticResource C.RibbonBg}"/>
+    <SolidColorBrush x:Key="Tia.MenuFg" Color="{StaticResource C.Text}"/>
     <SolidColorBrush x:Key="Tia.RibbonGroupBg" Color="{StaticResource C.RibbonGroupBg}"/>
     <SolidColorBrush x:Key="Tia.StatusBg" Color="{StaticResource C.StatusBg}"/>
     <!-- The consumer uses "Tia.StatusText" as a TextBlock *Style*, so the
@@ -1760,8 +1763,10 @@
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
                 <Setter TargetName="Bd" Property="Background" Value="{StaticResource Tia.ContentBg}"/>
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Tia.Accent}"/>
                 <Setter TargetName="TopRule" Property="Background" Value="{StaticResource Tia.Accent}"/>
-                <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+                <Setter Property="Foreground" Value="{StaticResource Tia.Accent}"/>
+                <Setter Property="FontWeight" Value="Bold"/>
                 <Setter Property="Panel.ZIndex" Value="2"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
@@ -2782,6 +2787,15 @@
         <Setter Property="Padding" Value="7,3"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="Template" Value="{StaticResource Tia.MenuItemTemplate}"/>
+        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
+        <Style.Triggers>
+            <Trigger Property="Role" Value="TopLevelHeader">
+                <Setter Property="Foreground" Value="{DynamicResource Tia.MenuFg}"/>
+            </Trigger>
+            <Trigger Property="Role" Value="TopLevelItem">
+                <Setter Property="Foreground" Value="{DynamicResource Tia.MenuFg}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style x:Key="Tia.ContextMenu" TargetType="{x:Type ContextMenu}">
@@ -2800,8 +2814,8 @@
     <Style x:Key="Tia.Menu" TargetType="{x:Type Menu}">
         <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="Foreground" Value="{StaticResource Tia.Text}"/>
-        <Setter Property="Background" Value="{StaticResource Tia.RibbonBg}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Tia.MenuFg}"/>
+        <Setter Property="Background" Value="{DynamicResource Tia.MenuBg}"/>
         <Setter Property="Height" Value="24"/>
         <Setter Property="Padding" Value="2,0"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>

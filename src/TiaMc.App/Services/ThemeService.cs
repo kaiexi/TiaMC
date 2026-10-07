@@ -51,8 +51,15 @@ public static class ThemeService
         ("代码蓝", "#569CD6", "#CE9178"),
         ("翡翠绿", "#2E9E6B", "#D6B44A"),
         ("品红紫", "#A855F7", "#22D3EE"),
-        ("石墨灰", "#5A6472", "#9CA3AF")
+        ("石墨灰", "#5A6472", "#9CA3AF"),
+        ("西门子博途（TIA Portal）", "#182030", "#FC8608")
     ];
+
+    /// <summary>
+    /// 西门子博途（TIA Portal）皮肤名。颜色是从虚拟机里**真跑着的 TIA Portal V18 界面**上取样的：
+    /// 内容区 #D0D0D0 / 卡片 #F0F0F0 / 品牌条深藏青 #182030 / 文字 #202020 / 边框 #B2B2B2 / 强调橙 #FC8608。
+    /// </summary>
+    public const string TiaPortalSkin = "西门子博途（TIA Portal）";
 
     public static bool DarkMode { get; private set; }
     public static string CurrentSkin { get; private set; } = Skins[0].Name;
@@ -90,6 +97,21 @@ public static class ThemeService
 
         var preset = Skins.FirstOrDefault(s => s.Name == skin);
         if (preset.Name is null) preset = Skins[0];
+
+        // 博途皮肤连"背景色"一起换（这些色值是从真 TIA Portal V18 界面上取样的）
+        if (!dark && skin == TiaPortalSkin)
+        {
+            SetBrush("Tia.PanelBg", Parse("#D0D0D0"));     // 内容区浅灰
+            SetBrush("Tia.PanelBgAlt", Parse("#DDDDDD"));
+            SetBrush("Tia.ContentBg", Parse("#F0F0F0"));   // 卡片/表格底
+            SetBrush("Tia.Border", Parse("#B2B2B2"));
+            SetBrush("Tia.BorderStrong", Parse("#8C8C8C"));
+            SetBrush("Tia.MenuBg", Parse("#182030"));    // 菜单条：深藏青（与标题栏连成一条）
+            SetBrush("Tia.MenuFg", Parse("#FFFFFF"));    // 菜单标题项：白字
+            SetBrush("Tia.Text", Parse("#202020"));
+            SetBrush("Tia.TextMuted", Parse("#4D4D4D"));
+            SetBrush("Tia.Hover", Parse("#E4E4E4"));
+        }
 
         if (!dark)
         {

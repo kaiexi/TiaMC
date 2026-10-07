@@ -22,6 +22,7 @@
             <conv:IconKeyToGeometryConverter x:Key="IconKeyToGeometry" />
             <conv:InstalledTextConverter x:Key="InstalledText" />
             <conv:SkinHeadConverter x:Key="SkinHead" />
+            <conv:BoolToRunTextConverter x:Key="BoolToRunText" />
             <conv:IntEqualsConverter x:Key="IntEquals" />
 
             <!-- Window / taskbar icon. Declared as a resource next to the pack

@@ -90,6 +90,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public MainViewModel()
     {
         _launcher = new LaunchService(AppConfig.Load());
+        // 启动进哪一屏：按上次选择恢复（默认门户视图）——放在 _launcher 之后，因为 Config 依赖它
+        PortalViewVisible = Config.LastView != "project";
         _launcher.StateChanged += OnStateChanged;
         _launcher.GameOutput += line => Console.Append(line);
         _launcher.GameExited += OnGameExited;
@@ -151,6 +153,13 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         DownloadServerCoreCommand = new AsyncRelayCommand(DownloadServerCoreAsync);
         CreateServerInstanceCommand = new AsyncRelayCommand(CreateServerInstanceAsync);
         RefreshServerInstancesCommand = new RelayCommand(RefreshServerInstances);
+        ShowProjectViewCommand = new RelayCommand(ShowProjectView);
+        ShowPortalViewCommand = new RelayCommand(ShowPortalView);
+        OpenHelpCommand = new RelayCommand(OpenHelp);
+        PortalOpenCommand = new RelayCommand(PortalOpen);
+        GoWorkspaceTabCommand = new RelayCommand(parameter => GoWorkspaceTab(parameter as string));
+        OpenInstanceFolderCommand = new RelayCommand(OpenInstanceFolder);
+        CloneInstanceCommand = new AsyncRelayCommand(CloneInstanceAsync);
         LoadLoaderVersionsCommand = new AsyncRelayCommand(LoadLoaderVersionsAsync);
         InstallLoaderCommand = new AsyncRelayCommand(InstallLoaderAsync);
         OpenServerInstanceCommand = new RelayCommand(OpenServerInstance);
@@ -4076,6 +4085,122 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         LogService.Info($"已从皮肤库移除 {skin.Name}", "皮肤");
     }
 
+    // ------------------------------------------------------------ 门户视图（学 TIA Portal 的 Portal 视图启动页）
+    private bool _portalViewVisible = true;
+    /// <summary>是否显示门户视图启动页（true=门户视图，false=项目视图/功能区界面）。</summary>
+    public bool PortalViewVisible
+    {
+        get => _portalViewVisible;
+        set { if (Set(ref _portalViewVisible, value)) Raise(); }
+    }
+
+    private bool _portalCheckBeforeLaunch = true;
+    /// <summary>门户视图的「激活基本的完整性检查」：打开实例前先校验文件。</summary>
+    public bool PortalCheckBeforeLaunch
+    {
+        get => _portalCheckBeforeLaunch;
+        set { if (Set(ref _portalCheckBeforeLaunch, value)) Raise(); }
+    }
+
+    public RelayCommand ShowProjectViewCommand { get; private set; } = null!;
+    public RelayCommand ShowPortalViewCommand { get; private set; } = null!;
+    public RelayCommand OpenHelpCommand { get; private set; } = null!;
+    public RelayCommand PortalOpenCommand { get; private set; } = null!;
+    public RelayCommand GoWorkspaceTabCommand { get; private set; } = null!;
+
+    /// <summary>门户视图里点导航/任务：切到对应工作区标签，并离开门户视图。</summary>
+    private void GoWorkspaceTab(string? tag)
+    {
+        if (int.TryParse(tag, out var index) && index >= 0)
+        {
+            WorkspaceTab = index;
+        }
+
+        PortalViewVisible = false;
+    }
+
+    /// <summary>门户视图的「打开」：按复选框决定是否先校验，再启动。</summary>
+    private void PortalOpen()
+    {
+        if (SelectedVersion is null)
+        {
+            LogService.Warn("先在上面的「最近使用的」列表里选一个实例", "门户");
+            return;
+        }
+
+        if (PortalCheckBeforeLaunch)
+        {
+            LogService.Info("已勾选「激活基本的完整性检查」：先校验文件完整性", "门户");
+            CheckFilesCommand.Execute(null);
+        }
+
+        LaunchCommand.Execute(null);
+    }
+
+    /// <summary>切到项目视图，并记住这次选择（下次启动直接进这一屏）。</summary>
+    private void ShowProjectView()
+    {
+        PortalViewVisible = false;
+        Config.LastView = "project";
+        Config.Save();
+    }
+
+    /// <summary>切回门户视图，并记住这次选择。</summary>
+    private void ShowPortalView()
+    {
+        PortalViewVisible = true;
+        Config.LastView = "portal";
+        Config.Save();
+    }
+
+    private void OpenHelp()
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://github.com/kaiexi/TiaMC",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception e)
+        {
+            LogService.Warn("打开帮助链接失败：" + e.Message, "门户");
+        }
+    }
+    // ------------------------------------------------------------ 虚拟机式操作（打开目录 / 克隆实例）
+    public RelayCommand OpenInstanceFolderCommand { get; private set; } = null!;
+    public AsyncRelayCommand CloneInstanceCommand { get; private set; } = null!;
+
+    private string _cloneStatus = "";
+    public string CloneStatus
+    {
+        get => _cloneStatus;
+        private set { if (Set(ref _cloneStatus, value)) Raise(); }
+    }
+
+    /// <summary>克隆当前实例（虚拟机软件的"克隆"）：复制目录并改掉版本 id。</summary>
+    private async Task CloneInstanceAsync()
+    {
+        var instance = SelectedVersion;
+        if (instance is null) { CloneStatus = "先选一个实例"; return; }
+        if (_launcher.IsRunning) { CloneStatus = "游戏运行中，先结束游戏再克隆"; return; }
+
+        var name = TiaMc.Core.Instances.InstanceCloner.SuggestName(RootPath, instance.Id);
+        CloneStatus = $"正在克隆 {instance.Id} → {name} …";
+        LogService.Info(CloneStatus, "实例");
+
+        var progress = new Progress<string>(line => LogService.Info("  " + line, "实例"));
+        var result = await Task.Run(() => TiaMc.Core.Instances.InstanceCloner.Clone(
+            RootPath, instance.Id, name, includeSaves: true, progress)).ConfigureAwait(false);
+
+        Ui.Post(() =>
+        {
+            CloneStatus = result.Message;
+            if (result.Ok) LogService.Ok(result.Message + "  到「版本」页刷新即可看到", "实例");
+            else LogService.Error(result.Message, "实例");
+        });
+    }
     // ------------------------------------------------------------ 加载器（Forge / NeoForge / Fabric / Quilt / OptiFine）
     /// <summary>可选的加载器种类（第一个是原版，不装加载器）。</summary>
     public ObservableCollection<string> LoaderKinds { get; } =
@@ -4583,7 +4708,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public InstalledVersion? SelectedVersion
     {
         get => _selectedVersion;
-        private set
+        set
         {
             if (!Set(ref _selectedVersion, value)) return;
             _lastCheck = null;

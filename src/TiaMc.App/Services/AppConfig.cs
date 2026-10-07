@@ -98,6 +98,9 @@ public sealed class AppConfig
     /// <summary>输出窗口代码高亮（按级别/来源上色）。</summary>
     [JsonPropertyName("logHighlight")] public bool LogHighlight { get; set; } = true;
 
+    /// <summary>上次停留在哪一屏："portal"=门户视图（默认），"project"=项目视图。</summary>
+    [JsonPropertyName("lastView")] public string LastView { get; set; } = "portal";
+
     /// <summary>皮肤库（学 Axolotl：可保存多条、带分区与"已应用"标记）。</summary>
     [JsonPropertyName("savedSkins")] public List<SavedSkin> SavedSkins { get; set; } = [];
 

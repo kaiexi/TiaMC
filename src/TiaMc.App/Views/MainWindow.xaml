@@ -317,6 +317,7 @@
                             <TextBlock Text="{StaticResource ToolLabel.Offline}" Margin="4,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
+                    <Button Style="{StaticResource Tia.Button.Tool}" Content="门户视图" Command="{Binding ShowPortalViewCommand}" Margin="8,0,0,0" ToolTip="回到门户视图启动页（学 TIA Portal 的 Portal 视图）" />
                     <Button Style="{StaticResource Tia.Button.Tool}" Command="{Binding RefreshManifestCommand}"
                             ToolTip="获取在线版本清单">
                         <StackPanel Orientation="Horizontal">
@@ -2191,5 +2192,6 @@
                 </StackPanel>
             </Grid>
         </Border>
+        <controls:PortalView Grid.RowSpan="5" Panel.ZIndex="300" Visibility="{Binding PortalViewVisible, Converter={StaticResource BoolToVisibility}}" />
     </Grid>
 </Window>
