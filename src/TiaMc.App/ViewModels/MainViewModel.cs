@@ -2120,7 +2120,11 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             if (_selectedModpack is null) return "";
             if (!_selectedModpack.IsServer) return "客户端整合包没有服务端命令，请选择服务端整合包。";
 
-            var java = _launcher.JavaRuntimes.FirstOrDefault()?.Path ?? "java";
+            // 服务端命令也要按版本挑 Java（否则显示/复制的命令是 Java 17，1.21.4 起不来）
+            var neededForCommand = TiaMc.Core.Servers.ServerInstanceCreator.RecommendedJava(_selectedModpack.GameVersion);
+            var javaForCommand = _launcher.JavaRuntimes.Where(j => j.MajorVersion >= neededForCommand)
+                .OrderBy(j => j.MajorVersion).FirstOrDefault();
+            var java = javaForCommand?.Path ?? _launcher.JavaRuntimes.FirstOrDefault()?.Path ?? "java";
             return ModpackManager.BuildServerCommand(_selectedModpack.Path, java, MaxMemoryMb);
         }
     }
@@ -2462,6 +2466,12 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     }
 
     private void StopServerPack()
+    {
+        // 核心页启动的实例也一起停（以前两边状态分开，停不干净）
+        if (_serverRunner.IsRunning) _serverRunner.Stop(30, message => LogService.Warn(message, "服务端"));
+    }
+
+    private void StopServerPackCore()
     {
         if (_serverProcess is null || _serverProcess.HasExited)
         {
@@ -4195,6 +4205,14 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         var item = SelectedServerInstance;
         if (item is null) { ServerCoreStatus = "先选中一个服务端实例"; return; }
 
+        // 运行中的实例不能删：Windows 会锁住 world 文件，删一半会留下损坏的存档
+        if (_serverRunner.IsRunning)
+        {
+            ServerCoreStatus = "服务端正在运行，请先点「停止」再删除实例";
+            LogService.Warn(ServerCoreStatus, "服务端");
+            return;
+        }
+
         var answer = System.Windows.MessageBox.Show(
             System.Windows.Application.Current.MainWindow,
             $"确定删除服务端实例 {item.Name}？\\n\\n会删除整个目录：{item.Path}\\n（含世界存档与配置，不可撤销）",
@@ -4838,7 +4856,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             if (version is null) return;
             await _launcher.DownloadAllAsync(version, new Progress<DownloadProgress>(p =>
             {
-                DownloadStatus = p.Summary;
+                DownloadStatus = p.Summary + (p.SpeedText.Length > 0
+                  ? "  " + p.SpeedText + (p.EtaText.Length > 0 ? "  剩余 " + p.EtaText : "")
+                  : "");
                 DownloadPercent = p.Percent;
             }), CancellationToken.None);
 
@@ -4929,7 +4949,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         {
             var progress = new Progress<DownloadProgress>(p =>
             {
-                DownloadStatus = p.Summary;
+                DownloadStatus = p.Summary + (p.SpeedText.Length > 0
+                  ? "  " + p.SpeedText + (p.EtaText.Length > 0 ? "  剩余 " + p.EtaText : "")
+                  : "");
                 DownloadPercent = p.Percent;
             });
 

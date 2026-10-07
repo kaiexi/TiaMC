@@ -9,6 +9,28 @@ public sealed class DownloadProgress
     public long BytesDone { get; init; }
     public long TotalBytes { get; init; }
     public string? CurrentFile { get; init; }
+
+    /// <summary>当前下载速度（字节/秒）；0 表示还没测出来。</summary>
+    public double SpeedBytesPerSecond { get; init; }
+
+    /// <summary>形如 "3.2 MB/s"；没测出来时为空串。</summary>
+    public string SpeedText => SpeedBytesPerSecond <= 0
+        ? ""
+        : Utils.TextUtil.FormatBytes((long)SpeedBytesPerSecond) + "/s";
+
+    /// <summary>按当前速度估算的剩余时间。</summary>
+    public string EtaText
+    {
+        get
+        {
+            if (SpeedBytesPerSecond <= 0 || TotalBytes <= BytesDone) return "";
+            var seconds = (TotalBytes - BytesDone) / SpeedBytesPerSecond;
+            if (seconds >= 3600) return $"{seconds / 3600:0.0} 小时";
+            if (seconds >= 60) return $"{seconds / 60:0} 分 {seconds % 60:0} 秒";
+            return $"{seconds:0} 秒";
+        }
+    }
+
     public double Percent => TotalBytes > 0
         ? Math.Min(100, BytesDone * 100.0 / TotalBytes)
         : Total > 0 ? Completed * 100.0 / Total : 0;
@@ -289,13 +311,28 @@ public sealed class DownloadService
                     {
                         bytesDone += bytes;
                         completed++;
+
+                        // 速度采样：以前这两个变量只声明没使用，导致速度恒为 0、状态栏永远不显示速度。
+                        var nowMs = clock.ElapsedMilliseconds;
+                        var elapsedMs = nowMs - lastSampleMs;
+                        if (elapsedMs >= 800)
+                        {
+                            var instant = (bytesDone - lastSampleBytes) * 1000.0 / elapsedMs;
+                            smoothedSpeed = smoothedSpeed <= 0
+                                ? instant
+                                : smoothedSpeed * 0.6 + instant * 0.4;
+                            lastSampleMs = nowMs;
+                            lastSampleBytes = bytesDone;
+                        }
+
                         progress?.Report(new DownloadProgress
                         {
                             Completed = completed,
                             Total = files.Count,
                             BytesDone = bytesDone,
                             TotalBytes = totalBytes,
-                            CurrentFile = Path.GetFileName(current.Path)
+                            CurrentFile = Path.GetFileName(current.Path),
+                            SpeedBytesPerSecond = smoothedSpeed
                         });
                     }
                 }

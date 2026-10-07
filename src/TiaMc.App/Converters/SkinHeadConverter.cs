@@ -59,9 +59,18 @@ public sealed class SkinHeadConverter : IValueConverter
         {
             try
             {
-                head = File.Exists(candidate)
-                    ? LoadLocal(candidate)
-                    : Task.Run(() => LoadRemote(candidate)).GetAwaiter().GetResult();
+                if (File.Exists(candidate))
+                {
+                    head = LoadLocal(candidate);
+                }
+                else
+                {
+                    // 不能在这里同步等网络：以前最长会卡住 UI 15 秒。
+                    // 改成"先返回空、后台下载并写缓存"，下次刷新（切账户/刷新皮肤库）就会显示出来。
+                    var url = candidate;
+                    _ = Task.Run(() => LoadRemote(url));
+                    head = null;
+                }
 
                 if (head is not null) break;
             }
