@@ -151,6 +151,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         DownloadServerCoreCommand = new AsyncRelayCommand(DownloadServerCoreAsync);
         CreateServerInstanceCommand = new AsyncRelayCommand(CreateServerInstanceAsync);
         RefreshServerInstancesCommand = new RelayCommand(RefreshServerInstances);
+        LoadLoaderVersionsCommand = new AsyncRelayCommand(LoadLoaderVersionsAsync);
+        InstallLoaderCommand = new AsyncRelayCommand(InstallLoaderAsync);
         OpenServerInstanceCommand = new RelayCommand(OpenServerInstance);
         DeleteServerInstanceCommand = new RelayCommand(DeleteServerInstance);
         StartServerInstanceCommand = new AsyncRelayCommand(StartServerInstanceAsync);
@@ -4074,6 +4076,100 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         LogService.Info($"已从皮肤库移除 {skin.Name}", "皮肤");
     }
 
+    // ------------------------------------------------------------ 加载器（Forge / NeoForge / Fabric / Quilt / OptiFine）
+    /// <summary>可选的加载器种类（第一个是原版，不装加载器）。</summary>
+    public ObservableCollection<string> LoaderKinds { get; } =
+        ["原版（不装加载器）", "Forge", "NeoForge", "Fabric", "Quilt", "OptiFine"];
+
+    private string _selectedLoaderKind = "Fabric";
+    public string SelectedLoaderKind
+    {
+        get => _selectedLoaderKind;
+        set { if (Set(ref _selectedLoaderKind, value)) Raise(); }
+    }
+
+    /// <summary>加载器版本的候选列表（按所选游戏版本从官方源拉取）。</summary>
+    public ObservableCollection<TiaMc.Core.Loaders.LoaderVersion> LoaderVersions { get; } = [];
+
+    private TiaMc.Core.Loaders.LoaderVersion? _selectedLoaderVersion;
+    public TiaMc.Core.Loaders.LoaderVersion? SelectedLoaderVersion
+    {
+        get => _selectedLoaderVersion;
+        set { if (Set(ref _selectedLoaderVersion, value)) Raise(); }
+    }
+
+    private string _loaderGameVersion = "1.21.4";
+    /// <summary>要装加载器的游戏版本（默认跟着版本列表里选中的那个）。</summary>
+    public string LoaderGameVersion
+    {
+        get => _loaderGameVersion;
+        set { if (Set(ref _loaderGameVersion, value)) Raise(); }
+    }
+
+    private string _loaderStatus = "先填/选游戏版本 → 获取加载器版本 → 选一个 → 安装加载器";
+    public string LoaderStatus
+    {
+        get => _loaderStatus;
+        private set { if (Set(ref _loaderStatus, value)) Raise(); }
+    }
+
+    public AsyncRelayCommand LoadLoaderVersionsCommand { get; private set; } = null!;
+    public AsyncRelayCommand InstallLoaderCommand { get; private set; } = null!;
+
+    private TiaMc.Core.Loaders.LoaderKind CurrentLoaderKind =>
+        TiaMc.Core.Loaders.LoaderCatalog.Parse(SelectedLoaderKind);
+
+    private async Task LoadLoaderVersionsAsync()
+    {
+        var kind = CurrentLoaderKind;
+        if (kind == TiaMc.Core.Loaders.LoaderKind.Vanilla)
+        {
+            LoaderVersions.Clear();
+            LoaderStatus = "原版不需要加载器";
+            return;
+        }
+
+        var game = string.IsNullOrWhiteSpace(LoaderGameVersion) ? "1.21.4" : LoaderGameVersion.Trim();
+        LoaderStatus = $"正在获取 {SelectedLoaderKind} 在 {game} 下的版本…";
+
+        var list = await _loaderCatalog.GetVersionsAsync(kind, game).ConfigureAwait(false);
+        Ui.Post(() =>
+        {
+            LoaderVersions.Clear();
+            foreach (var item in list) LoaderVersions.Add(item);
+            SelectedLoaderVersion = LoaderVersions.FirstOrDefault(v => v.Recommended) ?? LoaderVersions.FirstOrDefault();
+            LoaderStatus = list.Count == 0
+                ? $"{SelectedLoaderKind} 在 {game} 下没有可用版本（换游戏版本或检查网络）"
+                : $"{SelectedLoaderKind} {game}：{list.Count} 个版本可选";
+        });
+    }
+
+    private async Task InstallLoaderAsync()
+    {
+        var kind = CurrentLoaderKind;
+        if (kind == TiaMc.Core.Loaders.LoaderKind.Vanilla) { LoaderStatus = "原版不需要装加载器"; return; }
+
+        var picked = SelectedLoaderVersion;
+        if (picked is null) { LoaderStatus = "先「获取加载器版本」并选中一个版本"; return; }
+
+        var game = string.IsNullOrWhiteSpace(LoaderGameVersion) ? picked.GameVersion : LoaderGameVersion.Trim();
+        var java = ResolveJavaForServer(game);
+
+        LoaderStatus = $"正在安装 {SelectedLoaderKind} {picked.Version}（{game}）…";
+        LogService.Info($"安装加载器 {SelectedLoaderKind} {picked.Version} → {game}，用 Java: {java}", "加载器");
+
+        var progress = new Progress<string>(line => LogService.Info("  " + line, "加载器"));
+        var result = await _loaderInstaller
+            .InstallAsync(kind, game, picked.Version, RootPath, java, progress)
+            .ConfigureAwait(false);
+
+        Ui.Post(() =>
+        {
+            LoaderStatus = result.Message;
+            if (result.Ok) LogService.Ok(result.Message, "加载器");
+            else LogService.Error(result.Message + "  " + result.Detail, "加载器");
+        });
+    }
     // ------------------------------------------------------------ 服务端核心（PaperMC Fill API）
     private readonly TiaMc.Core.Servers.ServerCoreCatalog _coreCatalog = new();
 
@@ -4120,6 +4216,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public RelayCommand StopServerInstanceCommand { get; private set; } = null!;
 
     private readonly TiaMc.Core.Servers.ServerRunner _serverRunner = new();
+    private readonly TiaMc.Core.Loaders.LoaderCatalog _loaderCatalog = new();
+    private readonly TiaMc.Core.Loaders.LoaderInstaller _loaderInstaller = new();
 
     /// <summary>启动选中的服务端实例：核心 + 按版本挑的 Java，输出进「输出窗口」。</summary>
     private async Task StartServerInstanceAsync()

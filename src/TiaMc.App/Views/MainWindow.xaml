@@ -813,6 +813,26 @@
                                 <Button Style="{StaticResource Tia.Button.Primary}" Content="下载并安装选中版本"
                                         Command="{Binding InstallVersionCommand}"
                                         CommandParameter="{Binding SelectedRemoteVersion}" />
+                                    <Separator Style="{StaticResource Tia.Separator}" Margin="6,2" />
+                                    <TextBlock Text="加载器" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" Margin="4,0,4,0" />
+                                    <ComboBox Width="130" VerticalAlignment="Center"
+                                              ItemsSource="{Binding LoaderKinds}"
+                                              SelectedItem="{Binding SelectedLoaderKind, Mode=TwoWay}" />
+                                    <TextBlock Text="游戏版本" Style="{StaticResource Tia.Label}" VerticalAlignment="Center" Margin="8,0,4,0" />
+                                    <TextBox Width="80" VerticalAlignment="Center"
+                                             Text="{Binding LoaderGameVersion, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="要装加载器的游戏版本，例如 1.21.4" />
+                                    <Button Style="{StaticResource Tia.Button.Tool}" Content="获取加载器版本"
+                                            Command="{Binding LoadLoaderVersionsCommand}" Margin="8,0,0,0"
+                                            ToolTip="从官方源（Fabric meta / NeoForge maven / Forge promotions / OptiFine 下载页）列出可安装的版本" />
+                                    <ComboBox Width="170" VerticalAlignment="Center" Margin="8,0,0,0"
+                                              ItemsSource="{Binding LoaderVersions}"
+                                              SelectedItem="{Binding SelectedLoaderVersion, Mode=TwoWay}"
+                                              DisplayMemberPath="Display"
+                                              ToolTip="选择要安装的加载器版本（带「推荐」的是官方推荐版）" />
+                                    <Button Style="{StaticResource Tia.Button.Primary}" Content="安装加载器"
+                                            Command="{Binding InstallLoaderCommand}" Margin="8,0,0,0"
+                                            ToolTip="Fabric/Quilt：写官方 profile JSON；Forge/NeoForge：跑 --installClient；OptiFine：打开官方图形安装器" />
                                 <TextBlock Style="{StaticResource Tia.MutedText}" VerticalAlignment="Center"
                                            Margin="12,0,0,0" Text="{Binding RemoteLatestText}" />
                             </StackPanel>
