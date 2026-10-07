@@ -150,6 +150,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         LoadServerCoreBuildsCommand = new AsyncRelayCommand(LoadServerCoreBuildsAsync);
         DownloadServerCoreCommand = new AsyncRelayCommand(DownloadServerCoreAsync);
         CreateServerInstanceCommand = new AsyncRelayCommand(CreateServerInstanceAsync);
+        RefreshServerInstancesCommand = new RelayCommand(RefreshServerInstances);
+        OpenServerInstanceCommand = new RelayCommand(OpenServerInstance);
+        DeleteServerInstanceCommand = new RelayCommand(DeleteServerInstance);
         // 删除本地版本（删除 versions/<id> 整个目录，共享的存档/模组不动）
         DeleteVersionCommand = new RelayCommand(DeleteSelectedVersion,
             () => SelectedVersion is not null && !_launcher.IsRunning);
@@ -4098,6 +4101,74 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public AsyncRelayCommand LoadServerCoreBuildsCommand { get; private set; } = null!;
     public AsyncRelayCommand DownloadServerCoreCommand { get; private set; } = null!;
     public AsyncRelayCommand CreateServerInstanceCommand { get; private set; } = null!;
+    public RelayCommand RefreshServerInstancesCommand { get; private set; } = null!;
+    public RelayCommand OpenServerInstanceCommand { get; private set; } = null!;
+    public RelayCommand DeleteServerInstanceCommand { get; private set; } = null!;
+
+    /// <summary>本机已有的服务端实例（server-cores / serverpacks 两个目录都扫）。</summary>
+    public ObservableCollection<TiaMc.Core.Servers.ServerInstanceScanner.ServerInstance> ServerInstances { get; } = [];
+
+    private TiaMc.Core.Servers.ServerInstanceScanner.ServerInstance? _selectedServerInstance;
+    public TiaMc.Core.Servers.ServerInstanceScanner.ServerInstance? SelectedServerInstance
+    {
+        get => _selectedServerInstance;
+        set { if (Set(ref _selectedServerInstance, value)) Raise(); }
+    }
+
+    /// <summary>重新扫描服务端实例（学 MCSManager 的实例列表刷新）。</summary>
+    public void RefreshServerInstances()
+    {
+        var list = TiaMc.Core.Servers.ServerInstanceScanner.Scan(RootPath);
+        Ui.Post(() =>
+        {
+            var selectedPath = SelectedServerInstance?.Path;
+            ServerInstances.Clear();
+            foreach (var item in list) ServerInstances.Add(item);
+            SelectedServerInstance = ServerInstances.FirstOrDefault(i => i.Path == selectedPath)
+                                     ?? ServerInstances.FirstOrDefault();
+            Raise(nameof(ServerInstanceSummary));
+        });
+    }
+
+    public string ServerInstanceSummary => ServerInstances.Count == 0
+        ? "还没有服务端实例：用上面的「生成可运行的服务端实例」或「导入服务端整合包…」创建一个"
+        : $"已安装 {ServerInstances.Count} 个服务端实例" +
+          $"（核心 {ServerInstances.Count(i => i.Kind == "core")} · 整合包 {ServerInstances.Count(i => i.Kind == "pack")}）";
+
+    private void OpenServerInstance()
+    {
+        var item = SelectedServerInstance;
+        if (item is null) { ServerCoreStatus = "先选中一个服务端实例"; return; }
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = item.Path,
+            UseShellExecute = true
+        });
+    }
+
+    private void DeleteServerInstance()
+    {
+        var item = SelectedServerInstance;
+        if (item is null) { ServerCoreStatus = "先选中一个服务端实例"; return; }
+
+        var answer = System.Windows.MessageBox.Show(
+            System.Windows.Application.Current.MainWindow,
+            $"确定删除服务端实例 {item.Name}？\\n\\n会删除整个目录：{item.Path}\\n（含世界存档与配置，不可撤销）",
+            "删除服务端实例", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+        if (answer != System.Windows.MessageBoxResult.Yes) return;
+
+        try
+        {
+            Directory.Delete(item.Path, recursive: true);
+            LogService.Ok($"已删除服务端实例 {item.Name}", "服务端");
+        }
+        catch (Exception e)
+        {
+            LogService.Error("删除失败（服务端可能正在运行）：" + e.Message, "服务端");
+        }
+
+        RefreshServerInstances();
+    }
 
     private async Task LoadServerCoresAsync()
     {
@@ -4172,6 +4243,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         }
 
         ServerCoreStatus = $"服务端实例已生成：{created.Directory}";
+        RefreshServerInstances();
         LogService.Ok($"服务端实例已生成：{created.Directory}", "服务端");
         LogService.Info("启动命令：" + created.StartupCommand, "服务端");
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo

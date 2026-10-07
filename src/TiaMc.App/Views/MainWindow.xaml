@@ -1729,6 +1729,8 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
+                                <RowDefinition Height="4" />
+                                <RowDefinition Height="*" MinHeight="120" />
                             </Grid.RowDefinitions>
 
                             <Border Grid.Row="0" Style="{StaticResource Tia.Toolbar}">
@@ -1746,7 +1748,17 @@
                                     <Button Style="{StaticResource Tia.Button.Tool}" Content="获取构建"
                                             Command="{Binding LoadServerCoreBuildsCommand}" Margin="10,0,0,0" />
                                     <Button Style="{StaticResource Tia.Button.Primary}" Content="生成可运行的服务端实例" Command="{Binding CreateServerInstanceCommand}" Margin="10,0,0,0" ToolTip="下载核心并生成实例目录：eula.txt / server.properties / start.bat / 启动说明.txt，然后打开目录" />
-                                    <Button Style="{StaticResource Tia.Button.Primary}" Content="下载选中核心"
+                                    <Button Style="{StaticResource Tia.Button.Tool}" Content="导入服务端整合包…"
+                                            Click="ImportServerPack_Click" Margin="10,0,0,0"
+                                            ToolTip="导入 .mrpack / zip / Forge·NeoForge 安装器 jar，按服务端一侧安装" />
+                                    <Button Style="{StaticResource Tia.Button.Primary}" Content="启动服务端"
+                                            Click="StartServerPack_Click" Margin="10,0,0,0"
+                                            ToolTip="为服务端整合包补齐 eula / server.properties（按版本自动选 Java），必要时先跑 --installServer 再启动；输出会进下面的「输出窗口」" />
+                                    <Button Style="{StaticResource Tia.Button.Tool}" Content="停止服务端"
+                                            Click="StopServerPack_Click" Margin="10,0,0,0" />
+                                    <Button Style="{StaticResource Tia.Button.Tool}" Content="打开实例目录"
+                                            Click="OpenPackFolder_Click" Margin="10,0,0,0" />
+                                                                        <Button Style="{StaticResource Tia.Button.Primary}" Content="下载选中核心"
                                             Command="{Binding DownloadServerCoreCommand}" Margin="10,0,0,0"
                                             ToolTip="用多线程分段下载器下载并按 sha256 校验，保存到 &lt;MC&gt;\server-cores\" />
                                 </StackPanel>
@@ -1769,6 +1781,32 @@
                                     <DataGridTextColumn Header="大小" Binding="{Binding Size, StringFormat={}{0:N0} B}" Width="120" />
                                 </DataGrid.Columns>
                             </DataGrid>
+
+                            <GridSplitter Grid.Row="3" Style="{StaticResource Tia.Splitter.H}" HorizontalAlignment="Stretch" />
+                            <Border Grid.Row="4" Background="{DynamicResource Tia.PanelBg}" BorderBrush="{DynamicResource Tia.Border}" BorderThickness="0,1,0,0" Padding="10,6">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Top" Text="{Binding ServerInstanceSummary}" Style="{StaticResource Tia.MutedText}" Margin="0,0,0,4" />
+                                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
+                                        <Button Style="{StaticResource Tia.Button.Tool}" Content="刷新实例列表" Command="{Binding RefreshServerInstancesCommand}" />
+                                        <Button Style="{StaticResource Tia.Button.Tool}" Content="打开实例目录" Command="{Binding OpenServerInstanceCommand}" Margin="8,0,0,0" />
+                                        <Button Style="{StaticResource Tia.Button.Tool}" Content="删除实例" Command="{Binding DeleteServerInstanceCommand}" Margin="8,0,0,0" />
+                                        <TextBlock Style="{StaticResource Tia.MutedText}" VerticalAlignment="Center" Margin="12,0,0,0" Text="启动/停止服务端请用上面的按钮（服务端输出在下方「输出窗口」）" />
+                                    </StackPanel>
+                                    <DataGrid ItemsSource="{Binding ServerInstances}" SelectedItem="{Binding SelectedServerInstance, Mode=TwoWay}"
+                                              AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" RowHeight="22"
+                                              BorderThickness="0" Background="{DynamicResource Tia.PanelBg}"
+                                              RowBackground="{DynamicResource Tia.ContentBg}" AlternatingRowBackground="{DynamicResource Tia.RowAlt}">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="实例" Binding="{Binding Name}" Width="*" />
+                                            <DataGridTextColumn Header="类型" Binding="{Binding Kind}" Width="70" />
+                                            <DataGridTextColumn Header="核心" Binding="{Binding CoreJar}" Width="200" />
+                                            <DataGridTextColumn Header="端口" Binding="{Binding Port}" Width="70" />
+                                            <DataGridCheckBoxColumn Header="eula" Binding="{Binding HasEula}" Width="60" />
+                                            <DataGridCheckBoxColumn Header="脚本" Binding="{Binding HasStartScript}" Width="60" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </DockPanel>
+                            </Border>
                         </Grid>
                     </TabItem>
             </TabControl>
