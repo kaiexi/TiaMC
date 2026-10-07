@@ -149,6 +149,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         LoadServerCoresCommand = new AsyncRelayCommand(LoadServerCoresAsync);
         LoadServerCoreBuildsCommand = new AsyncRelayCommand(LoadServerCoreBuildsAsync);
         DownloadServerCoreCommand = new AsyncRelayCommand(DownloadServerCoreAsync);
+        CreateServerInstanceCommand = new AsyncRelayCommand(CreateServerInstanceAsync);
         // 删除本地版本（删除 versions/<id> 整个目录，共享的存档/模组不动）
         DeleteVersionCommand = new RelayCommand(DeleteSelectedVersion,
             () => SelectedVersion is not null && !_launcher.IsRunning);
@@ -4091,6 +4092,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public AsyncRelayCommand LoadServerCoresCommand { get; private set; } = null!;
     public AsyncRelayCommand LoadServerCoreBuildsCommand { get; private set; } = null!;
     public AsyncRelayCommand DownloadServerCoreCommand { get; private set; } = null!;
+    public AsyncRelayCommand CreateServerInstanceCommand { get; private set; } = null!;
 
     private async Task LoadServerCoresAsync()
     {
@@ -4134,6 +4136,61 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         });
     }
 
+    /// <summary>
+    /// 把选中的核心做成一个能跑的服务端实例（学 MCSManager 的实例目录）：
+    /// 下载核心 → 生成 eula.txt / server.properties / start.bat / 启动说明.txt → 打开目录。
+    /// </summary>
+    private async Task CreateServerInstanceAsync()
+    {
+        var build = SelectedServerCoreBuild;
+        if (build is null) { ServerCoreStatus = "先获取并选中一个构建"; return; }
+
+        await DownloadServerCoreAsync().ConfigureAwait(false);
+
+        var java = ResolveJavaForServer(build.GameVersion);
+        var created = TiaMc.Core.Servers.ServerInstanceCreator.Create(
+            RootPath, build.Project, build.GameVersion, build.FileName,
+            25565, Math.Max(1024, Config.MaxMemoryMb), java);
+
+        try
+        {
+            var jar = Path.Combine(RootPath, "server-cores", build.FileName);
+            var target = Path.Combine(created.Directory, build.FileName);
+            if (File.Exists(jar) && !string.Equals(jar, target, StringComparison.OrdinalIgnoreCase))
+            {
+                File.Move(jar, target, overwrite: true);
+            }
+        }
+        catch (Exception e)
+        {
+            LogService.Warn("核心移动失败（不影响已生成的配置）：" + e.Message, "服务端");
+        }
+
+        ServerCoreStatus = $"服务端实例已生成：{created.Directory}";
+        LogService.Ok($"服务端实例已生成：{created.Directory}", "服务端");
+        LogService.Info("启动命令：" + created.StartupCommand, "服务端");
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = created.Directory,
+            UseShellExecute = true
+        });
+    }
+
+    /// <summary>为服务端挑一个够用的 Java（服务端要的版本可能和客户端实例不同）。</summary>
+    private string ResolveJavaForServer(string gameVersion)
+    {
+        var needed = TiaMc.Core.Servers.ServerInstanceCreator.RecommendedJava(gameVersion);
+        var match = _launcher.JavaRuntimes.Where(j => j.MajorVersion >= needed)
+            .OrderBy(j => j.MajorVersion).FirstOrDefault();
+        if (match is not null)
+        {
+            LogService.Info($"服务端需要 Java {needed}+，选用 Java {match.MajorVersion}: {match.Path}", "服务端");
+            return match.Path;
+        }
+
+        LogService.Warn($"没有找到 Java {needed}+，启动脚本将使用 PATH 里的 java", "服务端");
+        return "java";
+    }
     private async Task DownloadServerCoreAsync()
     {
         var build = SelectedServerCoreBuild;

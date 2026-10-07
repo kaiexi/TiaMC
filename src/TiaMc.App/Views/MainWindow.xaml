@@ -1745,6 +1745,7 @@
                                               Text="{Binding SelectedServerCoreVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     <Button Style="{StaticResource Tia.Button.Tool}" Content="获取构建"
                                             Command="{Binding LoadServerCoreBuildsCommand}" Margin="10,0,0,0" />
+                                    <Button Style="{StaticResource Tia.Button.Primary}" Content="生成可运行的服务端实例" Command="{Binding CreateServerInstanceCommand}" Margin="10,0,0,0" ToolTip="下载核心并生成实例目录：eula.txt / server.properties / start.bat / 启动说明.txt，然后打开目录" />
                                     <Button Style="{StaticResource Tia.Button.Primary}" Content="下载选中核心"
                                             Command="{Binding DownloadServerCoreCommand}" Margin="10,0,0,0"
                                             ToolTip="用多线程分段下载器下载并按 sha256 校验，保存到 &lt;MC&gt;\server-cores\" />
